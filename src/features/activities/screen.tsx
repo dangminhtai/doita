@@ -12,8 +12,10 @@ export function ActivitiesScreen() {
     [energy, setEnergy] = useState("low"),
     [preference, setPreference] = useState("random"),
     [chosen, setChosen] = useState<Activity | null>(null),
-    [seen, setSeen] = useState<string[]>([]);
+    [seen, setSeen] = useState<string[]>([]),
+    [attempted, setAttempted] = useState(false);
   function choose() {
+    setAttempted(true);
     const pool = recommend(
       d.activities as Activity[],
       time,
@@ -131,7 +133,7 @@ export function ActivitiesScreen() {
       ) : (
         <div className="activity-placeholder">
           <Sparkles size={54} />
-          <p>{seen.length ? C.activities.none : C.activities.subtitle}</p>
+          <p>{attempted ? C.activities.none : C.activities.subtitle}</p>
         </div>
       )}
     </>

@@ -1,6 +1,6 @@
 "use client";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { CONTENT as C } from "@/config/content.vi";
 import { useApp } from "./app-context";
 export function Button({
@@ -75,14 +75,21 @@ export function PageTitle({
 export function useDraft(key: string) {
   const { user } = useApp();
   const storageKey = `couple-draft:${user?.id}:${key}`;
-  const [value, setValue] = useState("");
+  const [draft, setDraft] = useState({ key: storageKey, value: "" });
+  const currentKey = useRef(storageKey);
+  const value = draft.key === storageKey ? draft.value : "";
   useEffect(() => {
+    currentKey.current = storageKey;
     try {
-      setValue(localStorage.getItem(storageKey) ?? "");
+      setDraft({
+        key: storageKey,
+        value: localStorage.getItem(storageKey) ?? "",
+      });
     } catch {}
   }, [storageKey]);
   function update(text: string) {
-    setValue(text);
+    if (currentKey.current === storageKey)
+      setDraft({ key: storageKey, value: text });
     try {
       if (text) localStorage.setItem(storageKey, text);
       else localStorage.removeItem(storageKey);

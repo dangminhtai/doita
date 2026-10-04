@@ -5,6 +5,7 @@ import {
   useEffect,
   useState,
   useCallback,
+  useRef,
   type ReactNode,
 } from "react";
 import type { User } from "@supabase/supabase-js";
@@ -17,8 +18,10 @@ import {
 import { CONTENT as C } from "@/config/content.vi";
 import { enabled } from "@/config/app.config";
 import { actionErrorMessage } from "@/lib/action-error";
+import { localDate } from "@/lib/date";
 export type Row = Record<string, any>;
 export type Data = {
+  errors: Record<string, string>;
   couple: Row | null;
   profiles: Row[];
   members: Row[];
@@ -32,12 +35,15 @@ export type Data = {
   prayers: Row[];
   prayerEvents: Row[];
   memories: Row[];
+  onThisDay: Row[];
+  memoryCount: number;
   moods: Row[];
   activities: Row[];
   activityHistory: Row[];
   dates: Row[];
 };
 const blank: Data = {
+  errors: {},
   couple: null,
   profiles: [],
   members: [],
@@ -51,6 +57,8 @@ const blank: Data = {
   prayers: [],
   prayerEvents: [],
   memories: [],
+  onThisDay: [],
+  memoryCount: 0,
   moods: [],
   activities: [],
   activityHistory: [],
@@ -60,12 +68,13 @@ type Context = {
   user: User | null;
   data: Data;
   loading: boolean;
+  loadError: boolean;
   busy: boolean;
   message: string;
   error: boolean;
   limit: number;
   setLimit: (n: number) => void;
-  load: () => Promise<void>;
+  load: () => Promise<boolean>;
   run: (fn: () => Promise<unknown>, message?: string) => Promise<boolean>;
   notify: (message: string, error?: boolean) => void;
   recovery: boolean;
@@ -90,13 +99,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [message, setMessage] = useState(""),
     [error, setError] = useState(false),
     [limit, setLimit] = useState(30),
-    [recovery, setRecovery] = useState(false);
+    [recovery, setRecovery] = useState(false),
+    [loadError, setLoadError] = useState(false);
+  const requestVersion = useRef(0);
+  const currentUser = useRef<string | null>(null);
+  const busyRef = useRef(false);
   const notify = useCallback((msg: string, err = false) => {
     setMessage(msg);
     setError(err);
   }, []);
   const load = useCallback(async () => {
-    if (!user) return;
+    if (!user || currentUser.current !== user.id) return false;
+    const version = ++requestVersion.current;
+    const current = () =>
+      version === requestVersion.current && currentUser.current === user.id;
     try {
       const database = db();
       const membership = await database
@@ -112,8 +128,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .maybeSingle();
       if (profile.error) throw profile.error;
       if (!membership.data) {
+        if (!current()) return false;
         setData({ ...blank, profiles: profile.data ? [profile.data] : [] });
-        return;
+        setLoadError(false);
+        return true;
       }
       const cid = membership.data.couple_id;
       const couple = await database
@@ -122,7 +140,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         .eq("id", cid)
         .single();
       if (couple.error) throw couple.error;
-      if (enabled("daily")) await rpc("ensure_daily");
+      const featureErrors: Record<string, string> = {};
+      if (enabled("daily")) {
+        try {
+          await rpc("ensure_daily");
+        } catch (e) {
+          featureErrors.daily_sessions = actionErrorMessage(e);
+        }
+      }
       const tables = [
         "couple_members",
         "daily_sessions",
@@ -139,41 +164,59 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ];
       const results = await Promise.all(
         tables.map(async (table) => {
-          let q = database
-            .from(table)
-            .select(
-              table === "daily_sessions" ? "*,daily_prompts(prompt)" : "*",
-            );
-          if (!["profiles", "activities"].includes(table))
-            q = q.eq("couple_id", cid);
-          if (table === "profiles")
-            q = q.in("id", [
-              user.id,
-              ...((
-                await database
-                  .from("couple_members")
-                  .select("user_id")
-                  .eq("couple_id", cid)
-              ).data?.map((m) => m.user_id) ?? []),
-            ]);
-          if (table === "daily_sessions")
-            q = q.order("date", { ascending: false }).limit(30);
-          else if (table === "streak_events")
-            q = q.order("date", { ascending: false }).limit(90);
-          else if (["notes", "prayers", "memories"].includes(table))
-            q = q.order("created_at", { ascending: false }).limit(limit);
-          else if (["moods", "activity_sessions"].includes(table))
-            q = q.order("created_at", { ascending: false }).limit(90);
-          else if (table === "special_dates")
-            q = q.order("date", { ascending: true });
-          const result = await q;
-          if (result.error) throw result.error;
-          return (result.data ?? []) as unknown as Row[];
+          try {
+            let q = database
+              .from(table)
+              .select(
+                table === "daily_sessions" ? "*,daily_prompts(prompt)" : "*",
+              );
+            if (!["profiles", "activities"].includes(table))
+              q = q.eq("couple_id", cid);
+            if (table === "profiles")
+              q = q.in("id", [
+                user.id,
+                ...((
+                  await database
+                    .from("couple_members")
+                    .select("user_id")
+                    .eq("couple_id", cid)
+                ).data?.map((m) => m.user_id) ?? []),
+              ]);
+            if (table === "daily_sessions")
+              q = q.order("date", { ascending: false }).limit(30);
+            else if (table === "streak_events")
+              q = q.order("date", { ascending: false }).limit(90);
+            else if (["notes", "prayers", "memories"].includes(table))
+              q = q.order("created_at", { ascending: false }).limit(limit);
+            else if (["moods", "activity_sessions"].includes(table))
+              q = q.order("created_at", { ascending: false }).limit(90);
+            else if (table === "special_dates")
+              q = q.order("date", { ascending: true });
+            const result = await q;
+            if (result.error) throw result.error;
+            return (result.data ?? []) as unknown as Row[];
+          } catch (e) {
+            featureErrors[table] = actionErrorMessage(e);
+            return [];
+          }
         }),
       );
       const t: Record<string, Row[]> = Object.fromEntries(
         tables.map((table, i) => [table, results[i]]),
       );
+      const [
+        { data: onThisDay, error: anniversaryError },
+        { count: memoryCount, error: countError },
+      ] = await Promise.all([
+        database.rpc("memories_on_this_day"),
+        database
+          .from("memories")
+          .select("id", { head: true, count: "exact" })
+          .eq("couple_id", cid),
+      ]);
+      if (anniversaryError)
+        featureErrors.memories = actionErrorMessage(anniversaryError);
+      if (countError) featureErrors.memories = actionErrorMessage(countError);
       const latest = t.daily_sessions[0] ?? null;
       const today: Row | null = latest
         ? { ...latest, prompt: latest.daily_prompts?.prompt }
@@ -203,13 +246,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 { ascending: true },
               )
               .range(offset, offset + 499);
-            if (error) throw error;
+            if (error) {
+              featureErrors[table] = actionErrorMessage(error);
+              break;
+            }
             t[table].push(...rows);
             if (rows.length < 500) break;
           }
         }),
       );
+      if (!current()) return false;
+      setLoadError(false);
       setData({
+        errors: featureErrors,
         couple: couple.data,
         profiles: t.profiles,
         members: t.couple_members,
@@ -225,12 +274,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
         prayers: t.prayers,
         prayerEvents: t.prayer_events,
         memories: t.memories,
+        onThisDay: onThisDay ?? [],
+        memoryCount: memoryCount ?? 0,
         moods: t.moods,
         activities: t.activities,
         activityHistory: t.activity_sessions,
         dates: t.special_dates,
       });
+      if (Object.keys(featureErrors).length) {
+        notify(C.errors.loadFailed, true);
+        return false;
+      }
+      return true;
     } catch (e) {
+      if (!current()) return false;
+      setLoadError(true);
       console.error("Load data", e);
       const missingTable =
         typeof e === "object" &&
@@ -238,8 +296,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         "code" in e &&
         e.code === "PGRST205";
       notify(missingTable ? C.errors.databaseSetup : C.errors.generic, true);
+      return false;
     } finally {
-      setLoading(false);
+      if (current()) setLoading(false);
     }
   }, [user, limit, notify]);
   useEffect(() => {
@@ -248,15 +307,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
     const client = db();
-    client.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-      setLoading(false);
-    });
     const { data: listener } = client.auth.onAuthStateChange(
       (event, session) => {
+        const id = session?.user.id ?? null;
+        if (id !== currentUser.current || !session) {
+          requestVersion.current++;
+          currentUser.current = id;
+          setData(blank);
+          setLoadError(false);
+          setRecovery(false);
+          setLoading(Boolean(id));
+        }
         if (event === "PASSWORD_RECOVERY") setRecovery(true);
         setUser(session?.user ?? null);
-        if (!session) setData(blank);
+        if (!session) {
+          setLoading(false);
+          if (event === "SIGNED_OUT") clearDrafts();
+        }
+        if (session && location.hash.includes("access_token=")) {
+          history.replaceState(
+            history.state,
+            "",
+            location.pathname + location.search,
+          );
+        }
       },
     );
     return () => listener.subscription.unsubscribe();
@@ -271,25 +345,87 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const cid = data.couple?.id;
     if (!cid || !user) return;
     const channel = db().channel(`couple-${cid}`);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const refresh = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => void load(), 200);
+    };
     for (const table of [
       "daily_sessions",
       "notes",
       "moods",
       "prayers",
       "memories",
+      "special_dates",
+      "streaks",
+      "streak_events",
+      "activity_sessions",
+      "couple_members",
     ])
       channel.on(
         "postgres_changes",
         { event: "*", schema: "public", table, filter: `couple_id=eq.${cid}` },
-        () => {
-          void load();
-        },
+        refresh,
       );
+    channel.on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "couples",
+        filter: `id=eq.${cid}`,
+      },
+      refresh,
+    );
+    for (const id of data.members.map((m) => m.user_id)) {
+      channel.on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "profiles",
+          filter: `id=eq.${id}`,
+        },
+        refresh,
+      );
+    }
     channel.subscribe();
     return () => {
+      clearTimeout(timer);
       void db().removeChannel(channel);
     };
-  }, [data.couple?.id, user?.id, load]);
+  }, [
+    data.couple?.id,
+    data.members.map((m) => m.user_id).join(","),
+    user?.id,
+    load,
+  ]);
+  useEffect(() => {
+    if (!user) return;
+    const refresh = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+    let date = localDate(new Date(), data.couple?.timezone);
+    const timer = setInterval(() => {
+      const next = localDate(new Date(), data.couple?.timezone);
+      if (next !== date) {
+        date = next;
+        void load();
+      }
+    }, 30000);
+    const pushTimer = setInterval(() => {
+      if (document.visibilityState === "visible") void flushNotifications();
+    }, 120000);
+    void flushNotifications();
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      clearInterval(timer);
+      clearInterval(pushTimer);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [user?.id, data.couple?.timezone, load]);
   useEffect(() => {
     if ("serviceWorker" in navigator)
       navigator.serviceWorker.register("/sw.js").catch(console.error);
@@ -298,30 +434,62 @@ export function AppProvider({ children }: { children: ReactNode }) {
     fn: () => Promise<unknown>,
     msg = C.common.success as string,
   ) => {
-    if (busy) return false;
+    if (busyRef.current) return false;
+    busyRef.current = true;
     setBusy(true);
     setMessage("");
     const actionPath = location.pathname;
+    const actionUser = currentUser.current;
     try {
       const result = await fn();
       if (result === false) return false;
-      if (location.pathname === actionPath) notify(msg);
-      await load();
+      const refreshed = user ? await load() : true;
+      if (
+        location.pathname === actionPath &&
+        actionUser === currentUser.current
+      )
+        notify(refreshed ? msg : C.errors.refreshFailed, !refreshed);
       return true;
     } catch (e) {
       console.error("Action failed", e);
-      if (location.pathname === actionPath) notify(actionErrorMessage(e), true);
+      if (
+        location.pathname === actionPath &&
+        actionUser === currentUser.current
+      )
+        notify(actionErrorMessage(e), true);
       return false;
     } finally {
+      busyRef.current = false;
       setBusy(false);
     }
   };
   const logout = async () => {
+    try {
+      if ("serviceWorker" in navigator) {
+        const registration = await navigator.serviceWorker.getRegistration();
+        const subscription = await registration?.pushManager?.getSubscription();
+        if (subscription) {
+          await authenticatedFetch("/api/push", {
+            method: "DELETE",
+            body: JSON.stringify({ endpoint: subscription.endpoint }),
+          });
+          await subscription.unsubscribe();
+        }
+      }
+      const { error } = await db().auth.signOut();
+      if (error) throw error;
+    } catch (e) {
+      notify(actionErrorMessage(e), true);
+      return;
+    }
+    requestVersion.current++;
+    currentUser.current = null;
     clearDrafts();
-    await db().auth.signOut();
     setUser(null);
     setData(blank);
     setMessage("");
+    setRecovery(false);
+    setLoadError(false);
   };
   return (
     <AppContext.Provider
@@ -329,6 +497,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         user,
         data,
         loading,
+        loadError,
         busy,
         message,
         error,

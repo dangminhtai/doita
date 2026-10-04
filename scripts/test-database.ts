@@ -234,7 +234,86 @@ assert.equal(
 console.log("PASS note visibility change removes shared memory reference");
 
 await as(A);
-await one(`select public.answer_daily('answer A')`);
+const draftPrayer = (
+  await one(
+    "select public.save_prayer('private draft','private',false,'draft') as id",
+  )
+).id;
+assert.equal(
+  (await one("select metadata from public.prayers where id=$1", [draftPrayer]))
+    .metadata.resurface,
+  false,
+);
+await one(
+  "select public.save_prayer('private draft','private',false,'released',$1)",
+  [draftPrayer],
+);
+assert.equal(
+  (
+    await one("select resurface_at from public.prayers where id=$1", [
+      draftPrayer,
+    ])
+  ).resurface_at,
+  null,
+);
+const currentDaily = (await one("select public.ensure_daily() as id")).id;
+await denied("select public.answer_daily('missing session')");
+await db.exec("reset role");
+const oldDaily = (
+  await one(
+    "insert into public.daily_sessions(couple_id,prompt_id,date) select $1,prompt_id,date-1 from public.daily_sessions where id=$2 returning id",
+    [cid, currentDaily],
+  )
+).id;
+await as(A);
+await denied("select public.answer_daily('stale content',$1)", [oldDaily]);
+assert.equal(
+  (
+    await db.query("select * from public.daily_answers where session_id=$1", [
+      currentDaily,
+    ])
+  ).rows.length,
+  0,
+);
+console.log(
+  "PASS prayer resurface intention and stale/missing daily session rejection",
+);
+await db.exec("reset role");
+const oldMemory = (
+  await one(
+    "insert into public.memories(couple_id,author_id,type,content,created_at) values($1,$2,'moment','old memory',now()-interval '1 year') returning id",
+    [cid, A],
+  )
+).id;
+await db.query(
+  "insert into public.memories(couple_id,author_id,type,content) select $1,$2,'moment','new memory' from generate_series(1,35)",
+  [cid, A],
+);
+await as(A);
+assert.ok(
+  (await db.query("select id from public.memories_on_this_day()")).rows.some(
+    (r: any) => r.id === oldMemory,
+  ),
+);
+assert.ok(
+  !(
+    await db.query(
+      "select id from public.memories order by created_at desc limit 30",
+    )
+  ).rows.some((r: any) => r.id === oldMemory),
+);
+await as(C);
+assert.equal(
+  (await db.query("select * from public.memories_on_this_day()")).rows.length,
+  0,
+);
+await as(A);
+console.log(
+  "PASS anniversary query independent of pagination and protected by RLS",
+);
+
+await as(A);
+await one(`select public.answer_daily('answer A',public.ensure_daily())`);
 assert.equal(
   (await db.query("select * from public.daily_answers")).rows.length,
   1,
@@ -247,7 +326,7 @@ assert.equal(
 await denied(
   `insert into public.daily_answers(session_id,user_id,content) select id,auth.uid(),'bypass' from public.daily_sessions`,
 );
-await one(`select public.answer_daily('answer B')`);
+await one(`select public.answer_daily('answer B',public.ensure_daily())`);
 assert.equal(
   (await db.query("select * from public.daily_answers")).rows.length,
   2,
@@ -256,7 +335,7 @@ assert.equal(
   (await one("select current_streak from public.streaks")).current_streak,
   1,
 );
-await one(`select public.answer_daily('duplicate')`);
+await one(`select public.answer_daily('duplicate',public.ensure_daily())`);
 assert.equal(
   (await one("select current_streak from public.streaks")).current_streak,
   1,
@@ -331,6 +410,62 @@ await denied("insert into storage.objects(bucket_id,name) values($1,$2)", [
 ]);
 console.log("PASS private storage policies");
 await as(B);
+const photoMemory = (
+  await one("select public.save_memory('asset tracking',$1) as id", [
+    `${cid}/${B}/photo.png`,
+  ])
+).id;
+await one("select public.delete_memory($1)", [photoMemory]);
+await db.exec("reset role");
+assert.equal(
+  (
+    await one("select cleanup from public.memory_assets where path=$1", [
+      `${cid}/${B}/photo.png`,
+    ])
+  ).cleanup,
+  true,
+);
+assert.ok(
+  (
+    await db.query(
+      "select tablename from pg_publication_tables where pubname='supabase_realtime'",
+    )
+  ).rows.some((r: any) => r.tablename === "special_dates"),
+);
+console.log(
+  "PASS durable photo cleanup after deleting memory and Realtime publication",
+);
+await db.query(
+  "insert into public.memory_assets(path,user_id,created_at) values($1,$2,now()-interval '2 days')",
+  [`${cid}/${B}/abandoned.png`, B],
+);
+await db.query("insert into public.memory_assets(path,user_id) values($1,$2)", [
+  `${cid}/${B}/uploading.png`,
+  B,
+]);
+await db.exec("select public.queue_abandoned_assets()");
+assert.equal(
+  (
+    await one("select cleanup from public.memory_assets where path=$1", [
+      `${cid}/${B}/abandoned.png`,
+    ])
+  ).cleanup,
+  true,
+);
+assert.equal(
+  (
+    await one("select cleanup from public.memory_assets where path=$1", [
+      `${cid}/${B}/uploading.png`,
+    ])
+  ).cleanup,
+  false,
+);
+await as(B);
+await denied("select public.queue_abandoned_assets()");
+console.log(
+  "PASS abandoned upload recovery waits 24 hours and is service-only",
+);
+await as(B);
 await one("select public.leave_couple()");
 for (const table of [
   "couples",
@@ -346,5 +481,22 @@ for (const table of [
   );
 await denied(`select public.set_mood('happy')`);
 console.log("PASS leave revokes read/write access");
+await db.exec("reset role");
+assert.equal(
+  (
+    await one("select user_id from public.memory_assets where path=$1", [
+      `${cid}/${B}/photo.png`,
+    ])
+  ).user_id,
+  B,
+);
+await as(C);
+await denied("select * from public.memory_assets");
+await denied("select public.queue_memory_cleanup($1)", [
+  `${cid}/${B}/photo.png`,
+]);
+console.log(
+  "PASS old-couple assets remain traceable and registry has no client access",
+);
 await db.close();
 console.log("Database integration suite passed.");

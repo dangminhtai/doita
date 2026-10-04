@@ -8,6 +8,7 @@ export const CONTENT = {
       "Không gian riêng của hai người: lời nhắn, kỷ niệm và những điều mong ước.",
   },
   common: {
+    openMenu: "Mở menu",
     save: "Lưu lại",
     cancel: "Hủy",
     delete: "Xóa",
@@ -65,9 +66,8 @@ export const CONTENT = {
     reset: "Đổi mật khẩu",
     sent: "Đã gửi email khôi phục.",
     newPassword: "Mật khẩu mới",
-    setup: "Cần cấu hình kết nối trước khi bắt đầu",
-    setupBody:
-      "Điền biến môi trường và chạy migration theo README để đăng nhập. Những khóa này do người quản lý ứng dụng thiết lập.",
+    setup: "Ứng dụng chưa sẵn sàng",
+    setupBody: "Chưa kết nối được dịch vụ. Bạn vui lòng thử lại sau.",
   },
   couples: {
     timezoneLocked:
@@ -133,6 +133,10 @@ export const CONTENT = {
     protected: "Được bảo vệ",
   },
   daily: {
+    previousDraft:
+      "Câu hỏi đã đổi. Bản nháp của câu hỏi trước vẫn được giữ; đọc câu hỏi mới trước khi dùng lại nội dung.",
+    restoreDraft: "Dùng lại nội dung nháp",
+    viewOwn: "Xem câu trả lời của mình",
     title: "Vài phút cho hai đứa",
     answer: "Điều bạn muốn chia sẻ…",
     submit: "Gửi câu trả lời",
@@ -166,6 +170,10 @@ export const CONTENT = {
     draft: "Bản nháp được giữ trên thiết bị nếu gửi chưa thành công.",
   },
   prayer: {
+    newDraft: "Soạn điều ước mới",
+    leaveDraft:
+      "Điều ước chưa được lưu. Rời trang và giữ bản nháp trên thiết bị này?",
+    confirmVisibility: "Thả điều ước này? Quyền xem: {{visibility}}.",
     title: "Dòng ước nguyện",
     subtitle: "Những điều dịu dàng cứ để dòng nước mang đi.",
     write: "Viết một điều ước",
@@ -184,6 +192,7 @@ export const CONTENT = {
     returned: "Một điều ước cũ đã trở lại",
   },
   memories: {
+    cleanupPending: "Kỷ niệm đã xóa. Ảnh đang chờ dọn khỏi kho lưu trữ.",
     title: "Những ngày đã có nhau",
     subtitle: "Một dòng thời gian, không cần hoàn hảo.",
     new: "Giữ một khoảnh khắc",
@@ -201,6 +210,9 @@ export const CONTENT = {
     },
   },
   moods: {
+    toPartner: "Gửi lời quan tâm cho người ấy",
+    fromPartner: "Người ấy gửi bạn",
+    sent: "Đã gửi lời quan tâm cho người ấy.",
     title: "Cho người ấy biết bạn thế nào",
     happy: "Vui",
     tired: "Mệt",
@@ -237,6 +249,14 @@ export const CONTENT = {
     none: "Chưa có gợi ý phù hợp. Thử thêm thời gian hoặc chọn bất kỳ.",
   },
   settings: {
+    pushStates: {
+      checking: "Đang kiểm tra thông báo trên thiết bị…",
+      unsupported: "Thiết bị chưa hỗ trợ thông báo.",
+      denied: "Thông báo đang bị chặn trong cài đặt trình duyệt.",
+      off: "Thông báo trên thiết bị đang tắt.",
+      on: "Thông báo trên thiết bị đang bật.",
+      error: "Chưa kiểm tra được trạng thái thông báo. Thử lại sau.",
+    },
     title: "Không gian của hai đứa",
     notifications: "Nhắc nhẹ mỗi ngày",
     enablePush: "Bật thông báo",
@@ -278,6 +298,18 @@ export const CONTENT = {
     memory: "Một kỷ niệm của hai đứa đang chờ.",
   },
   errors: {
+    staleDaily:
+      "Câu hỏi đã sang ngày mới. Nội dung nháp vẫn được giữ; tải lại và đọc câu hỏi mới trước khi trả lời.",
+    notPaired:
+      "Bạn chưa ở trong không gian chung. Tải lại trang để kiểm tra trạng thái ghép đôi.",
+    unavailable: "Ứng dụng chưa sẵn sàng. Vui lòng thử lại sau.",
+    invalidFile: "Ảnh cần là JPEG, PNG hoặc WebP và không quá 5 MB.",
+    pushNotReady:
+      "Chưa khởi tạo được thông báo trên thiết bị. Tải lại trang rồi thử lại.",
+    loadFailed: "Chưa tải được dữ liệu. Kiểm tra kết nối và thử tải lại.",
+    refreshFailed:
+      "Thao tác đã được lưu, nhưng chưa tải được dữ liệu mới. Vui lòng tải lại; không cần gửi lại.",
+    detailFailed: "Chưa tải được nội dung kỷ niệm.",
     databaseSetup:
       "Chưa tải được dữ liệu vì Supabase chưa nhận diện bảng của ứng dụng. Kiểm tra đúng project, chạy migration và seed theo README rồi tải lại trang.",
     generic:

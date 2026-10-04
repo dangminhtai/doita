@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   Heart,
   House,
@@ -31,8 +31,51 @@ export function CoupleApp({ initialPage = "home" }: { initialPage?: string }) {
 function Shell({ initialPage }: { initialPage: string }) {
   const [page, setPage] = useState(initialPage),
     [menu, setMenu] = useState(false);
-  const { user, data, loading, message, error, recovery, busy, notify } =
-    useApp();
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const sidebar = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!menu) return;
+    const focusable = () => [
+      ...(sidebar.current?.querySelectorAll<HTMLElement>("a,button") ?? []),
+    ];
+    focusable()[0]?.focus();
+    const keydown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMenu(false);
+        e.preventDefault();
+      }
+      if (e.key === "Tab") {
+        const nodes = focusable();
+        const first = nodes[0],
+          last = nodes[nodes.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        }
+        if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+    window.addEventListener("keydown", keydown);
+    return () => {
+      window.removeEventListener("keydown", keydown);
+      menuButton.current?.focus();
+    };
+  }, [menu]);
+  const {
+    user,
+    data,
+    loading,
+    loadError,
+    load,
+    message,
+    error,
+    recovery,
+    busy,
+    notify,
+  } = useApp();
   useEffect(() => {
     const pop = () => {
       setPage(location.pathname.slice(1) || "home");
@@ -67,13 +110,48 @@ function Shell({ initialPage }: { initialPage: string }) {
     { id: "activities", icon: Sparkles, flag: enabled("activities") },
     { id: "settings", icon: Users, flag: true },
   ].filter((x) => x.flag);
+  const pageTables: Record<string, string[]> = {
+    home: [
+      "daily_sessions",
+      "daily_answers",
+      "streaks",
+      "moods",
+      "special_dates",
+      "memories",
+    ],
+    daily: [
+      "daily_sessions",
+      "daily_answers",
+      "daily_feedback",
+      "streaks",
+      "streak_events",
+    ],
+    notes: ["notes", "note_items"],
+    prayer: ["prayers", "prayer_events"],
+    memories: ["memories"],
+    activities: ["activities", "activity_sessions"],
+    settings: ["profiles", "couple_members", "special_dates"],
+  };
+  const pageError = (pageTables[page] ?? [])
+    .map((t) => data.errors[t])
+    .find(Boolean);
   const content =
     !user || recovery ? (
       <AuthScreen />
     ) : loading && !data.couple ? (
       <p className="empty">{C.common.loading}</p>
+    ) : loadError ? (
+      <div role="alert">
+        <p>{C.errors.loadFailed}</p>
+        <button onClick={() => void load()}>{C.common.retry}</button>
+      </div>
     ) : !data.couple ? (
       <PairScreen />
+    ) : pageError ? (
+      <div role="alert">
+        <p>{pageError}</p>
+        <button onClick={() => void load()}>{C.common.retry}</button>
+      </div>
     ) : page === "daily" && enabled("daily") ? (
       <DailyScreen />
     ) : page === "notes" && enabled("notes") ? (
@@ -104,13 +182,18 @@ function Shell({ initialPage }: { initialPage: string }) {
           <span>{C.brand.name}</span>
         </a>
         <p>{C.brand.tagline}</p>
-        <button
-          className="icon-button mobile-menu"
-          onClick={() => setMenu(!menu)}
-          aria-label={menu ? C.common.close : C.nav.settings}
-        >
-          {menu ? <X /> : <Menu />}
-        </button>
+        {user && data.couple && (
+          <button
+            ref={menuButton}
+            className="icon-button mobile-menu"
+            onClick={() => setMenu(!menu)}
+            aria-label={menu ? C.common.close : C.common.openMenu}
+            aria-expanded={menu}
+            aria-controls="couple-sidebar"
+          >
+            {menu ? <X /> : <Menu />}
+          </button>
+        )}
         {user && data.couple && (
           <button
             className="avatar desktop-profile"
@@ -126,7 +209,16 @@ function Shell({ initialPage }: { initialPage: string }) {
       </header>
       <div className="app-body">
         {user && data.couple && (
-          <aside className={menu ? "sidebar open" : "sidebar"}>
+          <aside
+            ref={sidebar}
+            id="couple-sidebar"
+            className={menu ? "sidebar open" : "sidebar"}
+          >
+            {menu && (
+              <button className="text-button" onClick={() => setMenu(false)}>
+                {C.common.close}
+              </button>
+            )}
             <p className="eyebrow">{C.home.eyebrow}</p>
             <nav>
               {nav.map(({ id, icon: Icon }) => (
@@ -147,7 +239,7 @@ function Shell({ initialPage }: { initialPage: string }) {
             </nav>
           </aside>
         )}
-        <main className="main" aria-busy={busy}>
+        <main className="main" aria-busy={busy} inert={menu}>
           {message && (
             <div
               role={error ? "alert" : "status"}
@@ -168,8 +260,8 @@ function Shell({ initialPage }: { initialPage: string }) {
         </main>
       </div>
       {user && data.couple && (
-        <nav className="bottom-nav">
-          {nav.slice(0, 4).map(({ id, icon: Icon }) => (
+        <nav className="bottom-nav" inert={menu}>
+          {nav.map(({ id, icon: Icon }) => (
             <a
               key={id}
               href={`/${id}`}
@@ -185,17 +277,6 @@ function Shell({ initialPage }: { initialPage: string }) {
               <span>{C.nav[id as keyof typeof C.nav]}</span>
             </a>
           ))}
-          <a
-            href="/settings"
-            className={page === "settings" ? "active" : ""}
-            onClick={(e) => {
-              e.preventDefault();
-              go("settings");
-            }}
-          >
-            <Users size={21} />
-            <span>{C.nav.settings}</span>
-          </a>
         </nav>
       )}
     </div>

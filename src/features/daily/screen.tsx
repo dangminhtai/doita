@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Flame,
   Heart,
@@ -19,7 +19,7 @@ import { Button, Field, PageTitle, useDraft, DateLabel } from "@/components/ui";
 import { CONTENT as C, interpolate as t } from "@/config/content.vi";
 import { enabled } from "@/config/app.config";
 import { rpc } from "@/lib/supabase/browser";
-import { localDate, dayGap, canRepair } from "@/lib/date";
+import { localDate, dayGap, canRepair, nextOccurrence } from "@/lib/date";
 import { dailySchema } from "@/features/schemas";
 export function HomeScreen({ go }: { go: (p: string) => void }) {
   const { data: d, user, run } = useApp();
@@ -49,7 +49,9 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
             <Button onClick={() => go("daily")}>
               {d.daily?.status === "completed"
                 ? C.home.completed
-                : C.home.write}
+                : d.answers.some((a) => a.user_id === user?.id)
+                  ? C.daily.viewOwn
+                  : C.home.write}
             </Button>
           )}
           <small>{C.home.pending}</small>
@@ -112,7 +114,18 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
               <button
                 key={m}
                 className={
-                  d.moods.find((x) => x.user_id === user?.id)?.mood === m
+                  d.moods.find(
+                    (x) =>
+                      x.user_id === user?.id &&
+                      [
+                        "happy",
+                        "tired",
+                        "sad",
+                        "stressed",
+                        "calm",
+                        "busy",
+                      ].includes(x.mood),
+                  )?.mood === m
                     ? "selected"
                     : ""
                 }
@@ -127,7 +140,18 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
           </div>
           <div className="presence">
             {d.members.map((m) => {
-              const mood = d.moods.find((x) => x.user_id === m.user_id);
+              const mood = d.moods.find(
+                (x) =>
+                  x.user_id === m.user_id &&
+                  [
+                    "happy",
+                    "tired",
+                    "sad",
+                    "stressed",
+                    "calm",
+                    "busy",
+                  ].includes(x.mood),
+              );
               return (
                 <p key={m.user_id}>
                   <b>
@@ -151,35 +175,57 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
             })}
           </div>
           <div className="row">
+            <span>{C.moods.toPartner}</span>
             {(["hug", "love", "rest", "more"] as const).map((x) => (
               <Button
                 key={x}
                 secondary
-                onClick={() => void run(() => rpc("set_mood", { p_mood: x }))}
+                onClick={() =>
+                  void run(() => rpc("set_mood", { p_mood: x }), C.moods.sent)
+                }
               >
                 {C.moods[x]}
               </Button>
             ))}
           </div>
+          {d.moods
+            .filter(
+              (x) =>
+                x.user_id !== user?.id &&
+                ["hug", "love", "rest", "more"].includes(x.mood),
+            )
+            .slice(0, 3)
+            .map((x) => (
+              <p key={x.id}>
+                {C.moods.fromPartner}: {C.moods[x.mood as keyof typeof C.moods]}
+              </p>
+            ))}
         </section>
       )}
       {enabled("specialDates") && d.dates.length > 0 && (
         <section className="section">
           <h2>{C.home.special}</h2>
           {d.dates
-            .filter((x) => x.date >= today)
+            .map((x) => ({
+              ...x,
+              id: x.id,
+              title: x.title,
+              occurrence: nextOccurrence(x.date, x.kind, today),
+            }))
+            .filter((x) => x.occurrence)
+            .sort((a, b) => a.occurrence!.localeCompare(b.occurrence!))
             .slice(0, 3)
             .map((x) => (
               <p key={x.id}>
                 <b>{x.title}</b> ·{" "}
-                {t(C.home.countdown, { count: dayGap(x.date, today) })}
+                {t(C.home.countdown, { count: dayGap(x.occurrence!, today) })}
               </p>
             ))}
         </section>
       )}
       {enabled("memories") && (
         <button className="text-button" onClick={() => go("memories")}>
-          {t(C.home.memory, { count: d.memories.length })}
+          {t(C.home.memory, { count: d.memoryCount })}
         </button>
       )}
     </>
@@ -188,6 +234,13 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
 export function DailyScreen() {
   const { data: d, user, run, notify } = useApp();
   const [answer, setAnswer] = useDraft("daily:" + d.daily?.id);
+  const previous = useRef({ id: d.daily?.id, answer });
+  const [previousAnswer, setPreviousAnswer] = useState("");
+  useEffect(() => {
+    if (previous.current.id !== d.daily?.id && previous.current.answer)
+      setPreviousAnswer(previous.current.answer);
+    previous.current = { id: d.daily?.id, answer };
+  }, [d.daily?.id, answer]);
   const [reply, setReply] = useState("");
   const own = d.answers.find((x) => x.user_id === user?.id);
   return (
@@ -198,6 +251,20 @@ export function DailyScreen() {
           {d.daily && <DateLabel date={d.daily.date} />}
         </span>
         <h2>{d.daily?.prompt}</h2>
+        {previousAnswer && (
+          <div role="status">
+            <p>{C.daily.previousDraft}</p>
+            <Button
+              secondary
+              onClick={() => {
+                setAnswer(previousAnswer);
+                setPreviousAnswer("");
+              }}
+            >
+              {C.daily.restoreDraft}
+            </Button>
+          </div>
+        )}
         {d.members.length < 2 && <p>{C.daily.needPair}</p>}
         {!own ? (
           <form
@@ -208,7 +275,10 @@ export function DailyScreen() {
                 return;
               }
               const ok = await run(() =>
-                rpc("answer_daily", { p_content: answer }),
+                rpc("answer_daily", {
+                  p_content: answer,
+                  p_session_id: d.daily?.id,
+                }),
               );
               if (ok) {
                 setAnswer("");

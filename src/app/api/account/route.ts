@@ -4,6 +4,25 @@ export async function DELETE(request: Request) {
   if (!ctx) return Response.json({ ok: false }, { status: 401 });
   try {
     const db = service();
+    // Registry survives leaving old couples and deleting the original memory.
+    for (;;) {
+      const assets = await db
+        .from("memory_assets")
+        .select("path")
+        .eq("user_id", ctx.user.id)
+        .limit(100);
+      if (assets.error) throw assets.error;
+      if (!assets.data?.length) break;
+      const paths = assets.data.map((a) => a.path);
+      const removed = await db.storage.from("memories").remove(paths);
+      if (removed.error) throw removed.error;
+      const ack = await db
+        .from("memory_assets")
+        .delete()
+        .in("path", paths)
+        .eq("user_id", ctx.user.id);
+      if (ack.error) throw ack.error;
+    }
     const { data: membership } = await ctx.client
       .from("couple_members")
       .select("couple_id")
@@ -30,6 +49,8 @@ export async function DELETE(request: Request) {
           .from("memories")
           .remove(files.map((f) => `${prefix}/${f.name}`));
         if (result.error) throw result.error;
+        if (round === 99)
+          throw new Error("Asset cleanup incomplete; retry account deletion");
       }
     }
     const { error } = await db.auth.admin.deleteUser(ctx.user.id);

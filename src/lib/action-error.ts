@@ -2,7 +2,25 @@ import { isAuthError } from "@supabase/supabase-js";
 import { CONTENT as C } from "../config/content.vi";
 
 export function actionErrorMessage(error: unknown): string {
-  if (!isAuthError(error)) return C.errors.generic;
+  if (!isAuthError(error)) {
+    if (typeof error === "object" && error !== null && "message" in error) {
+      const messages: Record<string, string> = {
+        forbidden: C.errors.forbidden,
+        repair_unavailable: C.errors.repair,
+        stale_session: C.errors.staleDaily,
+        not_paired: C.errors.notPaired,
+        seed_required: C.errors.unavailable,
+        invalid: C.errors.invalid,
+        "invalid invite": C.errors.invite,
+        "Invalid file": C.errors.invalidFile,
+        push_not_ready: C.errors.pushNotReady,
+      };
+      if ("code" in error && error.code === "PGRST205")
+        return C.errors.unavailable;
+      return messages[String(error.message)] ?? C.errors.generic;
+    }
+    return C.errors.generic;
+  }
 
   switch (error.code) {
     case "invalid_credentials":

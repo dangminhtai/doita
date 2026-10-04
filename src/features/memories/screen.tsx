@@ -13,8 +13,7 @@ import {
   Modal,
 } from "@/components/ui";
 import { CONTENT as C } from "@/config/content.vi";
-import { rpc, db } from "@/lib/supabase/browser";
-import { localDate } from "@/lib/date";
+import { rpc, db, authenticatedFetch } from "@/lib/supabase/browser";
 export function MemoriesScreen() {
   const { data: d, user, run, notify, limit } = useApp();
   const [open, setOpen] = useState(false),
@@ -22,38 +21,37 @@ export function MemoriesScreen() {
     [file, setFile] = useState<File | null>(null),
     [filter, setFilter] = useState("all"),
     [selected, setSelected] = useState<Row | null>(null),
-    [detail, setDetail] = useState<Row[]>([]);
-  const today = localDate(new Date(), d.couple!.timezone);
+    [detail, setDetail] = useState<Row[]>([]),
+    [detailError, setDetailError] = useState(false),
+    [detailAttempt, setDetailAttempt] = useState(0);
   const memories = d.memories.filter(
     (m) => filter === "all" || m.type === filter,
   );
-  const old = d.memories.filter(
-    (m) =>
-      m.created_at.slice(0, 10) < today &&
-      m.created_at.slice(5, 10) === today.slice(5),
-  );
+  const old = d.onThisDay;
   useEffect(() => {
     setDetail([]);
+    setDetailError(false);
     if (!selected?.source_id) return;
-    if (selected.type === "daily")
-      db()
-        .from("daily_answers")
+    let active = true;
+    const source = {
+      daily: ["daily_answers", "session_id"],
+      note: ["notes", "id"],
+      prayer: ["prayers", "id"],
+    }[selected.type as "daily" | "note" | "prayer"];
+    if (source)
+      void db()
+        .from(source[0])
         .select("*")
-        .eq("session_id", selected.source_id)
-        .then(({ data }) => setDetail(data ?? []));
-    if (selected.type === "note")
-      db()
-        .from("notes")
-        .select("*")
-        .eq("id", selected.source_id)
-        .then(({ data }) => setDetail(data ?? []));
-    if (selected.type === "prayer")
-      db()
-        .from("prayers")
-        .select("*")
-        .eq("id", selected.source_id)
-        .then(({ data }) => setDetail(data ?? []));
-  }, [selected?.id]);
+        .eq(source[1], selected.source_id)
+        .then(({ data, error }) => {
+          if (!active) return;
+          setDetailError(Boolean(error));
+          setDetail(data ?? []);
+        });
+    return () => {
+      active = false;
+    };
+  }, [selected?.id, detailAttempt, user?.id]);
   return (
     <>
       <PageTitle
@@ -87,18 +85,27 @@ export function MemoriesScreen() {
                   throw new Error("Invalid file");
                 const ext = file.type.split("/")[1];
                 path = `${d.couple!.id}/${user!.id}/${crypto.randomUUID()}.${ext}`;
+                await rpc("register_memory_asset", { p_path: path });
                 const uploaded = await db()
                   .storage.from("memories")
                   .upload(path, file, {
                     contentType: file.type,
                     upsert: false,
                   });
-                if (uploaded.error) throw uploaded.error;
+                if (uploaded.error) {
+                  await rpc("queue_memory_cleanup", { p_path: path });
+                  throw uploaded.error;
+                }
               }
               try {
                 await rpc("save_memory", { p_content: body, p_photo: path });
               } catch (e) {
-                if (path) await db().storage.from("memories").remove([path]);
+                if (path) {
+                  await rpc("queue_memory_cleanup", { p_path: path });
+                  void authenticatedFetch("/api/assets/cleanup", {
+                    method: "POST",
+                  }).catch(console.error);
+                }
                 throw e;
               }
             });
@@ -186,6 +193,17 @@ export function MemoriesScreen() {
         >
           <DateLabel date={selected.created_at} />
           <p className="pre-wrap">{selected.content}</p>
+          {detailError && (
+            <div role="alert">
+              <p>{C.errors.detailFailed}</p>
+              <Button
+                secondary
+                onClick={() => setDetailAttempt(detailAttempt + 1)}
+              >
+                {C.common.retry}
+              </Button>
+            </div>
+          )}
           {detail.map((row) => (
             <p className="pre-wrap" key={row.id ?? row.user_id}>
               <b>
@@ -204,19 +222,26 @@ export function MemoriesScreen() {
             <Button
               secondary
               onClick={async () => {
-                if (
-                  confirm(C.common.confirmDelete) &&
-                  (await run(async () => {
-                    await rpc("delete_memory", { p_id: selected.id });
-                    if (selected.photo_path) {
-                      const { error } = await db()
-                        .storage.from("memories")
-                        .remove([selected.photo_path]);
-                      if (error) console.error(error);
+                if (!confirm(C.common.confirmDelete)) return;
+                let pendingCleanup = false;
+                const ok = await run(async () => {
+                  await rpc("delete_memory", { p_id: selected.id });
+                  if (selected.photo_path) {
+                    try {
+                      const result = await authenticatedFetch(
+                        "/api/assets/cleanup",
+                        { method: "POST" },
+                      );
+                      pendingCleanup = result.pending > 0;
+                    } catch {
+                      pendingCleanup = true;
                     }
-                  }))
-                )
+                  }
+                });
+                if (ok) {
                   setSelected(null);
+                  if (pendingCleanup) notify(C.memories.cleanupPending);
+                }
               }}
             >
               {C.common.delete}
@@ -229,19 +254,41 @@ export function MemoriesScreen() {
 }
 function MemoryPhoto({ path }: { path: string }) {
   const [url, setUrl] = useState("");
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     let active = true;
-    db()
-      .storage.from("memories")
-      .createSignedUrl(path, 300)
-      .then(({ data }) => {
-        if (active) setUrl(data?.signedUrl ?? "");
-      });
+    setUrl("");
+    const timer = setInterval(() => {
+      if (active) {
+        setAttempt(0);
+        renew();
+      }
+    }, 240000);
+    const renew = () => {
+      db()
+        .storage.from("memories")
+        .createSignedUrl(path, 300)
+        .then(({ data }) => {
+          if (active) setUrl(data?.signedUrl ?? "");
+        });
+    };
+    renew();
+    window.addEventListener("focus", renew);
     return () => {
       active = false;
+      clearInterval(timer);
+      window.removeEventListener("focus", renew);
     };
-  }, [path]);
+  }, [path, attempt]);
   return url ? (
-    <img className="memory-photo" src={url} alt={C.memories.types.moment} />
+    <img
+      className="memory-photo"
+      src={url}
+      alt={C.memories.types.moment}
+      onError={() => {
+        if (attempt < 2) setAttempt(attempt + 1);
+        else setUrl("");
+      }}
+    />
   ) : null;
 }

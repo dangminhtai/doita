@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Ship, Plus, Feather } from "lucide-react";
 import { useApp, flushNotifications, type Row } from "@/components/app-context";
 import {
@@ -8,7 +8,6 @@ import {
   Empty,
   PageTitle,
   Visibility,
-  useDraft,
   More,
   DateLabel,
   Modal,
@@ -18,17 +17,79 @@ import { APP_CONFIG as A } from "@/config/app.config";
 import { rpc } from "@/lib/supabase/browser";
 import { prayerSchema } from "@/features/schemas";
 import prompts from "../../../data/prayer-prompts.json";
+import {
+  emptyPrayerDraft,
+  parsePrayerDraft,
+  prayerDraftKey,
+  type PrayerDraft,
+} from "./draft";
 export function PrayerScreen() {
   const { data: d, user, run, notify, limit } = useApp();
   const [open, setOpen] = useState(false),
-    [body, setBody] = useDraft("prayer"),
-    [visibility, setVisibility] = useState("partner"),
-    [resurface, setResurface] = useState(true),
+    [draft, setDraft] = useState<PrayerDraft>(emptyPrayerDraft),
     [filter, setFilter] = useState("all"),
     [selected, setSelected] = useState<Row | null>(null),
     [released, setReleased] = useState(false),
-    [draftId, setDraftId] = useState<string | null>(null),
     [promptIndex, setPromptIndex] = useState(0);
+  const { body, visibility, resurface, draftId } = draft;
+  const prefix = `couple-draft:${user!.id}:prayer:${d.couple!.id}`;
+  const read = (id: string | null) => {
+    try {
+      return parsePrayerDraft(
+        localStorage.getItem(prayerDraftKey(user!.id, d.couple!.id, id)),
+      );
+    } catch {
+      return null;
+    }
+  };
+  const persist = (next: PrayerDraft) => {
+    setDraft(next);
+    try {
+      localStorage.setItem(
+        prayerDraftKey(user!.id, d.couple!.id, next.draftId),
+        JSON.stringify(next),
+      );
+      localStorage.setItem(prefix + ":active", next.draftId ?? "new");
+    } catch {
+      notify(C.notes.draftStorageError, true);
+    }
+  };
+  useEffect(() => {
+    try {
+      const active = localStorage.getItem(prefix + ":active");
+      let restored = read(active && active !== "new" ? active : null);
+      const legacyKey = `couple-draft:${user!.id}:prayer`;
+      const legacy = localStorage.getItem(legacyKey);
+      if (!restored && legacy) {
+        restored = { ...emptyPrayerDraft(), body: legacy };
+        localStorage.setItem(
+          prayerDraftKey(user!.id, d.couple!.id, null),
+          JSON.stringify(restored),
+        );
+        localStorage.removeItem(legacyKey);
+      }
+      setDraft(restored ?? emptyPrayerDraft());
+      setOpen(Boolean(restored?.body));
+    } catch {
+      notify(C.notes.draftStorageError, true);
+    }
+  }, [prefix]);
+  useEffect(() => {
+    if (!open || !body) return;
+    const guard = (e: Event) => {
+      if (!confirm(C.prayer.leaveDraft)) e.preventDefault();
+    };
+    const unload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("couple-before-navigate", guard);
+    window.addEventListener("beforeunload", unload);
+    return () => {
+      window.removeEventListener("couple-before-navigate", guard);
+      window.removeEventListener("beforeunload", unload);
+    };
+  }, [open, body]);
   const prayers = d.prayers.filter(
     (p) =>
       p.status === "released" &&
@@ -44,7 +105,16 @@ export function PrayerScreen() {
       notify(C.errors.invalid, true);
       return;
     }
-    if (status === "released" && !confirm(C.prayer.confirm)) return;
+    if (
+      status === "released" &&
+      !confirm(
+        t(C.prayer.confirmVisibility, {
+          visibility:
+            visibility === "private" ? C.common.private : C.common.partner,
+        }),
+      )
+    )
+      return;
     const ok = await run(
       () =>
         rpc("save_prayer", {
@@ -57,8 +127,13 @@ export function PrayerScreen() {
       status === "released" ? C.prayer.released : C.common.success,
     );
     if (ok) {
-      setBody("");
-      setDraftId(null);
+      try {
+        localStorage.removeItem(
+          prayerDraftKey(user!.id, d.couple!.id, draftId),
+        );
+        localStorage.removeItem(prefix + ":active");
+      } catch {}
+      setDraft(emptyPrayerDraft());
       setOpen(false);
       if (status === "released") {
         setReleased(true);
@@ -74,7 +149,6 @@ export function PrayerScreen() {
         action={
           <Button
             onClick={() => {
-              setDraftId(null);
               setOpen(!open);
             }}
           >
@@ -98,7 +172,7 @@ export function PrayerScreen() {
           <Field label={C.common.content}>
             <textarea
               value={body}
-              onChange={(e) => setBody(e.target.value)}
+              onChange={(e) => persist({ ...draft, body: e.target.value })}
               maxLength={A.prayer.maxLength}
               placeholder={C.prayer.placeholder}
             />
@@ -110,17 +184,39 @@ export function PrayerScreen() {
                 max: A.prayer.maxLength,
               })}
             </small>
-            <Visibility prayer value={visibility} onChange={setVisibility} />
+            <Visibility
+              prayer
+              value={visibility}
+              onChange={(visibility) =>
+                persist({
+                  ...draft,
+                  visibility: visibility as PrayerDraft["visibility"],
+                })
+              }
+            />
           </div>
           <label className="checkbox">
             <input
               type="checkbox"
               checked={resurface}
-              onChange={(e) => setResurface(e.target.checked)}
+              onChange={(e) =>
+                persist({ ...draft, resurface: e.target.checked })
+              }
             />
             {C.prayer.resurface}
           </label>
           <div className="row">
+            {draftId && (
+              <Button
+                secondary
+                onClick={() => {
+                  if (confirm(C.prayer.leaveDraft))
+                    persist(read(null) ?? emptyPrayerDraft());
+                }}
+              >
+                {C.prayer.newDraft}
+              </Button>
+            )}
             <Button onClick={() => void save("released")}>
               <Ship size={18} />
               {C.prayer.release}
@@ -150,7 +246,7 @@ export function PrayerScreen() {
               className="boat"
               style={{ animationDelay: `${i * -1.7}s` }}
               onClick={() => setSelected(p)}
-              aria-label={C.prayer.open}
+              aria-label={`${C.prayer.open} · ${d.profiles.find((x) => x.id === p.author_id)?.display_name ?? C.home.partner} · ${new Date(p.created_at).toLocaleDateString("vi-VN")}`}
             >
               <Ship size={40} />
               <small>
@@ -204,9 +300,14 @@ export function PrayerScreen() {
                 key={p.id}
                 className="prayer-row"
                 onClick={() => {
-                  setBody(p.content);
-                  setDraftId(p.id);
-                  setVisibility(p.visibility);
+                  persist(
+                    read(p.id) ?? {
+                      body: p.content,
+                      draftId: p.id,
+                      visibility: p.visibility,
+                      resurface: p.metadata?.resurface ?? true,
+                    },
+                  );
                   setOpen(true);
                 }}
               >

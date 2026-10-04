@@ -42,29 +42,34 @@ export function AuthScreen() {
               const { error } = await db().auth.updateUser({ password });
               if (error) throw error;
             });
-            if (ok) setRecovery(false);
+            if (ok) {
+              setRecovery(false);
+              history.replaceState(history.state, "", "/home");
+              window.dispatchEvent(new PopStateEvent("popstate"));
+            }
             return;
           }
           if (!authSchema.safeParse({ email, password, name }).success) {
             notify(C.errors.invalid, true);
             return;
           }
-          await run(
-            async () => {
-              const result = signup
-                ? await db().auth.signUp({
-                    email,
-                    password,
-                    options: {
-                      data: { display_name: name },
-                      emailRedirectTo: authRedirectUrl(location.origin),
-                    },
-                  })
-                : await db().auth.signInWithPassword({ email, password });
-              if (result.error) throw result.error;
-            },
-            signup ? C.auth.confirm : C.common.success,
-          );
+          await run(async () => {
+            const result = signup
+              ? await db().auth.signUp({
+                  email,
+                  password,
+                  options: {
+                    data: { display_name: name },
+                    emailRedirectTo: authRedirectUrl(location.origin),
+                  },
+                })
+              : await db().auth.signInWithPassword({ email, password });
+            if (result.error) throw result.error;
+            if (signup && !result.data.session) {
+              notify(C.auth.confirm);
+              return false;
+            }
+          }, C.common.success);
         }}
       >
         <h2>{recovery ? C.auth.reset : C.auth.title}</h2>
@@ -142,17 +147,23 @@ export function AuthScreen() {
 }
 export function PairScreen() {
   const { run, notify, logout } = useApp();
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(""),
+    [timezone, setTimezone] = useState(APP_CONFIG.timezone);
   return (
     <div className="pair-screen">
       <Heart size={40} />
       <h1>{C.couples.title}</h1>
       <p>{C.couples.description}</p>
+      <Field label={C.couples.timezone}>
+        <select value={timezone} onChange={(e) => setTimezone(e.target.value)}>
+          {C.couples.timezones.map((zone) => (
+            <option key={zone}>{zone}</option>
+          ))}
+        </select>
+      </Field>
       <Button
         onClick={() =>
-          void run(() =>
-            rpc("pair_couple", { p_timezone: APP_CONFIG.timezone }),
-          )
+          void run(() => rpc("pair_couple", { p_timezone: timezone }))
         }
       >
         {C.couples.create}

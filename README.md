@@ -36,6 +36,7 @@ Mở http://localhost:3000. Không có key thì ứng dụng hiển thị màn h
 2. Điền `NEXT_PUBLIC_SUPABASE_URL` và `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 3. Điền `SUPABASE_SERVICE_ROLE_KEY` từ mục API keys. Khóa này chỉ dùng ở server, seed, cron và xóa tài khoản. **Không thêm tiền tố NEXT_PUBLIC cho service role, CRON_SECRET hoặc VAPID_PRIVATE_KEY.**
 4. Mở **SQL Editor**, chạy toàn bộ `supabase/migrations/202610040001_core.sql` **một lần**, rồi chạy `supabase/seed.sql`. Migration dành cho project mới; sửa schema sau này bằng migration mới.
+   Sau migration khởi tạo, chạy tiếp tất cả migration còn lại theo thứ tự tên file trước khi dùng bản code hiện tại.
 5. Trong **Authentication → URL Configuration**, cấu hình Site URL và Redirect URLs: `http://localhost:3000/auth`, `https://TEN-WEB.vercel.app/auth`, thêm domain riêng nếu có. Chỉ thêm preview domain mà bạn dùng và tin cậy.
 6. Bật Email provider. Bản này dùng email + password, hỗ trợ xác nhận email và khôi phục mật khẩu. Với email confirmation bật, phải xác nhận email rồi đăng nhập. Khi đưa cho người dùng thật nên cấu hình SMTP riêng để tránh giới hạn email mặc định.
 7. Migration tạo bucket `memories` **private**, giới hạn 5 MB, chỉ JPEG/PNG/WebP, bật Realtime cho session daily, note, mood, prayer, memory. Không đổi bucket sang public. Ảnh được xem bằng signed URL 5 phút.
@@ -43,6 +44,8 @@ Mở http://localhost:3000. Không có key thì ứng dụng hiển thị màn h
 Có thể seed từ JSON thay vì chạy `seed.sql`:
 
 Với project đã chạy migration khởi tạo, chạy các migration mới theo thứ tự tên file. Bản sửa checklist dùng `supabase/migrations/202610040002_preserve_checklist.sql`; không chạy lại `202610040001_core.sql` trên database đang có dữ liệu. Bản sửa giữ ID và trạng thái hoàn thành của các dòng không đổi; dòng bị thay nội dung được xem là mục mới. Trạng thái đã mất trước bản sửa không thể tự khôi phục.
+
+Bản sửa review tiếp theo cần `202610040003_review_fixes.sql`, rồi `202610040004_asset_delivery.sql`. Chạy mỗi file một lần trên Supabase và triển khai code mới trong cùng đợt: RPC `answer_daily` nay yêu cầu ID phiên đang hiển thị, nên client cũ sẽ được yêu cầu tải lại thay vì gửi câu trả lời sang câu hỏi khác. Hai migration thêm đồng bộ realtime, truy vấn kỷ niệm theo múi giờ, danh sách tài sản để xóa ảnh bền vững và biên nhận push theo thiết bị. Không chạy lại migration khởi tạo hoặc seed để cập nhật schema.
 
 ```bash
 npm run seed
@@ -98,7 +101,9 @@ Daily cũng được tạo lúc mở ứng dụng, nên không phụ thuộc cro
 
 Cron thực hiện database work mỗi ngày, giúp duy trì hoạt động thật. **Không bảo đảm Supabase Free không bị pause**: chính sách/khả dụng của nhà cung cấp nằm ngoài ứng dụng. Nếu project đã pause, phải khôi phục trong Supabase Dashboard trước. Kiểm tra log cron trong Vercel và Supabase định kỳ.
 
-Push dùng nội dung trong `CONTENT.notifications`, không chứa nội dung thư riêng. Sau gửi daily/thuyền, client yêu cầu server xử lý các thông báo do chính tài khoản đó tạo. Nếu đóng trang quá sớm hoặc gửi push lỗi, cron xử lý tiếp. Outbox có lease chống gửi chồng, thử tối đa 5 lần; 404/410 xóa subscription hỏng. Server kiểm tra lại membership trước khi gửi. Nhà cung cấp push được cho phép: Google FCM, Mozilla và Apple; Windows WNS chưa được bật. VAPID chưa điền thì app vẫn dùng được, push chưa hoạt động.
+Push dùng nội dung trong `CONTENT.notifications`, không chứa nội dung thư riêng. Sau gửi daily/thuyền và mỗi hai phút khi trang đang mở, client yêu cầu server xử lý thông báo của tài khoản hiện tại hoặc gửi tới tài khoản đó. Worker lấy tiếp các lô 50 job trong giới hạn thời gian, chạy tối đa 5 job đồng thời và lưu biên nhận từng thiết bị để bỏ qua thiết bị đã gửi thành công. Nếu đóng trang quá sớm hoặc gửi push lỗi, cron xử lý tiếp; trên Hobby, khi không ai mở ứng dụng thì lượt chạy tiếp có thể phải chờ cron ngày hôm sau. Outbox có lease chống gửi chồng, thử tối đa 5 lần, bỏ thông báo quá 24 giờ; 404/410 xóa subscription hỏng. Lỗi lưu biên nhận sau khi nhà cung cấp đã nhận vẫn có thể khiến gửi lại; hệ thống không bảo đảm gửi đúng một lần. Server kiểm tra lại membership trước khi gửi. Nhà cung cấp push được cho phép: Google FCM, Mozilla và Apple; Windows WNS chưa được bật. VAPID chưa điền thì app vẫn dùng được, push chưa hoạt động.
+
+Ảnh được đăng ký trước upload. Xóa kỷ niệm ghi yêu cầu cleanup trong cùng transaction; cron hoặc `/api/assets/cleanup` thử xóa Storage và giữ đường dẫn nếu thất bại. Upload không được tham chiếu sau 24 giờ được đưa vào cleanup; xóa tài khoản dùng registry để tìm cả ảnh từ không gian đã rời. Logout gỡ endpoint trên server trước khi hủy subscription trên thiết bị.
 
 Để nhận push: mở **Hai đứa → Bật thông báo**. Cần HTTPS (localhost được phép thử), trình duyệt có Web Push và cấp quyền. Trên iPhone, cài vào màn hình chính trước khi xin quyền. Trạng thái offline chỉ là trang hướng dẫn; không cache dữ liệu riêng hay nội dung authenticated. Bản nháp note/prayer/daily/memory giữ tại thiết bị theo UUID người dùng, xóa khi đăng xuất/rời không gian.
 

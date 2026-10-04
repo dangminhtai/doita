@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { service } from "@/lib/supabase/server";
 import { flushPush } from "@/lib/notifications/push";
+import { cleanupAssets } from "@/lib/assets/cleanup";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 export async function GET(request: Request) {
@@ -16,8 +17,12 @@ export async function GET(request: Request) {
   try {
     const { data, error } = await db.rpc("daily_maintenance");
     if (error) throw error;
-    const push = await flushPush();
-    return Response.json({ ok: true, couples: data, push });
+    const deadline = Date.now() + 45000;
+    const [push, assets] = await Promise.all([
+      flushPush(undefined, deadline),
+      cleanupAssets(undefined, deadline),
+    ]);
+    return Response.json({ ok: true, couples: data, push, assets });
   } catch (e) {
     console.error("Daily maintenance", e);
     await db.from("system_jobs").upsert({
