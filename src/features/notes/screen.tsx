@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pin, Plus } from "lucide-react";
 import { useApp, type Row } from "@/components/app-context";
 import {
@@ -8,7 +8,6 @@ import {
   Empty,
   PageTitle,
   Visibility,
-  useDraft,
   More,
   DateLabel,
 } from "@/components/ui";
@@ -16,22 +15,98 @@ import { CONTENT as C } from "@/config/content.vi";
 import { APP_CONFIG as A } from "@/config/app.config";
 import { rpc } from "@/lib/supabase/browser";
 import { noteSchema } from "@/features/schemas";
+import {
+  emptyNoteDraft,
+  parseNoteDraft,
+  noteDraftKey,
+  type NoteDraft,
+} from "./draft";
 export function NotesScreen() {
   const { data: d, user, run, notify, limit } = useApp();
   const [search, setSearch] = useState(""),
     [filter, setFilter] = useState("all"),
     [open, setOpen] = useState(false),
-    [editing, setEditing] = useState<string | null>(null),
-    [title, setTitle] = useState(""),
-    [body, setBody] = useDraft("note"),
-    [type, setType] = useState("text"),
-    [visibility, setVisibility] = useState("couple");
+    [draft, setDraft] = useState<NoteDraft>(emptyNoteDraft);
+  const { editing, title, body, type, visibility } = draft;
+  const activeKey = `couple-draft:${user?.id}:note-active`;
+  const restore = (id: string | null) => {
+    try {
+      return user
+        ? parseNoteDraft(localStorage.getItem(noteDraftKey(user.id, id)))
+        : null;
+    } catch {
+      return null;
+    }
+  };
+  const persist = (next: NoteDraft) => {
+    setDraft(next);
+    if (!user) return;
+    try {
+      localStorage.setItem(
+        noteDraftKey(user.id, next.editing),
+        JSON.stringify(next),
+      );
+      localStorage.setItem(activeKey, next.editing ?? "new");
+    } catch {
+      notify(C.notes.draftStorageError, true);
+    }
+  };
+  const update = (patch: Partial<NoteDraft>) => persist({ ...draft, ...patch });
+  useEffect(() => {
+    if (!user) return;
+    try {
+      const active = localStorage.getItem(activeKey);
+      let restored = parseNoteDraft(
+        localStorage.getItem(
+          noteDraftKey(user.id, active && active !== "new" ? active : null),
+        ),
+      );
+      const legacyKey = `couple-draft:${user.id}:note`;
+      const legacy = localStorage.getItem(legacyKey);
+      if (!restored && legacy) {
+        restored = { ...emptyNoteDraft(), body: legacy };
+        localStorage.setItem(
+          noteDraftKey(user.id, null),
+          JSON.stringify(restored),
+        );
+        localStorage.removeItem(legacyKey);
+      }
+      setDraft(restored ?? emptyNoteDraft());
+      setOpen(
+        Boolean(
+          restored && (restored.body || restored.title || restored.editing),
+        ),
+      );
+    } catch {
+      notify(C.notes.draftStorageError, true);
+    }
+  }, [user?.id]);
+  useEffect(() => {
+    if (!open || !(body || title || editing)) return;
+    const guard = (e: Event) => {
+      if (!confirm(C.notes.leaveDraft)) e.preventDefault();
+    };
+    const unload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("couple-before-navigate", guard);
+    window.addEventListener("beforeunload", unload);
+    return () => {
+      window.removeEventListener("couple-before-navigate", guard);
+      window.removeEventListener("beforeunload", unload);
+    };
+  }, [open, body, title, editing]);
   const edit = (n: Row) => {
-    setEditing(n.id);
-    setTitle(n.title);
-    setBody(n.content);
-    setType(n.type);
-    setVisibility(n.visibility);
+    persist(
+      restore(n.id) ?? {
+        editing: n.id,
+        title: n.title,
+        body: n.content,
+        type: n.type,
+        visibility: n.visibility,
+      },
+    );
     setOpen(true);
   };
   const notes = d.notes
@@ -54,9 +129,8 @@ export function NotesScreen() {
         action={
           <Button
             onClick={() => {
-              setEditing(null);
-              setTitle("");
-              setOpen(!open);
+              persist(restore(null) ?? emptyNoteDraft());
+              setOpen(true);
             }}
           >
             <Plus size={18} />
@@ -89,9 +163,12 @@ export function NotesScreen() {
               }),
             );
             if (ok) {
-              setBody("");
-              setTitle("");
-              setEditing(null);
+              try {
+                if (user)
+                  localStorage.removeItem(noteDraftKey(user.id, editing));
+                localStorage.removeItem(activeKey);
+              } catch {}
+              setDraft(emptyNoteDraft());
               setOpen(false);
             }
           }}
@@ -102,24 +179,30 @@ export function NotesScreen() {
               value={title}
               maxLength={120}
               placeholder={C.notes.titlePlaceholder}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => update({ title: e.target.value })}
             />
           </Field>
           <div className="form-grid">
             <Field label={C.notes.type}>
-              <select value={type} onChange={(e) => setType(e.target.value)}>
+              <select
+                value={type}
+                onChange={(e) => update({ type: e.target.value })}
+              >
                 <option value="text">{C.notes.text}</option>
                 <option value="checklist">{C.notes.checklist}</option>
               </select>
             </Field>
-            <Visibility value={visibility} onChange={setVisibility} />
+            <Visibility
+              value={visibility}
+              onChange={(visibility) => update({ visibility })}
+            />
           </div>
           <Field label={C.common.content}>
             <textarea
               required
               maxLength={A.notes.maxLength}
               value={body}
-              onChange={(e) => setBody(e.target.value)}
+              onChange={(e) => update({ body: e.target.value })}
               placeholder={C.notes.bodyPlaceholder}
             />
           </Field>
@@ -140,6 +223,7 @@ export function NotesScreen() {
         </form>
       )}
       <div className="filters">
+        <small>{C.notes.searchScope}</small>
         <Field label={C.common.search}>
           <input
             type="search"

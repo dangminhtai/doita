@@ -170,6 +170,7 @@ export function SettingsScreen({ go }: { go: (p: string) => void }) {
                 <option key={zone}>{zone}</option>
               ))}
             </select>
+            {d.daily && <small>{C.couples.timezoneLocked}</small>}
           </Field>
           <Field label={C.couples.start}>
             <input
@@ -371,17 +372,26 @@ export function SettingsScreen({ go }: { go: (p: string) => void }) {
   );
 }
 export function AdminScreen() {
-  const { notify } = useApp();
   const [result, setResult] = useState<{
     counts: Record<string, number>;
     jobs: Row[];
   } | null>(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
+    let active = true;
     authenticatedFetch("/api/admin")
-      .then(setResult)
-      .catch(() => notify(C.admin.notAdmin, true))
-      .finally(() => setLoading(false));
+      .then((data) => {
+        if (active) setResult(data);
+      })
+      .catch(() => {
+        if (active) setResult(null);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
   return (
     <>

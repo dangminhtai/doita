@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { Heart } from "lucide-react";
 import { db, configured, rpc } from "@/lib/supabase/browser";
 import { useApp } from "@/components/app-context";
@@ -135,6 +136,9 @@ export function AuthScreen() {
             </button>
           </>
         )}
+        <Link className="text-button" href="/privacy">
+          {C.nav.privacy}
+        </Link>
       </form>
     </section>
   );

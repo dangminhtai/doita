@@ -71,6 +71,8 @@ export const CONTENT = {
       "Điền biến môi trường và chạy migration theo README để đăng nhập. Những khóa này do người quản lý ứng dụng thiết lập.",
   },
   couples: {
+    timezoneLocked:
+      "Múi giờ được cố định từ ngày đầu tiên để tránh ghi nhận hoạt động hai lần trong một ngày.",
     title: "Hẹn người ấy vào đây",
     description:
       "Tạo một không gian riêng, rồi gửi mã cho người ấy. Hoặc nhập mã bạn đã nhận.",
@@ -144,6 +146,12 @@ export const CONTENT = {
     needPair: "Ghép đủ hai người để hoàn thành daily.",
   },
   notes: {
+    leaveDraft:
+      "Lời nhắn chưa được lưu lên ứng dụng. Rời trang và giữ bản nháp trên thiết bị này?",
+    draftStorageError:
+      "Không lưu được bản nháp trên thiết bị này. Hãy lưu lời nhắn trước khi rời trang.",
+    searchScope:
+      "Tìm trong các lời nhắn đã tải. Chọn Xem thêm để tìm cả những lời nhắn cũ hơn.",
     title: "Những lời để dành",
     subtitle: "Lời nhắn nhỏ, danh sách chung, hay điều chỉ mình biết.",
     new: "Viết lời nhắn",

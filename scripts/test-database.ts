@@ -1,7 +1,7 @@
 // Execute the production migration against real PostgreSQL (PGlite).
 // Only Supabase service schemas/roles and pgcrypto random bytes are shimmed.
 import { PGlite } from "@electric-sql/pglite";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import assert from "node:assert/strict";
 const db = new PGlite();
 await db.exec(`
@@ -30,6 +30,11 @@ await db.exec(
   `create or replace function extensions.gen_random_bytes(integer) returns bytea language sql volatile as $$select substring(decode(string_agg(md5(random()::text),''),'hex') from 1 for $1) from generate_series(1,ceil($1::numeric/16)::int)$$;`,
 );
 await db.exec(migration);
+for (const file of readdirSync("supabase/migrations")
+  .filter((file) => file.endsWith(".sql") && file !== "202610040001_core.sql")
+  .sort()) {
+  await db.exec(readFileSync(`supabase/migrations/${file}`, "utf8"));
+}
 await db.exec(readFileSync("supabase/seed.sql", "utf8"));
 const A = "00000000-0000-0000-0000-000000000001",
   B = "00000000-0000-0000-0000-000000000002",
@@ -130,6 +135,89 @@ assert.equal(
 console.log("PASS private note/prayer isolation, shared checklist edit");
 
 await as(A);
+const checklist = (
+  await one(
+    "select public.save_note('checklist', $1, 'checklist', 'couple') as id",
+    ["one\ntwo\none"],
+  )
+).id;
+const before = (
+  await db.query(
+    "select id,content,position from public.note_items where note_id=$1 order by position",
+    [checklist],
+  )
+).rows as any[];
+await one("select public.toggle_note_item($1)", [before[0].id]);
+await one(
+  "select public.save_note('renamed', $1, 'checklist', 'private', $2)",
+  ["one\ntwo\none", checklist],
+);
+assert.equal(
+  (
+    await one("select completed from public.note_items where id=$1", [
+      before[0].id,
+    ])
+  ).completed,
+  true,
+);
+assert.deepEqual(
+  (
+    await db.query(
+      "select id from public.note_items where note_id=$1 order by position",
+      [checklist],
+    )
+  ).rows.map((r: any) => r.id),
+  before.map((r) => r.id),
+);
+await one(
+  "select public.save_note('renamed', $1, 'checklist', 'private', $2)",
+  ["new\none\ntwo\none", checklist],
+);
+assert.equal(
+  (
+    await one("select completed from public.note_items where id=$1", [
+      before[0].id,
+    ])
+  ).completed,
+  true,
+);
+await one(
+  "select public.save_note('renamed', $1, 'checklist', 'private', $2)",
+  ["two changed\none", checklist],
+);
+assert.equal(
+  (
+    await one("select completed from public.note_items where id=$1", [
+      before[0].id,
+    ])
+  ).completed,
+  true,
+);
+assert.equal(
+  (
+    await db.query("select id from public.note_items where id=$1", [
+      before[1].id,
+    ])
+  ).rows.length,
+  0,
+);
+assert.equal(
+  (
+    await db.query("select id from public.note_items where note_id=$1", [
+      checklist,
+    ])
+  ).rows.length,
+  2,
+);
+await as(B);
+await denied(
+  "select public.save_note('unauthorized','x','checklist','couple',$1)",
+  [checklist],
+);
+await as(A);
+console.log(
+  "PASS checklist metadata, insertion, deletion, edited lines, duplicate lines and ownership",
+);
 await db.query(
   "select public.save_note('now private','no shared copy','text','private',$1)",
   [sharedNote],

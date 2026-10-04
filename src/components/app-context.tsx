@@ -301,15 +301,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (busy) return false;
     setBusy(true);
     setMessage("");
+    const actionPath = location.pathname;
     try {
       const result = await fn();
       if (result === false) return false;
-      notify(msg);
+      if (location.pathname === actionPath) notify(msg);
       await load();
       return true;
     } catch (e) {
       console.error("Action failed", e);
-      notify(actionErrorMessage(e), true);
+      if (location.pathname === actionPath) notify(actionErrorMessage(e), true);
       return false;
     } finally {
       setBusy(false);

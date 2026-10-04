@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Heart,
   House,
@@ -35,11 +35,32 @@ export function CoupleApp({ initialPage = "home" }: { initialPage?: string }) {
 function Shell({ initialPage }: { initialPage: string }) {
   const [page, setPage] = useState(initialPage),
     [menu, setMenu] = useState(false);
-  const { user, data, loading, message, error, recovery, busy } = useApp();
+  const { user, data, loading, message, error, recovery, busy, notify } =
+    useApp();
+  useEffect(() => {
+    const pop = () => {
+      setPage(location.pathname.slice(1) || "home");
+      setMenu(false);
+      notify("");
+    };
+    window.addEventListener("popstate", pop);
+    return () => window.removeEventListener("popstate", pop);
+  }, [notify]);
   const go = (next: string) => {
+    if (next === page) {
+      setMenu(false);
+      return;
+    }
+    if (
+      !window.dispatchEvent(
+        new Event("couple-before-navigate", { cancelable: true }),
+      )
+    )
+      return;
     setPage(next);
     setMenu(false);
-    history.replaceState(null, "", `/${next}`);
+    notify("");
+    history.pushState(null, "", `/${next}`);
     window.scrollTo({ top: 0 });
   };
   const nav = [
@@ -145,6 +166,13 @@ function Shell({ initialPage }: { initialPage: string }) {
               className={`toast ${error ? "error" : ""}`}
             >
               {message}
+              <button
+                className="text-button"
+                onClick={() => notify("")}
+                aria-label={C.common.close}
+              >
+                <X size={16} />
+              </button>
             </div>
           )}
           {content}

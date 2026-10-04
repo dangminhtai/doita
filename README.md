@@ -42,6 +42,8 @@ Mở http://localhost:3000. Không có key thì ứng dụng hiển thị màn h
 
 Có thể seed từ JSON thay vì chạy `seed.sql`:
 
+Với project đã chạy migration khởi tạo, chạy các migration mới theo thứ tự tên file. Bản sửa checklist dùng `supabase/migrations/202610040002_preserve_checklist.sql`; không chạy lại `202610040001_core.sql` trên database đang có dữ liệu. Bản sửa giữ ID và trạng thái hoàn thành của các dòng không đổi; dòng bị thay nội dung được xem là mục mới. Trạng thái đã mất trước bản sửa không thể tự khôi phục.
+
 ```bash
 npm run seed
 ```
