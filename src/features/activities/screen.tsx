@@ -7,13 +7,16 @@ import { CONTENT as C, interpolate as t } from "@/config/content.vi";
 import { rpc } from "@/lib/supabase/browser";
 import { recommend, type Activity } from "./recommend";
 export function ActivitiesScreen() {
-  const { data: d, run } = useApp();
+  const { data: d, run, user, busy } = useApp();
   const [time, setTime] = useState(15),
     [energy, setEnergy] = useState("low"),
     [preference, setPreference] = useState("random"),
     [chosen, setChosen] = useState<Activity | null>(null),
     [seen, setSeen] = useState<string[]>([]),
     [attempted, setAttempted] = useState(false);
+  const rating = d.activityHistory.find(
+    (x) => x.activity_id === chosen?.id && x.user_id === user?.id,
+  )?.rating;
   function choose() {
     setAttempted(true);
     const pool = recommend(
@@ -108,9 +111,13 @@ export function ActivitiesScreen() {
           <div className="row">
             <button
               className="text-button"
+              disabled={busy}
+              aria-pressed={rating === 1}
               onClick={() =>
-                void run(() =>
-                  rpc("log_activity", { p_activity: chosen.id, p_rating: 1 }),
+                void run(
+                  () =>
+                    rpc("log_activity", { p_activity: chosen.id, p_rating: 1 }),
+                  C.activities.liked,
                 )
               }
             >
@@ -119,9 +126,16 @@ export function ActivitiesScreen() {
             </button>
             <button
               className="text-button"
+              disabled={busy}
+              aria-pressed={rating === -1}
               onClick={() =>
-                void run(() =>
-                  rpc("log_activity", { p_activity: chosen.id, p_rating: -1 }),
+                void run(
+                  () =>
+                    rpc("log_activity", {
+                      p_activity: chosen.id,
+                      p_rating: -1,
+                    }),
+                  C.activities.disliked,
                 )
               }
             >

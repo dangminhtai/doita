@@ -1189,3 +1189,79 @@ select:disabled {
 .boat:focus-visible svg {
   animation-play-state: paused;
 }
+
+.notification-bell {
+  position: relative;
+  flex-shrink: 0;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.notification-badge {
+  position: absolute;
+  top: -4px;
+  right: -5px;
+  min-width: 20px;
+  padding: 2px 4px;
+  border-radius: 12px;
+  background: #af3849;
+  color: white;
+  font-size: 11px;
+  line-height: 16px;
+  text-align: center;
+}
+.notification-dot {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 8px;
+  height: 8px;
+  background: #af3849;
+  border-radius: 50%;
+}
+.notification-tools {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 18px 0;
+}
+.modal:has(.notification-tools) {
+  margin: auto;
+}
+.notification-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.notification-item {
+  display: grid;
+  width: 100%;
+  gap: 8px;
+  text-align: left;
+  padding: 16px;
+  margin-bottom: 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+}
+.notification-item.unread {
+  background: #e1efea;
+  border-left: 4px solid #376951;
+}
+.notification-item small {
+  opacity: 0.75;
+}
+.text-button[aria-pressed="true"] {
+  background: #e1efea;
+  border-radius: 8px;
+}

@@ -2,6 +2,7 @@ import { userClient } from "@/lib/supabase/server";
 import { pushSchema } from "@/features/schemas";
 import { allowedEndpoint, flushPush } from "@/lib/notifications/push";
 export const runtime = "nodejs";
+export const maxDuration = 60;
 export async function POST(request: Request) {
   const ctx = await userClient(request);
   if (!ctx) return Response.json({ ok: false }, { status: 401 });

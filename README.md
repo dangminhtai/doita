@@ -47,6 +47,10 @@ Với project đã chạy migration khởi tạo, chạy các migration mới th
 
 Bản sửa review tiếp theo cần `202610040003_review_fixes.sql`, rồi `202610040004_asset_delivery.sql`. Chạy mỗi file một lần trên Supabase và triển khai code mới trong cùng đợt: RPC `answer_daily` nay yêu cầu ID phiên đang hiển thị, nên client cũ sẽ được yêu cầu tải lại thay vì gửi câu trả lời sang câu hỏi khác. Hai migration thêm đồng bộ realtime, truy vấn kỷ niệm theo múi giờ, danh sách tài sản để xóa ảnh bền vững và biên nhận push theo thiết bị. Không chạy lại migration khởi tạo hoặc seed để cập nhật schema.
 
+Chuông thông báo cần thêm `202610040005_notification_inbox.sql` sau 004. Hộp thông báo được lưu trên Supabase, chỉ người nhận trong không gian hiện tại được đọc; đánh dấu đã đọc qua RPC có kiểm tra quyền. Lời nhắn chia sẻ, daily, trái tim/phản hồi, lời quan tâm, điều ước và đánh giá hoạt động tạo thông báo chung, không đưa nội dung riêng vào thông báo. Danh sách có số chưa đọc, mở trang liên quan và đánh dấu tất cả đã đọc. Realtime cập nhật ngay; polling mỗi 30 giây khi trang hiện giúp cập nhật nếu kết nối Realtime gián đoạn. Mất kết nối thông báo không làm thao tác like đã lưu bị báo thất bại.
+
+Âm thanh trong trang mặc định bật và có nút bật/tắt trong chuông, lưu theo tài khoản trên thiết bị. Chỉ thông báo mới sau khi mở trang mới phát tiếng, không phát lại khi reload/đọc lịch sử; tab ẩn không phát âm thanh trong trang. Trình duyệt yêu cầu người dùng tương tác trước khi Web Audio chạy, xem [MDN về Web Audio](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Best_practices). Khi đóng web, thông báo và âm thanh của hệ điều hành phụ thuộc quyền push, thiết bị và cài đặt hệ thống.
+
 ```bash
 npm run seed
 ```

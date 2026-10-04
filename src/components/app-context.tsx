@@ -19,6 +19,7 @@ import { CONTENT as C } from "@/config/content.vi";
 import { enabled } from "@/config/app.config";
 import { actionErrorMessage } from "@/lib/action-error";
 import { localDate } from "@/lib/date";
+import { LatestRequest } from "@/lib/latest-request";
 export type Row = Record<string, any>;
 export type Data = {
   errors: Record<string, string>;
@@ -104,11 +105,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const requestVersion = useRef(0);
   const currentUser = useRef<string | null>(null);
   const busyRef = useRef(false);
+  const loadQueue = useRef(new LatestRequest<boolean>());
   const notify = useCallback((msg: string, err = false) => {
     setMessage(msg);
     setError(err);
   }, []);
-  const load = useCallback(async () => {
+  const loadWork = useCallback(async () => {
     if (!user || currentUser.current !== user.id) return false;
     const version = ++requestVersion.current;
     const current = () =>
@@ -196,6 +198,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             if (result.error) throw result.error;
             return (result.data ?? []) as unknown as Row[];
           } catch (e) {
+            console.error("Load feature data", table, e);
             featureErrors[table] = actionErrorMessage(e);
             return [];
           }
@@ -301,6 +304,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (current()) setLoading(false);
     }
   }, [user, limit, notify]);
+  const load = useCallback(() => loadQueue.current.run(loadWork), [loadWork]);
   useEffect(() => {
     if (!configured()) {
       setLoading(false);
@@ -443,6 +447,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       const result = await fn();
       if (result === false) return false;
+      if (actionUser && actionUser === currentUser.current)
+        void flushNotifications();
       const refreshed = user ? await load() : true;
       if (
         location.pathname === actionPath &&

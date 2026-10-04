@@ -21,6 +21,7 @@ import { PrayerScreen } from "@/features/prayer/screen";
 import { MemoriesScreen } from "@/features/memories/screen";
 import { ActivitiesScreen } from "@/features/activities/screen";
 import { SettingsScreen } from "@/features/settings/screen";
+import { NotificationBell } from "./notification-bell";
 export function CoupleApp({ initialPage = "home" }: { initialPage?: string }) {
   return (
     <AppProvider>
@@ -182,6 +183,9 @@ function Shell({ initialPage }: { initialPage: string }) {
           <span>{C.brand.name}</span>
         </a>
         <p>{C.brand.tagline}</p>
+        {user && data.couple && enabled("notifications") && !recovery && (
+          <NotificationBell key={`${user.id}:${data.couple.id}`} go={go} />
+        )}
         {user && data.couple && (
           <button
             ref={menuButton}

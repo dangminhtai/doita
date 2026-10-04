@@ -343,6 +343,75 @@ assert.equal(
 console.log(
   "PASS daily hidden before reveal, atomic completion, idempotent streak",
 );
+await as(A);
+await one("select public.daily_reply(public.ensure_daily(),'♥')");
+assert.equal(
+  (await db.query("select * from public.notifications where kind='reaction'"))
+    .rows.length,
+  0,
+);
+await as(B);
+const reactionNotice = await one(
+  "select * from public.notifications where kind='reaction'",
+);
+assert.equal(reactionNotice.user_id, B);
+assert.equal(reactionNotice.actor_id, A);
+assert.equal(reactionNotice.url, "/daily");
+assert.equal(reactionNotice.read_at, null);
+await as(A);
+await one("select public.mark_notifications_read($1::uuid[])", [
+  [reactionNotice.id],
+]);
+await as(B);
+assert.equal(
+  (
+    await one("select read_at from public.notifications where id=$1", [
+      reactionNotice.id,
+    ])
+  ).read_at,
+  null,
+);
+await one("select public.mark_notifications_read($1::uuid[])", [
+  [reactionNotice.id],
+]);
+assert.ok(
+  (
+    await one("select read_at from public.notifications where id=$1", [
+      reactionNotice.id,
+    ])
+  ).read_at,
+);
+await denied("update public.notifications set read_at=null");
+await as(C);
+assert.equal(
+  (await db.query("select * from public.notifications")).rows.length,
+  0,
+);
+await as(A);
+await one(
+  "select public.log_activity((select id from public.activities limit 1),1)",
+);
+await as(B);
+assert.equal(
+  (
+    await one(
+      "select actor_id from public.notifications where kind='activity_like'",
+    )
+  ).actor_id,
+  A,
+);
+await one("select public.mark_notifications_read(p_before=>now())");
+assert.equal(
+  (
+    await one(
+      "select count(*)::int as n from public.notifications where read_at is null",
+    )
+  ).n,
+  0,
+);
+console.log(
+  "PASS inbox recipient isolation, hearts/likes, own-only read and mark-all",
+);
 await denied("select public.daily_maintenance()");
 await denied("select public.claim_notifications()");
 console.log("PASS service-only cron and push claim");
@@ -474,6 +543,7 @@ for (const table of [
   "daily_answers",
   "memories",
   "moods",
+  "notifications",
 ])
   assert.equal(
     (await db.query(`select * from public.${table}`)).rows.length,
