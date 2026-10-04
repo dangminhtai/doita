@@ -1,0 +1,4 @@
+project_id = "couple-river"
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]

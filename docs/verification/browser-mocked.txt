@@ -1,0 +1,6 @@
+PASS browser daily submit, wait and reveal
+PASS browser note create
+PASS browser prayer release and accessible letter modal
+PASS browser activity recommender
+PASS 320px, 375px and desktop layout; no browser runtime errors
+PASS cron unauthorized response and PWA manifest

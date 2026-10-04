@@ -1,0 +1,18 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> couple-river@1.0.0 test:database
+> node --import tsx scripts/test-database.ts
+
+PASS create couple, profile trigger, random invite
+PASS third user cannot join or read couple
+PASS invite attempt limiter persists across invalid codes
+PASS private note/prayer isolation, shared checklist edit
+PASS note visibility change removes shared memory reference
+PASS daily hidden before reveal, atomic completion, idempotent streak
+PASS service-only cron and push claim
+PASS cron deduplication and notification lease
+PASS private resurfacing never becomes shared memory
+PASS repair eligibility, token consumption, no double repair
+PASS private storage policies
+PASS leave revokes read/write access
+Database integration suite passed.

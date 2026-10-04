@@ -1,0 +1,1502 @@
+[
+  {
+    "id": "chat-01",
+    "title": "Ba điều trong ngày",
+    "description": "Mỗi người gửi một điều vui, một điều khó và một điều mình mong ngày mai.",
+    "category": "chat",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "chat",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "chat-02",
+    "title": "Câu chuyện của một tấm ảnh",
+    "description": "Chọn một ảnh trong máy và kể câu chuyện phía sau. Người kia hỏi thêm một câu.",
+    "category": "chat",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "chat",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "chat-03",
+    "title": "Kể về đường về nhà",
+    "description": "Gửi lời nhắn về một chi tiết bạn gặp trên đường về. Không cần gọi điện.",
+    "category": "chat",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "chat",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "chat-04",
+    "title": "Hôm nay muốn được nghe gì",
+    "description": "Mỗi người hoàn thành câu: hôm nay mình muốn được nghe… rồi đáp lại bằng lời của mình.",
+    "category": "chat",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "chat",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "chat-05",
+    "title": "Một món ăn thời nhỏ",
+    "description": "Kể về món ăn gắn với một người thân. Nếu muốn, gửi ảnh món tương tự.",
+    "category": "chat",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "chat",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "chat-06",
+    "title": "Điều vừa học được",
+    "description": "Mỗi người chia sẻ một kiến thức mới và nói vì sao mình thấy thú vị.",
+    "category": "chat",
+    "duration": 5,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "chat",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "chat-07",
+    "title": "Một lần mình đổi ý",
+    "description": "Kể chuyện bạn từng nghĩ khác đi sau một trải nghiệm. Người nghe không cần tranh luận.",
+    "category": "chat",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "chat",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "chat-08",
+    "title": "Bản đồ ngày của mình",
+    "description": "Mô tả buổi sáng, trưa và tối bằng ba hình ảnh. So xem hai ngày giống nhau ở đâu.",
+    "category": "chat",
+    "duration": 15,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "chat",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "chat-09",
+    "title": "Nghe mà chưa giải quyết",
+    "description": "Mỗi người kể một chuyện đang băn khoăn. Hỏi xem người kể muốn được nghe hay cần góp ý.",
+    "category": "chat",
+    "duration": 15,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "chat",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "chat-10",
+    "title": "Ký ức về trường học",
+    "description": "Chọn một ngày đáng nhớ ở trường và kể một chi tiết mà người kia chưa biết.",
+    "category": "chat",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "chat",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "chat-11",
+    "title": "Điều làm mình thấy an toàn",
+    "description": "Nói về một hành động cụ thể giúp bạn thấy được tôn trọng. Người kia chia sẻ điều của họ.",
+    "category": "chat",
+    "duration": 15,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "chat",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "chat-12",
+    "title": "Sở thích bất ngờ",
+    "description": "Mỗi người giới thiệu một sở thích ít ai biết và một cách nhỏ để người kia thử.",
+    "category": "chat",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "chat",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "chat-13",
+    "title": "Từ điển của hai đứa",
+    "description": "Chọn ba từ hoặc câu hai đứa hay dùng, viết ý nghĩa riêng và kỷ niệm đi kèm.",
+    "category": "chat",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "chat",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "chat-14",
+    "title": "Một thành công bé",
+    "description": "Kể một việc bạn đã làm được tuần này. Cùng nghĩ một cách ăn mừng không tốn tiền.",
+    "category": "chat",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "chat",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "chat-15",
+    "title": "Một nghề mình từng mơ",
+    "description": "Kể nghề bạn từng muốn làm lúc nhỏ và điều bạn thích ở nghề ấy.",
+    "category": "chat",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "chat",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "chat-16",
+    "title": "Ngày nghỉ lý tưởng",
+    "description": "Mỗi người mô tả một ngày nghỉ thật thực tế. Tìm một điểm hai đứa có thể làm cùng.",
+    "category": "chat",
+    "duration": 15,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "chat",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "chat-17",
+    "title": "Một cuộc trò chuyện sâu",
+    "description": "Chọn một câu hỏi tự nguyện về giá trị sống; người nghe tóm tắt điều mình hiểu trước khi đáp.",
+    "category": "chat",
+    "duration": 30,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "chat",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "chat-18",
+    "title": "Chuyện của gia đình",
+    "description": "Kể một truyền thống gia đình mà bạn muốn gìn giữ. Có thể bỏ qua điều không muốn kể.",
+    "category": "chat",
+    "duration": 30,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "chat",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "chat-19",
+    "title": "Phỏng vấn nhẹ nhàng",
+    "description": "Mỗi người đặt năm câu hỏi tò mò về sở thích; được quyền bỏ qua bất kỳ câu nào.",
+    "category": "chat",
+    "duration": 30,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "chat",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "chat-20",
+    "title": "Một giờ cùng lắng nghe",
+    "description": "Dành một giờ tự chọn để nói về tuần qua. Nghỉ giữa chừng nếu mệt; không cần tìm kết luận.",
+    "category": "chat",
+    "duration": 60,
+    "energy": "high",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "chat",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "play-01",
+    "title": "Đoán đồ vật",
+    "description": "Chụp cận một vật quanh bạn, gửi ảnh và để người kia đoán. Tối đa ba gợi ý.",
+    "category": "play",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "play",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "play-02",
+    "title": "Ba emoji một câu chuyện",
+    "description": "Dùng ba emoji kể một sự kiện trong ngày. Người kia đoán rồi bạn bật mí.",
+    "category": "play",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "play",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "play-03",
+    "title": "Đặt tên cho mèo tưởng tượng",
+    "description": "Mỗi người đề xuất ba tên cho một chú mèo tưởng tượng và kể tính cách của nó.",
+    "category": "play",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "play",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "play-04",
+    "title": "Nối chữ bằng tin nhắn",
+    "description": "Gửi một từ và nối tiếp bằng âm cuối trong năm phút. Đừng quan trọng thắng thua.",
+    "category": "play",
+    "duration": 5,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "play",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "play-05",
+    "title": "Ảnh theo một màu",
+    "description": "Chọn một màu rồi mỗi người tìm ba vật có màu đó quanh mình. Gửi ảnh sau khi tìm xong.",
+    "category": "play",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "play",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "play-06",
+    "title": "Thử vẽ không nhìn",
+    "description": "Vẽ một vật đơn giản mà không nhìn xuống giấy trong một phút rồi gửi kết quả.",
+    "category": "play",
+    "duration": 5,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "play",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "play-07",
+    "title": "Đố vui về sở thích",
+    "description": "Viết ba thông tin về sở thích, trong đó một điều được bịa. Người kia đoán điều bịa.",
+    "category": "play",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "play",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "play-08",
+    "title": "Truyện mỗi người một câu",
+    "description": "Cùng viết một câu chuyện bằng cách luân phiên mỗi người một câu. Kết thúc sau mười câu.",
+    "category": "play",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "play",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "play-09",
+    "title": "Săn hình trái tim",
+    "description": "Tìm một hình giống trái tim trong căn phòng hoặc ảnh cũ. Gửi kèm một lời nhắn.",
+    "category": "play",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "play",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "play-10",
+    "title": "Bìa album tự chế",
+    "description": "Chọn một ảnh của mình và đặt tên album cùng ba tên bài hát tưởng tượng.",
+    "category": "play",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "play",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "play-11",
+    "title": "Bingo ở nhà",
+    "description": "Cùng liệt kê chín đồ vật phổ biến rồi đánh dấu những món tìm thấy. Không cần ra ngoài.",
+    "category": "play",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "play",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "play-12",
+    "title": "Đố bằng nét vẽ",
+    "description": "Vẽ một món ăn hoặc địa điểm. Gửi ảnh để người kia đoán, đổi vai ba lượt.",
+    "category": "play",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "play",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "play-13",
+    "title": "Thử viết bằng tay kia",
+    "description": "Mỗi người viết một câu chúc bằng tay không thuận rồi chụp cho nhau xem.",
+    "category": "play",
+    "duration": 5,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "play",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "play-14",
+    "title": "Chọn một siêu năng lực",
+    "description": "Mỗi người chọn một siêu năng lực vô dụng và thuyết phục vì sao nó vẫn hay.",
+    "category": "play",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "play",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "play-15",
+    "title": "Nhà thiết kế một phút",
+    "description": "Vẽ món đồ giúp hai đứa yêu xa dễ hơn. Giải thích tính năng kỳ quặc nhất.",
+    "category": "play",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "play",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "play-16",
+    "title": "Album khuôn mặt đồ vật",
+    "description": "Chụp ba đồ vật trông như có khuôn mặt. Đặt tên và tâm trạng cho từng vật.",
+    "category": "play",
+    "duration": 30,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "play",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "play-17",
+    "title": "Trò chơi cùng tải",
+    "description": "Chọn một game miễn phí hai máy đều chơi được. Đặt giờ kết thúc trước khi chơi.",
+    "category": "play",
+    "duration": 30,
+    "energy": "high",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "play",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "play-18",
+    "title": "Thử thách ảnh năm chủ đề",
+    "description": "Mỗi người chụp ảnh theo năm chủ đề: sáng, tròn, cũ, mềm, yêu thích. Không chụp người lạ.",
+    "category": "play",
+    "duration": 30,
+    "energy": "high",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "play",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "play-19",
+    "title": "Chơi cờ theo lượt",
+    "description": "Chọn một bàn cờ online có chế độ theo lượt. Thống nhất có thể trả lời chậm.",
+    "category": "play",
+    "duration": 30,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "play",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "play-20",
+    "title": "Một buổi game thư giãn",
+    "description": "Chọn game hợp tác, chơi tối đa một giờ rồi chia sẻ khoảnh khắc vui nhất.",
+    "category": "play",
+    "duration": 60,
+    "energy": "high",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "play",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "watch-01",
+    "title": "Một video khiến mình cười",
+    "description": "Mỗi người gửi một video ngắn mình thích. Xem lúc thuận tiện rồi gửi phản hồi.",
+    "category": "watch",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "watch",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "watch-02",
+    "title": "Cùng nghe một bài hát",
+    "description": "Chọn một bài, nghe riêng rồi nói đoạn nhạc bạn thích nhất bằng lời của mình.",
+    "category": "watch",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "watch",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "watch-03",
+    "title": "Bầu trời hai nơi",
+    "description": "Gửi ảnh bầu trời qua cửa sổ hoặc từ vị trí an toàn. Kể thời tiết ở chỗ mình.",
+    "category": "watch",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "watch",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "watch-04",
+    "title": "Một góc phòng bình yên",
+    "description": "Chụp một góc bạn thích và xem góc của người kia. Không cần dọn phòng cho đẹp.",
+    "category": "watch",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "watch",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "watch-05",
+    "title": "Cùng xem một trailer",
+    "description": "Chọn trailer của một bộ phim, xem riêng rồi quyết định có muốn xem cả phim không.",
+    "category": "watch",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "watch",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "watch-06",
+    "title": "Triển lãm ảnh nhỏ",
+    "description": "Mỗi người gửi năm ảnh không có thông tin riêng của người khác. Bình luận một ảnh yêu thích.",
+    "category": "watch",
+    "duration": 15,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "watch",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "watch-07",
+    "title": "Một bài hát tuổi nhỏ",
+    "description": "Gửi bài hát bạn từng nghe thời nhỏ, kể nó gợi nhớ chuyện gì.",
+    "category": "watch",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "watch",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "watch-08",
+    "title": "Xem một video khoa học",
+    "description": "Chọn video ngắn từ nguồn đáng tin, xem rồi cùng hỏi một điều còn tò mò.",
+    "category": "watch",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "watch",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "watch-09",
+    "title": "Khám phá một thành phố",
+    "description": "Xem video đi bộ ở thành phố muốn đến. Ghi lại một nơi bạn muốn ghé.",
+    "category": "watch",
+    "duration": 15,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "watch",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "watch-10",
+    "title": "Cùng nhìn một tác phẩm",
+    "description": "Chọn tranh từ bảo tàng online. Mỗi người mô tả chi tiết đầu tiên mình nhìn thấy.",
+    "category": "watch",
+    "duration": 15,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "watch",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "watch-11",
+    "title": "Nghe một podcast ngắn",
+    "description": "Chọn tập podcast vừa thời gian, nghe riêng rồi nhắn một ý khiến bạn suy nghĩ.",
+    "category": "watch",
+    "duration": 15,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "watch",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "watch-12",
+    "title": "Playlist buổi tối",
+    "description": "Mỗi người thêm ba bài vào playlist chung. Nghe lúc nghỉ, không bắt buộc trả lời ngay.",
+    "category": "watch",
+    "duration": 15,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "watch",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "watch-13",
+    "title": "Một công thức muốn thử",
+    "description": "Xem video nấu món cả hai đều thích và ghi lại nguyên liệu có sẵn.",
+    "category": "watch",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "watch",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "watch-14",
+    "title": "Du lịch qua bản đồ",
+    "description": "Mở bản đồ khu mình lớn lên, chia sẻ một địa điểm công cộng và câu chuyện về nó.",
+    "category": "watch",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "watch",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "watch-15",
+    "title": "Xem một phim ngắn",
+    "description": "Chọn phim ngắn hợp sở thích, xem riêng rồi kể một cảm xúc còn đọng lại.",
+    "category": "watch",
+    "duration": 30,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "watch",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "watch-16",
+    "title": "Một tập phim quen",
+    "description": "Cùng xem lại tập phim yêu thích, có thể bắt đầu khác giờ. Chia sẻ cảnh đáng nhớ.",
+    "category": "watch",
+    "duration": 30,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "watch",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "watch-17",
+    "title": "Album chuyến đi",
+    "description": "Mỗi người chọn mười ảnh từ một chuyến đi và kể theo thứ tự. Không cần gọi video.",
+    "category": "watch",
+    "duration": 30,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "watch",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "watch-18",
+    "title": "Thử một bài học miễn phí",
+    "description": "Chọn video học một kỹ năng nhỏ, xem rồi cùng thử phần đầu tiên.",
+    "category": "watch",
+    "duration": 30,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "watch",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "watch-19",
+    "title": "Một buổi xem chung",
+    "description": "Chọn chương trình hợp thời lượng một giờ, đồng bộ hoặc xem riêng tùy lịch hai người.",
+    "category": "watch",
+    "duration": 60,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "watch",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "watch-20",
+    "title": "Nhạc và một việc nhỏ",
+    "description": "Cùng nghe playlist trong khi mỗi người làm việc riêng. Cuối giờ gửi một lời chào.",
+    "category": "watch",
+    "duration": 60,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "watch",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "romantic-01",
+    "title": "Cảm ơn một việc cụ thể",
+    "description": "Viết lời cảm ơn về một hành động gần đây của người ấy. Đừng dùng lời khen chung chung.",
+    "category": "romantic",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "romantic",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "romantic-02",
+    "title": "Lá thư ba dòng",
+    "description": "Viết ba dòng: mình nhớ gì, mình trân trọng gì và mình mong gì. Gửi khi bạn thấy thoải mái.",
+    "category": "romantic",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "romantic",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "romantic-03",
+    "title": "Một lời chúc buổi tối",
+    "description": "Gửi một lời chúc phù hợp với ngày của người ấy, không yêu cầu họ trả lời ngay.",
+    "category": "romantic",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "romantic",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "romantic-04",
+    "title": "Chiếc thuyền chung",
+    "description": "Mỗi người viết một điều mong cho hai đứa rồi thả thuyền trong dòng ước nguyện.",
+    "category": "romantic",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "romantic",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "romantic-05",
+    "title": "Giữ một câu đã nói",
+    "description": "Viết lại một câu dịu dàng người ấy từng nói và kể vì sao bạn vẫn nhớ.",
+    "category": "romantic",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "romantic",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "romantic-06",
+    "title": "Một bưu thiếp tự vẽ",
+    "description": "Vẽ hoặc làm một tấm thiệp nhỏ từ giấy có sẵn. Chụp và gửi, không cần hoàn hảo.",
+    "category": "romantic",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "romantic",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "romantic-07",
+    "title": "Bữa ăn cùng nhịp",
+    "description": "Chọn giờ gần nhau để ăn món đơn giản. Gửi ảnh trước bữa, không bắt buộc gọi.",
+    "category": "romantic",
+    "duration": 15,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "romantic",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "romantic-08",
+    "title": "Chọn bài hát của hôm nay",
+    "description": "Mỗi người chọn một bài phù hợp tâm trạng dành cho người kia và viết một câu giải thích.",
+    "category": "romantic",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "romantic",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "romantic-09",
+    "title": "Điều mình muốn chăm sóc",
+    "description": "Hỏi người ấy một việc bạn có thể giúp từ xa tuần này. Chấp nhận nếu họ chưa cần.",
+    "category": "romantic",
+    "duration": 15,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "romantic",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "romantic-10",
+    "title": "Kỷ niệm đầu tiên",
+    "description": "Mỗi người viết cảm nhận trong lần gặp đầu. Đọc với sự tò mò, không kiểm tra trí nhớ.",
+    "category": "romantic",
+    "duration": 15,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "romantic",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "romantic-11",
+    "title": "Một lời nhắn để đọc sau",
+    "description": "Viết note dành cho một ngày người ấy mệt. Đặt tiêu đề rõ để họ mở khi cần.",
+    "category": "romantic",
+    "duration": 15,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "romantic",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "romantic-12",
+    "title": "Hai tấm ảnh một khung",
+    "description": "Chọn hai ảnh ở hai nơi khác nhau và ghép thành một ảnh bằng công cụ có sẵn.",
+    "category": "romantic",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "romantic",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "romantic-13",
+    "title": "Hẹn nhau uống nước",
+    "description": "Pha đồ uống đơn giản rồi cùng nghỉ mười phút. Có thể chỉ nhắn một ảnh và một câu.",
+    "category": "romantic",
+    "duration": 15,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "romantic",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "romantic-14",
+    "title": "Lời hứa vừa sức",
+    "description": "Mỗi người chọn một hành động nhỏ trong tuần mình có thể giữ. Không hứa điều vượt khả năng.",
+    "category": "romantic",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "romantic",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "romantic-15",
+    "title": "Một món quà không tốn tiền",
+    "description": "Tạo playlist, thiệp hoặc danh sách điều bạn trân trọng. Để người kia mở lúc thuận tiện.",
+    "category": "romantic",
+    "duration": 30,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "romantic",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "romantic-16",
+    "title": "Viết về một ngày thường",
+    "description": "Mô tả một ngày bình thường bạn mong có cùng người ấy, gồm cả việc lặt vặt.",
+    "category": "romantic",
+    "duration": 15,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "romantic",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "romantic-17",
+    "title": "Trang kỷ niệm chung",
+    "description": "Chọn một kỷ niệm, mỗi người viết nửa trang về góc nhìn của mình rồi lưu trong timeline.",
+    "category": "romantic",
+    "duration": 30,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "romantic",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "romantic-18",
+    "title": "Một tối nghỉ cạnh nhau",
+    "description": "Mỗi người nghỉ ở chỗ mình với nhạc chung. Chỉ cần lời chào đầu và cuối, không ép nói chuyện.",
+    "category": "romantic",
+    "duration": 30,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "romantic",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "romantic-19",
+    "title": "Bữa tối từ xa",
+    "description": "Thống nhất một món vừa ngân sách, chuẩn bị và ăn theo lịch phù hợp. Có thể nhắn thay vì gọi.",
+    "category": "romantic",
+    "duration": 60,
+    "energy": "high",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "romantic",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "romantic-20",
+    "title": "Album điều mình thương",
+    "description": "Mỗi người chọn năm ảnh hoặc đồ vật gợi nhớ người ấy, viết chú thích rồi gửi thành album.",
+    "category": "romantic",
+    "duration": 60,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "romantic",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "future-01",
+    "title": "Lần gặp tiếp theo một bước",
+    "description": "Chọn một việc nhỏ có thể làm ngay để chuẩn bị lần gặp: xem lịch, ghi ngân sách hoặc địa điểm.",
+    "category": "future",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "future",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "future-02",
+    "title": "Một địa điểm miễn phí",
+    "description": "Mỗi người đề xuất một chỗ gặp không tốn vé và cách đi thực tế.",
+    "category": "future",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "future",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "future-03",
+    "title": "Danh sách món muốn ăn",
+    "description": "Thêm mỗi người ba món vào note chung cho lần gặp tiếp theo.",
+    "category": "future",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "future",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "future-04",
+    "title": "Lịch tuần nhẹ nhàng",
+    "description": "Nói ngày mình bận và một khung giờ có thể nhắn. Không đòi báo cáo mọi hoạt động.",
+    "category": "future",
+    "duration": 5,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "future",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "future-05",
+    "title": "Một sở thích cùng thử",
+    "description": "Chọn một kỹ năng nhỏ cả hai tò mò. Tìm bước đầu miễn phí và ghi vào note.",
+    "category": "future",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "future",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "future-06",
+    "title": "Ngân sách cho cuộc hẹn",
+    "description": "Ước tính chi phí đi lại và ăn uống; thống nhất mức mỗi người thấy thoải mái.",
+    "category": "future",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "future",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "future-07",
+    "title": "Ngày gặp có khoảng nghỉ",
+    "description": "Phác một lịch hẹn gồm một hoạt động chính và thời gian nghỉ. Không nhồi lịch.",
+    "category": "future",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "future",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "future-08",
+    "title": "Danh sách điều linh hoạt",
+    "description": "Liệt kê những điều phải có và có thể đổi trong lần gặp tới để bớt áp lực.",
+    "category": "future",
+    "duration": 15,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "future",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "future-09",
+    "title": "Kế hoạch nếu trời mưa",
+    "description": "Nghĩ một phương án ở trong nhà cho lần hẹn sắp tới, ưu tiên vừa túi tiền.",
+    "category": "future",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "future",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "future-10",
+    "title": "Một mục tiêu riêng",
+    "description": "Mỗi người chia sẻ một mục tiêu của mình và cách người kia có thể hỗ trợ mà không kiểm soát.",
+    "category": "future",
+    "duration": 15,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "future",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "future-11",
+    "title": "Chọn ngày thử một thói quen",
+    "description": "Thống nhất một thói quen chung nhỏ và thử một tuần. Được quyền dừng nếu không hợp.",
+    "category": "future",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "future",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "future-12",
+    "title": "Danh sách việc khi bận",
+    "description": "Cùng viết cách báo bận và cách giữ liên lạc nhẹ trong tuần cao điểm.",
+    "category": "future",
+    "duration": 15,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "future",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "future-13",
+    "title": "Điều muốn học trong tháng",
+    "description": "Mỗi người chọn một điều muốn học, chia sẻ nguồn miễn phí đầu tiên tìm thấy.",
+    "category": "future",
+    "duration": 15,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "future",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "future-14",
+    "title": "Một chuyến đi gần",
+    "description": "Chọn nơi gần, kiểm tra đường đi công cộng và ghi lại chi phí ước tính.",
+    "category": "future",
+    "duration": 30,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "future",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "future-15",
+    "title": "Chuẩn bị cho kỳ nghỉ",
+    "description": "Mỗi người ghi lịch có thể nghỉ rồi tìm phần giao nhau. Không cần chốt ngay.",
+    "category": "future",
+    "duration": 15,
+    "energy": "low",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "future",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "future-16",
+    "title": "Tủ công thức chung",
+    "description": "Chọn ba món dễ nấu và lưu nguyên liệu trong checklist cho ngày ở gần nhau.",
+    "category": "future",
+    "duration": 30,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "future",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "future-17",
+    "title": "Một buổi cùng làm việc",
+    "description": "Chọn việc riêng của mỗi người, làm trong 25 phút rồi gửi một cập nhật ngắn.",
+    "category": "future",
+    "duration": 30,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "future",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "future-18",
+    "title": "Thiết kế góc sống mơ ước",
+    "description": "Mỗi người tìm ba ảnh ý tưởng cho góc sống tương lai; nói điều hữu ích, không chỉ giá tiền.",
+    "category": "future",
+    "duration": 30,
+    "energy": "normal",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "future",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "future-19",
+    "title": "Lên kế hoạch một ngày gặp",
+    "description": "Phác lịch, ngân sách, di chuyển và phương án dự phòng. Dừng nếu thấy mệt, không ép cam kết.",
+    "category": "future",
+    "duration": 60,
+    "energy": "high",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "future",
+      "async-friendly"
+    ],
+    "enabled": true
+  },
+  {
+    "id": "future-20",
+    "title": "Dự án nhỏ của hai đứa",
+    "description": "Chọn một dự án miễn phí như album, playlist hoặc sổ công thức. Làm phần đầu trong một giờ.",
+    "category": "future",
+    "duration": 60,
+    "energy": "high",
+    "relationship_stage": "any",
+    "long_distance": true,
+    "tags": [
+      "future",
+      "async-friendly"
+    ],
+    "enabled": true
+  }
+]

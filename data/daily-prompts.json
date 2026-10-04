@@ -1,0 +1,282 @@
+[
+  {
+    "id": "daily-001",
+    "prompt": "Một điều nhỏ người ấy làm gần đây khiến bạn thấy được quan tâm?",
+    "category": "gratitude",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-002",
+    "prompt": "Hôm nay có chuyện gì mà bạn muốn kể đầu tiên?",
+    "category": "curiosity",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-003",
+    "prompt": "Nếu có một buổi chiều bên nhau, bạn muốn làm gì?",
+    "category": "future",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-004",
+    "prompt": "Hôm nay bạn cần được lắng nghe, được giúp hay được nghỉ?",
+    "category": "care",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-005",
+    "prompt": "Một điều làm bạn bật cười hôm nay?",
+    "category": "joy",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-006",
+    "prompt": "Bạn nhớ rõ nhất chi tiết nào trong lần gặp gần đây?",
+    "category": "memory",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-007",
+    "prompt": "Một khoảng thời gian riêng bạn muốn dành cho mình tuần này?",
+    "category": "autonomy",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-008",
+    "prompt": "Khi mệt, bạn thích nhận một lời nhắn như thế nào?",
+    "category": "care",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-009",
+    "prompt": "Có món ăn nào gần đây bạn muốn người ấy thử?",
+    "category": "curiosity",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-010",
+    "prompt": "Một điều nhỏ có thể chuẩn bị cho lần gặp tiếp theo?",
+    "category": "future",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-011",
+    "prompt": "Điều bạn trân trọng ở người ấy nhưng ít khi nói?",
+    "category": "gratitude",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-012",
+    "prompt": "Chụp một vật quanh bạn rồi kể vì sao bạn chọn nó.",
+    "category": "joy",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-013",
+    "prompt": "Một bài hát gợi bạn nhớ đến hai đứa?",
+    "category": "memory",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-014",
+    "prompt": "Hôm nay có điều gì bạn chưa cần giải pháp, chỉ cần kể?",
+    "category": "care",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-015",
+    "prompt": "Một thói quen nhỏ hai đứa có thể thử tuần tới?",
+    "category": "future",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-016",
+    "prompt": "Nếu hai đứa mở một quán nhỏ, quán sẽ bán gì?",
+    "category": "play",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-017",
+    "prompt": "Một điều bạn vừa học được gần đây?",
+    "category": "curiosity",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-018",
+    "prompt": "Khoảnh khắc dễ chịu nhất trong ngày của bạn?",
+    "category": "joy",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-019",
+    "prompt": "Một lời động viên bạn muốn nghe hôm nay?",
+    "category": "care",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-020",
+    "prompt": "Điều gì giúp bạn nạp lại năng lượng khi ở một mình?",
+    "category": "autonomy",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-021",
+    "prompt": "Một nơi bình thường bạn muốn dẫn người ấy đến?",
+    "category": "future",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-022",
+    "prompt": "Bạn đã nghĩ gì trước cuộc hẹn đầu tiên?",
+    "category": "memory",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-023",
+    "prompt": "Một điểm ở người ấy khiến bạn thấy an tâm?",
+    "category": "gratitude",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-024",
+    "prompt": "Đặt tên cho ngày hôm nay như tên một tập phim.",
+    "category": "play",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-025",
+    "prompt": "Một món đồ bạn đang giữ có câu chuyện gì?",
+    "category": "curiosity",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-026",
+    "prompt": "Hôm nay có việc gì khó với bạn hơn bình thường?",
+    "category": "care",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-027",
+    "prompt": "Một niềm vui bé xíu đáng ăn mừng?",
+    "category": "joy",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-028",
+    "prompt": "Nếu chỉ có 15 phút cùng nhau, bạn chọn làm gì?",
+    "category": "future",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-029",
+    "prompt": "Một câu người ấy từng nói mà bạn vẫn nhớ?",
+    "category": "memory",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-030",
+    "prompt": "Tuần này bạn muốn dành thêm thời gian cho sở thích nào?",
+    "category": "autonomy",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-031",
+    "prompt": "Cảm ơn người ấy về một việc thật cụ thể.",
+    "category": "gratitude",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-032",
+    "prompt": "Nếu gửi một bưu thiếp từ hôm nay, bạn sẽ viết gì?",
+    "category": "play",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-033",
+    "prompt": "Có thói quen thời nhỏ nào bạn vẫn giữ?",
+    "category": "curiosity",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-034",
+    "prompt": "Một điều hai đứa muốn học cùng nhau?",
+    "category": "future",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-035",
+    "prompt": "Bạn muốn nhịp trò chuyện hôm nay chậm hay sôi nổi?",
+    "category": "care",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-036",
+    "prompt": "Một hình ảnh đẹp bạn nhìn thấy hôm nay?",
+    "category": "joy",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-037",
+    "prompt": "Một lần hai đứa cùng vượt qua chuyện khó?",
+    "category": "memory",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-038",
+    "prompt": "Bạn có thể chăm sóc bản thân bằng điều gì tối nay?",
+    "category": "care",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-039",
+    "prompt": "Người khác thường hiểu nhầm điều gì về bạn?",
+    "category": "curiosity",
+    "difficulty": 1,
+    "is_active": true
+  },
+  {
+    "id": "daily-040",
+    "prompt": "Một điều đơn giản bạn mong ở tháng tới?",
+    "category": "future",
+    "difficulty": 1,
+    "is_active": true
+  }
+]

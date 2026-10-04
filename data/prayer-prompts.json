@@ -1,0 +1,107 @@
+[
+  {
+    "id": "prayer-001",
+    "category": "relationship",
+    "prompt": "Mình mong hai đứa sẽ giữ được điều gì?"
+  },
+  {
+    "id": "prayer-002",
+    "category": "gratitude",
+    "prompt": "Viết một lời cảm ơn về điều đã có."
+  },
+  {
+    "id": "prayer-003",
+    "category": "future",
+    "prompt": "Gửi một lời mong cho lần gặp sắp tới."
+  },
+  {
+    "id": "prayer-004",
+    "category": "family",
+    "prompt": "Một điều bình an bạn mong cho gia đình."
+  },
+  {
+    "id": "prayer-005",
+    "category": "personal",
+    "prompt": "Bạn muốn dịu dàng hơn với chính mình ở điều gì?"
+  },
+  {
+    "id": "prayer-006",
+    "category": "health",
+    "prompt": "Một lời chúc sức khỏe cho người bạn thương."
+  },
+  {
+    "id": "prayer-007",
+    "category": "forgiveness",
+    "prompt": "Điều gì bạn muốn nhẹ lòng hơn, khi đã sẵn sàng?"
+  },
+  {
+    "id": "prayer-008",
+    "category": "relationship",
+    "prompt": "Một lời hứa nhỏ nằm trong khả năng của mình."
+  },
+  {
+    "id": "prayer-009",
+    "category": "gratitude",
+    "prompt": "Một điều tưởng bình thường mà bạn thấy may mắn."
+  },
+  {
+    "id": "prayer-010",
+    "category": "future",
+    "prompt": "Một điều mong dành cho hai đứa của năm sau."
+  },
+  {
+    "id": "prayer-011",
+    "category": "family",
+    "prompt": "Một mong ước cho người thân đang bận rộn."
+  },
+  {
+    "id": "prayer-012",
+    "category": "personal",
+    "prompt": "Gửi lời động viên cho mình ngày mai."
+  },
+  {
+    "id": "prayer-013",
+    "category": "health",
+    "prompt": "Mong cho một giấc ngủ yên và một ngày nhẹ hơn."
+  },
+  {
+    "id": "prayer-014",
+    "category": "relationship",
+    "prompt": "Một điều bạn muốn hai đứa cùng bảo vệ."
+  },
+  {
+    "id": "prayer-015",
+    "category": "gratitude",
+    "prompt": "Cảm ơn người đã ở cạnh bạn lúc khó."
+  },
+  {
+    "id": "prayer-016",
+    "category": "future",
+    "prompt": "Một ước mong nhỏ, không cần phải thực hiện ngay."
+  },
+  {
+    "id": "prayer-017",
+    "category": "personal",
+    "prompt": "Điều bạn muốn buông xuống hôm nay."
+  },
+  {
+    "id": "prayer-018",
+    "category": "health",
+    "prompt": "Mong cho bạn được nghỉ khi cơ thể cần."
+  },
+  {
+    "id": "prayer-019",
+    "category": "family",
+    "prompt": "Một lời chúc cho bữa cơm của gia đình."
+  },
+  {
+    "id": "prayer-020",
+    "category": "relationship",
+    "prompt": "Gửi một điều dịu dàng mà bạn chưa biết cách nói."
+  },
+  {
+    "id": "prayer-021",
+    "category": "forgiveness",
+    "prompt": "Mong mình biết sửa sai bằng một hành động cụ thể."
+  }
+]

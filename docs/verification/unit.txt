@@ -1,0 +1,19 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> couple-river@1.0.0 test
+> node --import tsx --test tests/*.test.ts
+
+✔ streak same day, consecutive days and gaps (0.694141ms)
+✔ repair only bridges exactly one missed day with available token (0.115986ms)
+✔ couple timezone determines date even across midnight and DST (11.647638ms)
+✔ interpolated config text and literal replacements (0.220264ms)
+✔ 100 activities filter time, energy, preference and avoid repeats (0.292202ms)
+✔ validation rejects empty and oversized notes, prayers, wrong visibility and malformed code (1.099163ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 302.86022
