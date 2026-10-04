@@ -71,6 +71,7 @@ type Context = {
   loading: boolean;
   loadError: boolean;
   busy: boolean;
+  busyAction: string | null;
   message: string;
   error: boolean;
   limit: number;
@@ -97,6 +98,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [data, setData] = useState<Data>(blank),
     [loading, setLoading] = useState(true),
     [busy, setBusy] = useState(false),
+    [busyAction, setBusyAction] = useState<string | null>(null),
     [message, setMessage] = useState(""),
     [error, setError] = useState(false),
     [limit, setLimit] = useState(30),
@@ -326,7 +328,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         if (!session) {
           setLoading(false);
-          if (event === "SIGNED_OUT") clearDrafts();
+          // Expiry or logout in another tab must not destroy unsent drafts.
+          // Explicit logout below clears them after signOut succeeds.
         }
         if (session && location.hash.includes("access_token=")) {
           history.replaceState(
@@ -440,6 +443,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   ) => {
     if (busyRef.current) return false;
     busyRef.current = true;
+    setBusyAction(
+      (document.activeElement as HTMLElement | null)?.dataset.actionId ?? null,
+    );
     setBusy(true);
     setMessage("");
     const actionPath = location.pathname;
@@ -467,6 +473,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } finally {
       busyRef.current = false;
       setBusy(false);
+      setBusyAction(null);
     }
   };
   const logout = async () => {
@@ -505,6 +512,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         loading,
         loadError,
         busy,
+        busyAction,
         message,
         error,
         limit,

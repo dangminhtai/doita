@@ -11,10 +11,11 @@ import {
   More,
   DateLabel,
 } from "@/components/ui";
-import { CONTENT as C } from "@/config/content.vi";
+import { CONTENT as C, interpolate as t } from "@/config/content.vi";
 import { APP_CONFIG as A } from "@/config/app.config";
 import { rpc } from "@/lib/supabase/browser";
 import { noteSchema } from "@/features/schemas";
+import { useViewState } from "@/components/view-state";
 import {
   emptyNoteDraft,
   parseNoteDraft,
@@ -23,16 +24,18 @@ import {
 } from "./draft";
 export function NotesScreen() {
   const { data: d, user, run, notify, limit } = useApp();
-  const [search, setSearch] = useState(""),
-    [filter, setFilter] = useState("all"),
-    [open, setOpen] = useState(false),
+  const [search, setSearch] = useViewState("notes-search", "");
+  const [filter, setFilter] = useViewState("notes-filter", "all");
+  const [open, setOpen] = useState(false),
     [draft, setDraft] = useState<NoteDraft>(emptyNoteDraft);
   const { editing, title, body, type, visibility } = draft;
-  const activeKey = `couple-draft:${user?.id}:note-active`;
+  const activeKey = `couple-draft:${user?.id}:${d.couple?.id}:note-active`;
   const restore = (id: string | null) => {
     try {
       return user
-        ? parseNoteDraft(localStorage.getItem(noteDraftKey(user.id, id)))
+        ? parseNoteDraft(
+            localStorage.getItem(noteDraftKey(user.id, id, d.couple!.id)),
+          )
         : null;
     } catch {
       return null;
@@ -43,7 +46,7 @@ export function NotesScreen() {
     if (!user) return;
     try {
       localStorage.setItem(
-        noteDraftKey(user.id, next.editing),
+        noteDraftKey(user.id, next.editing, d.couple!.id),
         JSON.stringify(next),
       );
       localStorage.setItem(activeKey, next.editing ?? "new");
@@ -58,15 +61,44 @@ export function NotesScreen() {
       const active = localStorage.getItem(activeKey);
       let restored = parseNoteDraft(
         localStorage.getItem(
-          noteDraftKey(user.id, active && active !== "new" ? active : null),
+          noteDraftKey(
+            user.id,
+            active && active !== "new" ? active : null,
+            d.couple!.id,
+          ),
         ),
       );
+      const previousActiveKey = `couple-draft:${user.id}:note-active`;
+      const previousId = localStorage.getItem(previousActiveKey);
+      const previousKey = noteDraftKey(
+        user.id,
+        previousId && previousId !== "new" ? previousId : null,
+      );
+      const previous = parseNoteDraft(localStorage.getItem(previousKey));
+      if (!restored && previous) {
+        const belongs =
+          previous.editing &&
+          d.notes.some(
+            (n) => n.id === previous.editing && n.author_id === user.id,
+          );
+        restored = belongs
+          ? previous
+          : { ...previous, editing: null, visibility: "private" };
+        localStorage.setItem(
+          noteDraftKey(user.id, restored.editing, d.couple!.id),
+          JSON.stringify(restored),
+        );
+        localStorage.setItem(activeKey, restored.editing ?? "new");
+        localStorage.removeItem(previousKey);
+        localStorage.removeItem(previousActiveKey);
+        if (!belongs) notify(C.notes.legacyDraftPrivate);
+      }
       const legacyKey = `couple-draft:${user.id}:note`;
       const legacy = localStorage.getItem(legacyKey);
       if (!restored && legacy) {
         restored = { ...emptyNoteDraft(), body: legacy };
         localStorage.setItem(
-          noteDraftKey(user.id, null),
+          noteDraftKey(user.id, null, d.couple!.id),
           JSON.stringify(restored),
         );
         localStorage.removeItem(legacyKey);
@@ -80,7 +112,7 @@ export function NotesScreen() {
     } catch {
       notify(C.notes.draftStorageError, true);
     }
-  }, [user?.id]);
+  }, [user?.id, d.couple?.id]);
   useEffect(() => {
     if (!open || !(body || title || editing)) return;
     const guard = (e: Event) => {
@@ -165,7 +197,9 @@ export function NotesScreen() {
             if (ok) {
               try {
                 if (user)
-                  localStorage.removeItem(noteDraftKey(user.id, editing));
+                  localStorage.removeItem(
+                    noteDraftKey(user.id, editing, d.couple!.id),
+                  );
                 localStorage.removeItem(activeKey);
               } catch {}
               setDraft(emptyNoteDraft());
@@ -210,6 +244,16 @@ export function NotesScreen() {
             {type === "checklist" ? C.notes.checklistHint : C.notes.draft}
           </small>
           <div className="row">
+            <small>
+              {t(C.common.sharedHint, {
+                visibility:
+                  visibility === "private"
+                    ? C.common.private
+                    : visibility === "partner"
+                      ? C.common.partner
+                      : C.common.shared,
+              })}
+            </small>
             <Button type="submit">{C.common.save}</Button>
             <Button
               secondary
@@ -307,7 +351,29 @@ export function NotesScreen() {
           </article>
         ))}
       </div>
-      {!notes.length && <Empty />}
+      {!notes.length && (
+        <Empty>
+          {search || filter !== "all" ? (
+            <>
+              {C.common.noResults}
+              <Button
+                secondary
+                onClick={() => {
+                  setSearch("");
+                  setFilter("all");
+                }}
+              >
+                {C.common.clearFilters}
+              </Button>
+            </>
+          ) : (
+            <>
+              {C.notes.subtitle}
+              <Button onClick={() => setOpen(true)}>{C.notes.new}</Button>
+            </>
+          )}
+        </Empty>
+      )}
       {d.notes.length >= limit && <More />}
     </>
   );

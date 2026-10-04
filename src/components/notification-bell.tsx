@@ -246,7 +246,12 @@ export function NotificationBell({ go }: { go: (page: string) => void }) {
                     className={`notification-item${item.read_at ? "" : " unread"}`}
                     disabled={marking}
                     onClick={async () => {
-                      const path = String(item.url).slice(1);
+                      const destination = new URL(
+                        String(item.url),
+                        location.origin,
+                      );
+                      const path = destination.pathname.slice(1);
+                      if (destination.origin !== location.origin) return;
                       if (
                         ![
                           "home",
@@ -262,7 +267,7 @@ export function NotificationBell({ go }: { go: (page: string) => void }) {
                       if (!item.read_at && !(await markRead(item))) return;
                       if (!active.current) return;
                       close();
-                      go(path);
+                      go(path + destination.search);
                     }}
                   >
                     <span>

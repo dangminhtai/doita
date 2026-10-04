@@ -1,5 +1,9 @@
 # Gần nhau — Couple River
 
+Trước mỗi lần sửa code, đọc [RULES_UX.md](RULES_UX.md). [AGENTS.md](AGENTS.md) yêu cầu đối chiếu checklist này trước khi kết thúc; UI/UX là ưu tiên số 1.
+
+Bản sửa UX cần migration `supabase/migrations/202610050006_ux_actions.sql` sau 005. Triển khai migration và code trong cùng đợt: thêm RPC chống trùng khi retry, khôi phục điều ước và link thông báo tới nội dung cụ thể. Client cũ chưa hỗ trợ link có `?item=...`, vì vậy không áp dụng riêng migration rồi để production chạy client cũ kéo dài. Chưa áp dụng migration 006 lên Supabase thật trong đợt sửa UX này.
+
 Web app riêng cho một cặp đôi, mobile-first. Next.js App Router + TypeScript + Tailwind CSS, Supabase Auth/Postgres/Realtime/Storage, Vercel Cron và Web Push. Không cần AI, không có điểm số tình yêu.
 
 ## Chạy nhanh trên Windows / Linux

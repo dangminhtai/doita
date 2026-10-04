@@ -16,6 +16,7 @@ import { CONTENT as C, interpolate as t } from "@/config/content.vi";
 import { APP_CONFIG as A } from "@/config/app.config";
 import { rpc } from "@/lib/supabase/browser";
 import { prayerSchema } from "@/features/schemas";
+import { useViewState } from "@/components/view-state";
 import prompts from "../../../data/prayer-prompts.json";
 import {
   emptyPrayerDraft,
@@ -27,10 +28,10 @@ export function PrayerScreen() {
   const { data: d, user, run, notify, limit } = useApp();
   const [open, setOpen] = useState(false),
     [draft, setDraft] = useState<PrayerDraft>(emptyPrayerDraft),
-    [filter, setFilter] = useState("all"),
     [selected, setSelected] = useState<Row | null>(null),
     [released, setReleased] = useState(false),
     [promptIndex, setPromptIndex] = useState(0);
+  const [filter, setFilter] = useViewState("prayer-filter", "all");
   const { body, visibility, resurface, draftId } = draft;
   const prefix = `couple-draft:${user!.id}:prayer:${d.couple!.id}`;
   const read = (id: string | null) => {
@@ -92,8 +93,9 @@ export function PrayerScreen() {
   }, [open, body]);
   const prayers = d.prayers.filter(
     (p) =>
-      p.status === "released" &&
+      p.status === (filter === "archived" ? "archived" : "released") &&
       (filter === "all" ||
+        filter === "archived" ||
         (filter === "mine"
           ? p.author_id === user?.id
           : p.author_id !== user?.id)),
@@ -206,6 +208,14 @@ export function PrayerScreen() {
             {C.prayer.resurface}
           </label>
           <div className="row">
+            <small>
+              {t(C.common.sharedHint, {
+                visibility:
+                  visibility === "private"
+                    ? C.common.private
+                    : C.common.partner,
+              })}
+            </small>
             {draftId && (
               <Button
                 secondary
@@ -231,7 +241,7 @@ export function PrayerScreen() {
         </section>
       )}
       <section
-        className={`river ${released ? "released" : ""}`}
+        className={`river ${released ? "released" : ""} ${!prayers.length || filter === "archived" ? "compact" : ""}`}
         onAnimationEnd={() => setReleased(false)}
         aria-label={C.prayer.river}
       >
@@ -246,13 +256,14 @@ export function PrayerScreen() {
               className="boat"
               style={{ animationDelay: `${i * -1.7}s` }}
               onClick={() => setSelected(p)}
-              aria-label={`${C.prayer.open} · ${d.profiles.find((x) => x.id === p.author_id)?.display_name ?? C.home.partner} · ${new Date(p.created_at).toLocaleDateString("vi-VN")}`}
+              aria-label={`${C.prayer.open} · ${d.profiles.find((x) => x.id === p.author_id)?.display_name ?? C.home.partner} · ${new Date(p.created_at).toLocaleDateString("vi-VN", { timeZone: d.couple?.timezone })}`}
             >
               <Ship size={40} />
               <small>
                 {new Date(p.created_at).toLocaleDateString("vi-VN", {
                   day: "numeric",
                   month: "numeric",
+                  timeZone: d.couple?.timezone,
                 })}
               </small>
             </button>
@@ -268,6 +279,7 @@ export function PrayerScreen() {
             <option value="all">{C.common.all}</option>
             <option value="mine">{C.common.mine}</option>
             <option value="theirs">{C.common.theirs}</option>
+            <option value="archived">{C.common.archived}</option>
           </select>
         </Field>
       </div>
@@ -288,7 +300,23 @@ export function PrayerScreen() {
           </button>
         ))}
       </div>
-      {!prayers.length && <Empty />}
+      {!prayers.length && (
+        <Empty>
+          {filter !== "all" ? (
+            <>
+              {C.common.noResults}
+              <Button secondary onClick={() => setFilter("all")}>
+                {C.common.clearFilters}
+              </Button>
+            </>
+          ) : (
+            <>
+              {C.prayer.empty}
+              <Button onClick={() => setOpen(true)}>{C.prayer.write}</Button>
+            </>
+          )}
+        </Empty>
+      )}
       {d.prayers.length >= limit && <More />}
       {d.prayers.some((p) => p.status === "draft") && (
         <section className="section">
@@ -338,17 +366,26 @@ export function PrayerScreen() {
                 secondary
                 onClick={async () => {
                   if (
-                    await run(() =>
-                      rpc("prayer_action", {
-                        p_id: selected.id,
-                        p_action: "archive",
-                      }),
+                    await run(
+                      () =>
+                        rpc("prayer_action", {
+                          p_id: selected.id,
+                          p_action:
+                            selected.status === "archived"
+                              ? "restore"
+                              : "archive",
+                        }),
+                      selected.status === "archived"
+                        ? C.common.success
+                        : C.prayer.archiveSaved,
                     )
                   )
                     setSelected(null);
                 }}
               >
-                {C.prayer.archive}
+                {selected.status === "archived"
+                  ? C.common.restore
+                  : C.prayer.archive}
               </Button>
               <Button
                 secondary

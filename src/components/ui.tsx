@@ -1,6 +1,7 @@
 "use client";
 import type { ReactNode } from "react";
-import { useEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
+import { useEffect, useState, useRef, useId } from "react";
 import { CONTENT as C } from "@/config/content.vi";
 import { useApp } from "./app-context";
 export function Button({
@@ -16,15 +17,24 @@ export function Button({
   type?: "button" | "submit";
   disabled?: boolean;
 }) {
-  const { busy } = useApp();
+  const { busy, busyAction } = useApp();
+  const actionId = useId();
+  const pending = busy && busyAction === actionId;
   return (
     <button
       type={type}
       className={secondary ? "button secondary" : "button"}
       disabled={busy || disabled}
+      data-action-id={actionId}
+      aria-busy={pending}
       onClick={onClick}
     >
       {children}
+      {pending && (
+        <span className="button-progress" role="status">
+          {C.common.processing}
+        </span>
+      )}
     </button>
   );
 }
@@ -42,8 +52,8 @@ export function Field({
     </label>
   );
 }
-export function Empty() {
-  return <p className="empty">{C.common.empty}</p>;
+export function Empty({ children = C.common.empty }: { children?: ReactNode }) {
+  return <div className="empty">{children}</div>;
 }
 export function More() {
   const { limit, setLimit } = useApp();
@@ -73,19 +83,30 @@ export function PageTitle({
   );
 }
 export function useDraft(key: string) {
-  const { user } = useApp();
-  const storageKey = `couple-draft:${user?.id}:${key}`;
+  const { user, data, notify } = useApp();
+  const storageKey = `couple-draft:${user?.id}:${data.couple?.id ?? "account"}:${key}`;
   const [draft, setDraft] = useState({ key: storageKey, value: "" });
   const currentKey = useRef(storageKey);
   const value = draft.key === storageKey ? draft.value : "";
   useEffect(() => {
     currentKey.current = storageKey;
     try {
+      const legacyKey = `couple-draft:${user?.id}:${key}`;
+      const stored =
+        localStorage.getItem(storageKey) ??
+        localStorage.getItem(legacyKey) ??
+        "";
+      if (stored && data.couple) {
+        localStorage.setItem(storageKey, stored);
+        localStorage.removeItem(legacyKey);
+      }
       setDraft({
         key: storageKey,
-        value: localStorage.getItem(storageKey) ?? "",
+        value: stored,
       });
-    } catch {}
+    } catch {
+      notify(C.common.draftStorageError, true);
+    }
   }, [storageKey]);
   function update(text: string) {
     if (currentKey.current === storageKey)
@@ -93,7 +114,9 @@ export function useDraft(key: string) {
     try {
       if (text) localStorage.setItem(storageKey, text);
       else localStorage.removeItem(storageKey);
-    } catch {}
+    } catch {
+      notify(C.common.draftStorageError, true);
+    }
   }
   useEffect(() => {
     if (!value) return;
@@ -129,6 +152,7 @@ export function nameFor(id: string) {
   return id;
 }
 export function DateLabel({ date }: { date: string }) {
+  const { data } = useApp();
   return (
     <time dateTime={date}>
       {new Date(
@@ -137,6 +161,9 @@ export function DateLabel({ date }: { date: string }) {
         day: "numeric",
         month: "long",
         year: "numeric",
+        ...(date.length !== 10
+          ? { timeZone: data.couple?.timezone ?? "Asia/Ho_Chi_Minh" }
+          : {}),
       })}
     </time>
   );
@@ -151,10 +178,20 @@ export function Modal({
   children: ReactNode;
 }) {
   const [node, setNode] = useState<HTMLDialogElement | null>(null);
+  const [target, setTarget] = useState<HTMLElement | null>(null);
   useEffect(() => {
-    if (node && !node.open) node.showModal();
+    setTarget(document.body);
+  }, []);
+  useEffect(() => {
+    if (!node || node.open) return;
+    const previous = document.activeElement as HTMLElement | null;
+    node.showModal();
+    return () => {
+      if (previous?.isConnected) previous.focus();
+    };
   }, [node]);
-  return (
+  if (!target) return null;
+  return createPortal(
     <dialog
       ref={setNode}
       onCancel={onClose}
@@ -168,6 +205,7 @@ export function Modal({
         </button>
       </div>
       {children}
-    </dialog>
+    </dialog>,
+    target,
   );
 }

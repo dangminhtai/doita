@@ -94,6 +94,55 @@ assert.equal(
 );
 console.log("PASS invite attempt limiter persists across invalid codes");
 await as(A);
+const requestId = "20000000-0000-0000-0000-000000000001";
+const requestArgs = {
+  p_title: "UX retry",
+  p_content: "one saved note",
+  p_type: "text",
+  p_visibility: "private",
+};
+const firstReceipt = await one(
+  "select public.perform_authorized_action('save_note',$1::jsonb,$2) as id",
+  [JSON.stringify(requestArgs), requestId],
+);
+const retriedReceipt = await one(
+  "select public.perform_authorized_action('save_note',$1::jsonb,$2) as id",
+  [JSON.stringify(requestArgs), requestId],
+);
+assert.equal(firstReceipt.id, retriedReceipt.id);
+assert.equal(
+  (
+    await one(
+      "select count(*)::int as n from public.notes where title='UX retry'",
+    )
+  ).n,
+  1,
+);
+await denied(
+  "select public.perform_authorized_action('save_note',$1::jsonb,$2)",
+  [JSON.stringify({ ...requestArgs, p_content: "changed" }), requestId],
+);
+await denied(
+  "select public.perform_authorized_action('daily_maintenance','{}',$1)",
+  ["20000000-0000-0000-0000-000000000002"],
+);
+await denied("select * from private.action_receipts");
+await one(
+  "select public.perform_authorized_action('set_mood','{\"p_mood\":\"calm\"}',$1)",
+  ["20000000-0000-0000-0000-000000000003"],
+);
+await one(
+  "select public.perform_authorized_action('set_mood','{\"p_mood\":\"calm\"}',$1)",
+  ["20000000-0000-0000-0000-000000000003"],
+);
+assert.equal(
+  (await one("select count(*)::int as n from public.moods where mood='calm'"))
+    .n,
+  1,
+);
+console.log(
+  "PASS retry receipts return original result, no duplicate writes, no privileged dispatch",
+);
 const privateNote = (
   await one(
     `select public.save_note('private','secret','text','private') as id`,
@@ -257,6 +306,27 @@ assert.equal(
   null,
 );
 const currentDaily = (await one("select public.ensure_daily() as id")).id;
+await one("select public.prayer_action($1,'archive')", [draftPrayer]);
+assert.equal(
+  (await one("select status from public.prayers where id=$1", [draftPrayer]))
+    .status,
+  "archived",
+);
+await one("select public.prayer_action($1,'restore')", [draftPrayer]);
+assert.equal(
+  (await one("select status from public.prayers where id=$1", [draftPrayer]))
+    .status,
+  "released",
+);
+assert.equal(
+  (
+    await one("select visibility from public.prayers where id=$1", [
+      draftPrayer,
+    ])
+  ).visibility,
+  "private",
+);
+console.log("PASS archive and restore preserve prayer visibility");
 await denied("select public.answer_daily('missing session')");
 await db.exec("reset role");
 const oldDaily = (
@@ -356,7 +426,7 @@ const reactionNotice = await one(
 );
 assert.equal(reactionNotice.user_id, B);
 assert.equal(reactionNotice.actor_id, A);
-assert.equal(reactionNotice.url, "/daily");
+assert.ok(reactionNotice.url.startsWith("/daily?item="));
 assert.equal(reactionNotice.read_at, null);
 await as(A);
 await one("select public.mark_notifications_read($1::uuid[])", [

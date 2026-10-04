@@ -4,7 +4,11 @@ import { CONTENT as C } from "../config/content.vi";
 export function actionErrorMessage(error: unknown): string {
   if (!isAuthError(error)) {
     if (typeof error === "object" && error !== null && "message" in error) {
+      if (String(error.message).includes("request_timeout"))
+        return C.errors.timeout;
       const messages: Record<string, string> = {
+        request_timeout: C.errors.timeout,
+        session_expired: C.errors.authExpired,
         forbidden: C.errors.forbidden,
         repair_unavailable: C.errors.repair,
         stale_session: C.errors.staleDaily,

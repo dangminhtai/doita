@@ -22,6 +22,7 @@ import { MemoriesScreen } from "@/features/memories/screen";
 import { ActivitiesScreen } from "@/features/activities/screen";
 import { SettingsScreen } from "@/features/settings/screen";
 import { NotificationBell } from "./notification-bell";
+import { LinkedContent } from "./linked-content";
 export function CoupleApp({ initialPage = "home" }: { initialPage?: string }) {
   return (
     <AppProvider>
@@ -34,6 +35,20 @@ function Shell({ initialPage }: { initialPage: string }) {
     [menu, setMenu] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
   const sidebar = useRef<HTMLElement>(null);
+  const restoreScroll = useRef<number | null>(null);
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    const resize = () =>
+      document.documentElement.classList.toggle(
+        "keyboard-open",
+        !!viewport && window.innerHeight - viewport.height > 150,
+      );
+    viewport?.addEventListener("resize", resize);
+    return () => {
+      viewport?.removeEventListener("resize", resize);
+      document.documentElement.classList.remove("keyboard-open");
+    };
+  }, []);
   useEffect(() => {
     if (!menu) return;
     const focusable = () => [
@@ -79,15 +94,42 @@ function Shell({ initialPage }: { initialPage: string }) {
   } = useApp();
   useEffect(() => {
     const pop = () => {
+      restoreScroll.current = history.state?.doitaScroll ?? 0;
       setPage(location.pathname.slice(1) || "home");
       setMenu(false);
       notify("");
     };
     window.addEventListener("popstate", pop);
-    return () => window.removeEventListener("popstate", pop);
+    const previous = history.scrollRestoration;
+    history.scrollRestoration = "manual";
+    const storeScroll = () =>
+      history.replaceState(
+        { ...history.state, doitaScroll: window.scrollY },
+        "",
+      );
+    window.addEventListener("scroll", storeScroll, { passive: true });
+    return () => {
+      window.removeEventListener("popstate", pop);
+      window.removeEventListener("scroll", storeScroll);
+      history.scrollRestoration = previous;
+    };
   }, [notify]);
+  useEffect(() => {
+    if (restoreScroll.current === null || loading) return;
+    const position = restoreScroll.current;
+    restoreScroll.current = null;
+    const timer = requestAnimationFrame(() =>
+      window.scrollTo({ top: position }),
+    );
+    return () => cancelAnimationFrame(timer);
+  }, [page, loading]);
   const go = (next: string) => {
-    if (next === page) {
+    const destination = new URL(`/${next}`, location.origin);
+    const nextPage = destination.pathname.slice(1);
+    if (
+      destination.pathname + destination.search ===
+      location.pathname + location.search
+    ) {
       setMenu(false);
       return;
     }
@@ -97,11 +139,17 @@ function Shell({ initialPage }: { initialPage: string }) {
       )
     )
       return;
-    setPage(next);
+    history.replaceState({ ...history.state, doitaScroll: window.scrollY }, "");
+    setPage(nextPage);
     setMenu(false);
     notify("");
-    history.pushState(null, "", `/${next}`);
-    window.scrollTo({ top: 0 });
+    history.pushState(
+      { doitaScroll: nextPage === page ? window.scrollY : 0 },
+      "",
+      destination.pathname + destination.search,
+    );
+    window.dispatchEvent(new Event("couple-location-change"));
+    if (nextPage !== page) window.scrollTo({ top: 0 });
   };
   const nav = [
     { id: "home", icon: House, flag: true },
@@ -260,7 +308,34 @@ function Shell({ initialPage }: { initialPage: string }) {
               </button>
             </div>
           )}
-          {content}
+          {busy && (
+            <p className="operation-status" role="status">
+              {C.common.processing}
+            </p>
+          )}
+          <fieldset className="page-controls" disabled={busy}>
+            {content}
+          </fieldset>
+          {user && data.couple && !recovery && !pageError && (
+            <LinkedContent
+              key={page}
+              table={
+                page === "daily"
+                  ? "daily_sessions"
+                  : page === "prayer"
+                    ? "prayers"
+                    : page === "notes"
+                      ? "notes"
+                      : page === "activities"
+                        ? "activities"
+                        : page === "settings"
+                          ? "special_dates"
+                          : page === "home"
+                            ? "moods"
+                            : "memories"
+              }
+            />
+          )}
         </main>
       </div>
       {user && data.couple && (

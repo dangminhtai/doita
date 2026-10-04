@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Camera, Plus } from "lucide-react";
 import { useApp, type Row } from "@/components/app-context";
 import {
@@ -12,18 +12,38 @@ import {
   useDraft,
   Modal,
 } from "@/components/ui";
-import { CONTENT as C } from "@/config/content.vi";
+import { CONTENT as C, interpolate as t } from "@/config/content.vi";
 import { rpc, db, authenticatedFetch } from "@/lib/supabase/browser";
+import { uncertainWrite } from "@/lib/request";
+import { useViewState } from "@/components/view-state";
 export function MemoriesScreen() {
   const { data: d, user, run, notify, limit } = useApp();
   const [open, setOpen] = useState(false),
     [body, setBody] = useDraft("memory"),
     [file, setFile] = useState<File | null>(null),
-    [filter, setFilter] = useState("all"),
     [selected, setSelected] = useState<Row | null>(null),
     [detail, setDetail] = useState<Row[]>([]),
     [detailError, setDetailError] = useState(false),
     [detailAttempt, setDetailAttempt] = useState(0);
+  const [filter, setFilter] = useViewState("memories-filter", "all");
+  const upload = useRef<{ file: File | null; path: string } | null>(null);
+  const [uploadedName, setUploadedName] = useState("");
+  const uploadKey = `couple-draft:${user!.id}:${d.couple!.id}:memory-upload`;
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(uploadKey) ?? "null");
+      if (
+        saved &&
+        typeof saved.path === "string" &&
+        saved.path.startsWith(`${d.couple!.id}/${user!.id}/`)
+      ) {
+        upload.current = { file: null, path: saved.path };
+        setUploadedName(saved.name ?? "");
+      }
+    } catch {
+      notify(C.common.draftStorageError, true);
+    }
+  }, [uploadKey]);
   const memories = d.memories.filter(
     (m) => filter === "all" || m.type === filter,
   );
@@ -74,8 +94,10 @@ export function MemoriesScreen() {
               return;
             }
             const ok = await run(async () => {
-              let path: null | string = null;
-              if (file) {
+              let path: null | string = upload.current?.path ?? null;
+              if (file && upload.current?.file === file)
+                path = upload.current.path;
+              else if (file) {
                 if (
                   !["image/jpeg", "image/png", "image/webp"].includes(
                     file.type,
@@ -96,11 +118,26 @@ export function MemoriesScreen() {
                   await rpc("queue_memory_cleanup", { p_path: path });
                   throw uploaded.error;
                 }
+                upload.current = { file, path };
+                setUploadedName(file.name);
+                try {
+                  localStorage.setItem(
+                    uploadKey,
+                    JSON.stringify({ path, name: file.name }),
+                  );
+                } catch {
+                  notify(C.common.draftStorageError, true);
+                }
               }
               try {
                 await rpc("save_memory", { p_content: body, p_photo: path });
               } catch (e) {
-                if (path) {
+                if (path && !uncertainWrite(e)) {
+                  upload.current = null;
+                  setUploadedName("");
+                  try {
+                    localStorage.removeItem(uploadKey);
+                  } catch {}
                   await rpc("queue_memory_cleanup", { p_path: path });
                   void authenticatedFetch("/api/assets/cleanup", {
                     method: "POST",
@@ -112,6 +149,11 @@ export function MemoriesScreen() {
             if (ok) {
               setBody("");
               setFile(null);
+              upload.current = null;
+              setUploadedName("");
+              try {
+                localStorage.removeItem(uploadKey);
+              } catch {}
               setOpen(false);
             }
           }}
@@ -132,6 +174,11 @@ export function MemoriesScreen() {
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
           </Field>
+          {uploadedName && (
+            <p role="status">
+              {t(C.memories.uploadedPhoto, { name: uploadedName })}
+            </p>
+          )}
           <Button type="submit">{C.common.save}</Button>
         </form>
       )}
@@ -181,7 +228,23 @@ export function MemoriesScreen() {
           </article>
         ))}
       </div>
-      {!memories.length && <Empty />}
+      {!memories.length && (
+        <Empty>
+          {filter === "all" ? (
+            <>
+              {C.memories.empty}
+              <Button onClick={() => setOpen(true)}>{C.memories.new}</Button>
+            </>
+          ) : (
+            <>
+              {C.common.noResults}
+              <Button secondary onClick={() => setFilter("all")}>
+                {C.common.clearFilters}
+              </Button>
+            </>
+          )}
+        </Empty>
+      )}
       {d.memories.length >= limit && <More />}
       {selected && (
         <Modal
@@ -285,6 +348,8 @@ function MemoryPhoto({ path }: { path: string }) {
       className="memory-photo"
       src={url}
       alt={C.memories.types.moment}
+      loading="lazy"
+      decoding="async"
       onError={() => {
         if (attempt < 2) setAttempt(attempt + 1);
         else setUrl("");

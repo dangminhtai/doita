@@ -35,6 +35,10 @@ export function parseNoteDraft(value: string | null): NoteDraft | null {
     return null;
   }
 }
-export function noteDraftKey(userId: string, editing: string | null) {
-  return `couple-draft:${userId}:note:${editing ?? "new"}`;
+export function noteDraftKey(
+  userId: string,
+  editing: string | null,
+  coupleId?: string,
+) {
+  return `couple-draft:${userId}:${coupleId ? coupleId + ":" : ""}note:${editing ?? "new"}`;
 }

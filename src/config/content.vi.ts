@@ -10,6 +10,15 @@ export const CONTENT = {
   common: {
     openMenu: "Mở menu",
     save: "Lưu lại",
+    processing: "Đang xử lý…",
+    draftStorageError:
+      "Chưa lưu được bản nháp trên thiết bị. Giữ trang này mở và lưu nội dung trước khi rời đi.",
+    archived: "Đã lưu trữ",
+    restore: "Khôi phục",
+    noResults: "Không có kết quả phù hợp với bộ lọc.",
+    clearFilters: "Xóa bộ lọc",
+    sharedHint: "Quyền xem: {{visibility}}",
+    missingContent: "Nội dung này đã bị xóa hoặc bạn không còn quyền xem.",
     cancel: "Hủy",
     delete: "Xóa",
     edit: "Sửa",
@@ -149,6 +158,8 @@ export const CONTENT = {
     needPair: "Ghép đủ hai người để hoàn thành daily.",
   },
   notes: {
+    legacyDraftPrivate:
+      "Đã khôi phục bản nháp cũ ở chế độ Chỉ mình. Kiểm tra quyền xem trước khi gửi.",
     leaveDraft:
       "Lời nhắn chưa được lưu lên ứng dụng. Rời trang và giữ bản nháp trên thiết bị này?",
     draftStorageError:
@@ -182,7 +193,10 @@ export const CONTENT = {
     released: "Thuyền đã lên đường.",
     river: "Những chiếc thuyền của hai đứa",
     open: "Mở lá thư",
-    archive: "Cất thuyền",
+    archive: "Lưu trữ",
+    archiveSaved: "Đã lưu trữ. Bạn có thể mở lại trong mục Đã lưu trữ.",
+    empty:
+      "Chưa có điều ước. Viết điều ước đầu tiên hoặc mở bản nháp bên dưới.",
     draft: "Lưu bản nháp",
     drafts: "Những lá thư đang viết",
     resurface: "Để thuyền trở lại sau 30 ngày",
@@ -193,6 +207,8 @@ export const CONTENT = {
   },
   memories: {
     cleanupPending: "Kỷ niệm đã xóa. Ảnh đang chờ dọn khỏi kho lưu trữ.",
+    uploadedPhoto: "Ảnh đã tải lên: {{name}}. Ảnh được giữ để thử lưu lại.",
+    empty: "Chưa có kỷ niệm. Chọn Giữ một khoảnh khắc để bắt đầu.",
     title: "Những ngày đã có nhau",
     subtitle: "Một dòng thời gian, không cần hoàn hảo.",
     new: "Giữ một khoảnh khắc",
@@ -315,6 +331,8 @@ export const CONTENT = {
     memory: "Một kỷ niệm của hai đứa đang chờ.",
   },
   errors: {
+    timeout:
+      "Chưa nhận được kết quả sau 30 giây. Nội dung vẫn được giữ. Thử lại để kiểm tra và tiếp tục cùng thao tác.",
     staleDaily:
       "Câu hỏi đã sang ngày mới. Nội dung nháp vẫn được giữ; tải lại và đọc câu hỏi mới trước khi trả lời.",
     notPaired:

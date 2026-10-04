@@ -621,6 +621,7 @@ select:disabled {
   flex: 1;
 }
 .modal {
+  margin: auto;
   border: none;
   border-radius: 24px;
   width: min(560px, calc(100% - 32px));
@@ -628,6 +629,44 @@ select:disabled {
   padding: 28px;
   color: var(--ink);
   box-shadow: 0 20px 100px #0003;
+}
+.page-controls {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.operation-status {
+  position: sticky;
+  top: 0;
+  z-index: 12;
+  padding: 12px;
+  background: var(--soft);
+  border-radius: 10px;
+}
+.button-progress {
+  font-size: 0.8rem;
+}
+.empty .button {
+  display: flex;
+  margin: 16px auto 0;
+  width: fit-content;
+}
+.text-button {
+  min-height: 44px;
+}
+input,
+textarea,
+select {
+  scroll-margin-block: 100px;
+}
+@media (max-width: 900px) {
+  .main {
+    padding-bottom: max(112px, env(safe-area-inset-bottom));
+  }
+  .modal {
+    max-height: 85dvh;
+  }
 }
 .modal::backdrop {
   background: #122f3970;
@@ -1188,6 +1227,15 @@ select:disabled {
 .boat:hover svg,
 .boat:focus-visible svg {
   animation-play-state: paused;
+}
+.river.compact {
+  min-height: 140px;
+}
+.keyboard-open .bottom-nav {
+  display: none;
+}
+.keyboard-open .main {
+  padding-bottom: 24px;
 }
 
 .notification-bell {
