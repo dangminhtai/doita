@@ -23,7 +23,6 @@ import { ActivitiesScreen } from "@/features/activities/screen";
 import {
   SettingsScreen,
   AdminScreen,
-  PrivacyScreen,
 } from "@/features/settings/screen";
 export function CoupleApp({ initialPage = "home" }: { initialPage?: string }) {
   return (
@@ -72,9 +71,7 @@ function Shell({ initialPage }: { initialPage: string }) {
     { id: "settings", icon: Users, flag: true },
   ].filter((x) => x.flag);
   const content =
-    page === "privacy" ? (
-      <PrivacyScreen />
-    ) : !user || recovery ? (
+    !user || recovery ? (
       <AuthScreen />
     ) : loading && !data.couple ? (
       <p className="empty">{C.common.loading}</p>
@@ -153,9 +150,6 @@ function Shell({ initialPage }: { initialPage: string }) {
                 </a>
               ))}
             </nav>
-            <button className="text-button" onClick={() => go("privacy")}>
-              {C.nav.privacy}
-            </button>
           </aside>
         )}
         <main className="main" aria-busy={busy}>

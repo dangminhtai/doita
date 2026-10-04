@@ -334,9 +334,6 @@ export function SettingsScreen({ go }: { go: (p: string) => void }) {
               {C.auth.signOut}
             </Button>
           </div>
-          <button className="text-button" onClick={() => go("privacy")}>
-            {C.nav.privacy}
-          </button>
           <button className="text-button" onClick={() => go("admin")}>
             {C.nav.admin}
           </button>
@@ -431,18 +428,6 @@ export function AdminScreen() {
           {!result.jobs.length && <Empty />}
         </>
       )}
-    </>
-  );
-}
-export function PrivacyScreen() {
-  return (
-    <>
-      <PageTitle title={C.privacy.title} />
-      <section className="privacy-copy">
-        {C.privacy.paragraphs.map((p) => (
-          <p key={p}>{p}</p>
-        ))}
-      </section>
     </>
   );
 }

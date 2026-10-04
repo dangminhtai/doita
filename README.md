@@ -131,7 +131,7 @@ Rời không gian thu hồi quyền đọc/ghi dữ liệu của không gian cũ
 
 Xuất dữ liệu tạo JSON của các bản ghi đang có quyền đọc (phân trang), gồm lịch sử chung và nội dung riêng của bạn; ảnh không nhúng vào JSON. Xóa tài khoản xóa profile, membership và bản ghi do người dùng tạo qua FK cascade; ảnh có liên quan cũng được xóa trước. Dữ liệu chung do người ấy tạo vẫn giữ. Dữ liệu trên backup của Supabase tuân theo chính sách backup của project, không thể xóa tức thì bằng app.
 
-Trang `/privacy` có nội dung có thể chỉnh trong content config. Khi đưa ứng dụng cho người khác, thêm email liên hệ và chính sách lưu trữ thật của bạn.
+Email đăng ký và khôi phục mật khẩu quay về `/auth` trên origin đang mở trong trình duyệt, không phụ thuộc `NEXT_PUBLIC_APP_URL`. Trong Supabase URL Configuration, đặt Site URL thành `https://doita.vercel.app`, và cho phép `https://doita.vercel.app/auth`, `http://localhost:3000/auth`, `http://127.0.0.1:3000/auth`. Các domain/port khác cần thêm riêng vào Redirect URLs. Trang `/privacy` đã được bỏ theo yêu cầu của chủ ứng dụng.
 
 ## 7. Kiểm tra
 

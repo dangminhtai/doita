@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
 import { Heart } from "lucide-react";
 import { db, configured, rpc } from "@/lib/supabase/browser";
 import { useApp } from "@/components/app-context";
@@ -8,6 +7,7 @@ import { Button, Field } from "@/components/ui";
 import { CONTENT as C } from "@/config/content.vi";
 import { authSchema, inviteSchema } from "@/features/schemas";
 import { APP_CONFIG } from "@/config/app.config";
+import { authRedirectUrl } from "@/lib/auth-redirect";
 export function AuthScreen() {
   const { run, notify, recovery, setRecovery } = useApp();
   const [signup, setSignup] = useState(false),
@@ -57,7 +57,7 @@ export function AuthScreen() {
                     password,
                     options: {
                       data: { display_name: name },
-                      emailRedirectTo: `${location.origin}/auth`,
+                      emailRedirectTo: authRedirectUrl(location.origin),
                     },
                   })
                 : await db().auth.signInWithPassword({ email, password });
@@ -126,7 +126,7 @@ export function AuthScreen() {
                 void run(async () => {
                   const { error } = await db().auth.resetPasswordForEmail(
                     email,
-                    { redirectTo: `${location.origin}/auth` },
+                    { redirectTo: authRedirectUrl(location.origin) },
                   );
                   if (error) throw error;
                 }, C.auth.sent);
@@ -136,9 +136,6 @@ export function AuthScreen() {
             </button>
           </>
         )}
-        <Link className="text-button" href="/privacy">
-          {C.nav.privacy}
-        </Link>
       </form>
     </section>
   );

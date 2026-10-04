@@ -48,7 +48,6 @@ export const CONTENT = {
     activities: "Chán rồi?",
     settings: "Hai đứa",
     admin: "Hệ thống",
-    privacy: "Riêng tư",
   },
   auth: {
     title: "Một nơi dành cho hai đứa",
@@ -343,15 +342,6 @@ export const CONTENT = {
       memories: "Kỷ niệm",
       push_subscriptions: "Thiết bị nhận thông báo",
     },
-  },
-  privacy: {
-    title: "Riêng tư của hai đứa",
-    paragraphs: [
-      "Nội dung được lưu trong Supabase của người quản lý ứng dụng. Chỉ thành viên trong cùng không gian được xem nội dung chung; nội dung riêng chỉ người viết được xem.",
-      "Câu trả lời daily chỉ mở cho người ấy khi cả hai đã gửi. Khi rời không gian, quyền đọc dữ liệu của không gian đó bị thu hồi.",
-      "Ứng dụng không chấm điểm tình yêu, không phân tích tâm lý và không dùng lời nhắn để huấn luyện AI. Bản nháp có thể lưu trên thiết bị; đăng xuất sẽ xóa bản nháp tại thiết bị đó.",
-      "Bạn có thể xuất dữ liệu đang có quyền xem, xóa lời nhắn hoặc xóa tài khoản trong phần Hai đứa. Người quản lý nên công bố địa chỉ liên hệ và chính sách lưu trữ của mình trước khi đưa ứng dụng cho người khác.",
-    ],
   },
 } as const;
 // Typed keys are checked by TypeScript; validate essential content at runtime too.
