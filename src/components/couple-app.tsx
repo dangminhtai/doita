@@ -20,10 +20,7 @@ import { NotesScreen } from "@/features/notes/screen";
 import { PrayerScreen } from "@/features/prayer/screen";
 import { MemoriesScreen } from "@/features/memories/screen";
 import { ActivitiesScreen } from "@/features/activities/screen";
-import {
-  SettingsScreen,
-  AdminScreen,
-} from "@/features/settings/screen";
+import { SettingsScreen } from "@/features/settings/screen";
 export function CoupleApp({ initialPage = "home" }: { initialPage?: string }) {
   return (
     <AppProvider>
@@ -88,9 +85,7 @@ function Shell({ initialPage }: { initialPage: string }) {
     ) : page === "activities" && enabled("activities") ? (
       <ActivitiesScreen />
     ) : page === "settings" ? (
-      <SettingsScreen go={go} />
-    ) : page === "admin" ? (
-      <AdminScreen />
+      <SettingsScreen />
     ) : (
       <HomeScreen go={go} />
     );

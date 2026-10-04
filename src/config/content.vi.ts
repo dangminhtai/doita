@@ -249,7 +249,6 @@ export const CONTENT = {
     install: "Cài ứng dụng",
     installHint:
       "Android: menu trình duyệt → Cài ứng dụng. iPhone: Chia sẻ → Thêm vào màn hình chính.",
-    export: "Tải dữ liệu tôi có quyền xem",
     deleteAccount: "Xóa tài khoản",
     confirmAccount:
       "Xóa vĩnh viễn tài khoản và dữ liệu cá nhân của bạn? Dữ liệu chung do người ấy tạo vẫn được giữ.",
@@ -325,23 +324,6 @@ export const CONTENT = {
     error: "Cần kiểm tra",
     running: "Đang chạy",
     idle: "Chưa chạy",
-  },
-  admin: {
-    title: "Trạng thái hệ thống",
-    healthy: "Kết nối dữ liệu hoạt động",
-    jobs: "Các lần bảo trì",
-    counts: "Số bản ghi",
-    notAdmin: "Trang này dành cho người quản lý.",
-    check: "Kiểm tra",
-    labels: {
-      profiles: "Người dùng",
-      couples: "Không gian",
-      daily_prompts: "Câu hỏi",
-      activities: "Hoạt động",
-      prayers: "Ước nguyện",
-      memories: "Kỷ niệm",
-      push_subscriptions: "Thiết bị nhận thông báo",
-    },
   },
 } as const;
 // Typed keys are checked by TypeScript; validate essential content at runtime too.

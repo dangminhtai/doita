@@ -61,7 +61,6 @@ Script dùng `.env.local`, upsert theo ID nên chạy lại không tạo bản g
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Browser/server | public key tạo bằng `npm run vapid` |
 | `VAPID_PRIVATE_KEY` | Server | private key cùng cặp VAPID |
 | `VAPID_SUBJECT` | Server | `mailto:email-cua-ban@example.com` |
-| `ADMIN_USER_IDS` | Server | UUID tài khoản admin; nhiều UUID phân cách dấu phẩy |
 | `NEXT_PUBLIC_APP_URL` | Cấu hình | URL public của web; giữ để mở rộng sau này |
 
 Tạo VAPID:
@@ -86,7 +85,6 @@ Không gửi `.env.local` lên GitHub. ZIP chỉ chứa `.env.example` trống. 
 4. Thêm các biến trên vào Vercel Environment Variables. Thêm đầy đủ vào Production; Preview nếu bạn dùng preview riêng. Biến `NEXT_PUBLIC_*` được đóng vào bundle lúc build, đổi biến thì redeploy.
 5. Deploy, cập nhật Supabase Site URL/Redirect URLs theo domain thật.
 6. Đăng ký hai email, xác nhận email, người thứ nhất tạo không gian, mở **Hai đứa** gửi mã mời cho người thứ hai. Mã ngẫu nhiên 24 ký tự hex, hết hạn 7 ngày. Một người chỉ ở một không gian, tối đa hai người/không gian.
-7. Muốn vào `/admin`, lấy UUID của tài khoản trong Supabase **Authentication → Users**, điền `ADMIN_USER_IDS` rồi redeploy. Quyền admin kiểm tra ở server, không dựa vào menu.
 
 Chưa có deployment thật trong gói này: bạn tự điền key và deploy vào tài khoản của bạn.
 
@@ -98,7 +96,7 @@ Vercel gửi `Authorization: Bearer <CRON_SECRET>`. Endpoint từ chối nếu t
 
 Daily cũng được tạo lúc mở ứng dụng, nên không phụ thuộc cron phải chạy đúng nửa đêm. Streak chỉ tăng sau **hai thành viên hiện tại** cùng gửi câu trả lời. Note, prayer và hoạt động không dùng để farm streak. Hai ngày cách lần hoàn thành cuối được hiển thị để còn cơ hội repair; khoảng trống lớn hơn hiển thị 0 và lần daily tiếp theo bắt đầu lại 1. Repair nối qua đúng một ngày bỏ lỡ, cần làm **trước daily hôm nay**. Múi giờ chung cố định sau daily đầu tiên để tránh ghi nhận hai lần/ngày; mặc định Việt Nam. Đổi mặc định trước khi tạo cặp trong `app.config.ts` nếu cần múi giờ khác.
 
-Cron thực hiện database work mỗi ngày, giúp duy trì hoạt động thật. **Không bảo đảm Supabase Free không bị pause**: chính sách/khả dụng của nhà cung cấp nằm ngoài ứng dụng. Nếu project đã pause, phải khôi phục trong Supabase Dashboard trước. Kiểm tra `/admin` và log cron định kỳ.
+Cron thực hiện database work mỗi ngày, giúp duy trì hoạt động thật. **Không bảo đảm Supabase Free không bị pause**: chính sách/khả dụng của nhà cung cấp nằm ngoài ứng dụng. Nếu project đã pause, phải khôi phục trong Supabase Dashboard trước. Kiểm tra log cron trong Vercel và Supabase định kỳ.
 
 Push dùng nội dung trong `CONTENT.notifications`, không chứa nội dung thư riêng. Sau gửi daily/thuyền, client yêu cầu server xử lý các thông báo do chính tài khoản đó tạo. Nếu đóng trang quá sớm hoặc gửi push lỗi, cron xử lý tiếp. Outbox có lease chống gửi chồng, thử tối đa 5 lần; 404/410 xóa subscription hỏng. Server kiểm tra lại membership trước khi gửi. Nhà cung cấp push được cho phép: Google FCM, Mozilla và Apple; Windows WNS chưa được bật. VAPID chưa điền thì app vẫn dùng được, push chưa hoạt động.
 
@@ -129,7 +127,7 @@ Note riêng chỉ người viết xem, note chung hai người xem; chỉ tác g
 
 Rời không gian thu hồi quyền đọc/ghi dữ liệu của không gian cũ, không xóa ngay dữ liệu. Thành viên còn lại có thể mời người mới; **người mới có thể đọc lịch sử chung được giữ lại**. Nếu bạn không muốn hành vi này, phải thêm quy trình đóng không gian và tạo không gian mới. Mã mời là bí mật của cặp, không công khai.
 
-Xuất dữ liệu tạo JSON của các bản ghi đang có quyền đọc (phân trang), gồm lịch sử chung và nội dung riêng của bạn; ảnh không nhúng vào JSON. Xóa tài khoản xóa profile, membership và bản ghi do người dùng tạo qua FK cascade; ảnh có liên quan cũng được xóa trước. Dữ liệu chung do người ấy tạo vẫn giữ. Dữ liệu trên backup của Supabase tuân theo chính sách backup của project, không thể xóa tức thì bằng app.
+Xóa tài khoản xóa profile, membership và bản ghi do người dùng tạo qua FK cascade; ảnh có liên quan cũng được xóa trước. Dữ liệu chung do người ấy tạo vẫn giữ. Dữ liệu trên backup của Supabase tuân theo chính sách backup của project, không thể xóa tức thì bằng app.
 
 Email đăng ký và khôi phục mật khẩu quay về `/auth` trên origin đang mở trong trình duyệt, không phụ thuộc `NEXT_PUBLIC_APP_URL`. Trong Supabase URL Configuration, đặt Site URL thành `https://doita.vercel.app`, và cho phép `https://doita.vercel.app/auth`, `http://localhost:3000/auth`, `http://127.0.0.1:3000/auth`. Các domain/port khác cần thêm riêng vào Redirect URLs. Trang `/privacy` đã được bỏ theo yêu cầu của chủ ứng dụng.
 
