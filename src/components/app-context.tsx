@@ -16,6 +16,7 @@ import {
 } from "@/lib/supabase/browser";
 import { CONTENT as C } from "@/config/content.vi";
 import { enabled } from "@/config/app.config";
+import { actionErrorMessage } from "@/lib/action-error";
 export type Row = Record<string, any>;
 export type Data = {
   couple: Row | null;
@@ -231,7 +232,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
     } catch (e) {
       console.error("Load data", e);
-      notify(C.errors.generic, true);
+      const missingTable =
+        typeof e === "object" &&
+        e !== null &&
+        "code" in e &&
+        e.code === "PGRST205";
+      notify(missingTable ? C.errors.databaseSetup : C.errors.generic, true);
     } finally {
       setLoading(false);
     }
@@ -303,7 +309,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return true;
     } catch (e) {
       console.error("Action failed", e);
-      notify(C.errors.generic, true);
+      notify(actionErrorMessage(e), true);
       return false;
     } finally {
       setBusy(false);

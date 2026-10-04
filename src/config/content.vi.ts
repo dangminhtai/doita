@@ -272,9 +272,34 @@ export const CONTENT = {
     memory: "Một kỷ niệm của hai đứa đang chờ.",
   },
   errors: {
+    databaseSetup:
+      "Chưa tải được dữ liệu vì Supabase chưa nhận diện bảng của ứng dụng. Kiểm tra đúng project, chạy migration và seed theo README rồi tải lại trang.",
     generic:
       "Chưa thực hiện được. Bạn thử lại nhé; nội dung đang viết vẫn được giữ.",
     auth: "Không đăng nhập được. Kiểm tra email, mật khẩu và xác nhận email.",
+    credentials:
+      "Email hoặc mật khẩu không đúng. Nếu chưa có tài khoản, chọn Đăng ký; nếu đã đăng ký, kiểm tra lại hoặc chọn Quên mật khẩu.",
+    emailNotConfirmed:
+      "Email chưa được xác nhận. Mở email xác nhận đăng ký và bấm liên kết trước khi đăng nhập.",
+    emailDisabled:
+      "Đăng nhập bằng email đang tạm ngừng. Vui lòng liên hệ người quản lý ứng dụng.",
+    signupDisabled:
+      "Ứng dụng hiện chưa nhận đăng ký mới. Nếu đã có tài khoản, chọn Đăng nhập.",
+    emailExists:
+      "Email này đã được đăng ký. Chọn Đăng nhập hoặc Quên mật khẩu.",
+    weakPassword:
+      "Mật khẩu chưa đáp ứng yêu cầu bảo mật. Hãy dùng mật khẩu dài hơn và kết hợp chữ hoa, chữ thường, số và ký tự đặc biệt.",
+    invalidEmail: "Địa chỉ email chưa hợp lệ. Kiểm tra lại email đã nhập.",
+    emailDelivery:
+      "Ứng dụng chưa gửi được email xác nhận hoặc khôi phục mật khẩu. Vui lòng thử lại sau; nếu vẫn gặp lỗi, liên hệ người quản lý ứng dụng.",
+    emailRate:
+      "Đã đạt giới hạn gửi email. Vui lòng chờ rồi thử lại; kiểm tra cả thư mục spam nếu đang chờ email.",
+    samePassword: "Mật khẩu mới cần khác mật khẩu hiện tại.",
+    authExpired:
+      "Phiên đăng nhập hoặc liên kết xác nhận đã hết hạn. Đăng nhập lại hoặc yêu cầu liên kết mới.",
+    authConnection:
+      "Không kết nối được tới dịch vụ đăng nhập. Kiểm tra kết nối mạng rồi thử lại.",
+    authUnavailable: "Dịch vụ đăng nhập đang gặp sự cố. Vui lòng thử lại sau.",
     invalid: "Kiểm tra lại nội dung đã nhập.",
     invite: "Mã không còn dùng được hoặc không gian đã đủ hai người.",
     offline:

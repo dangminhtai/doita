@@ -117,16 +117,19 @@ export function AuthScreen() {
             <button
               className="text-button"
               type="button"
-              onClick={() =>
+              onClick={() => {
+                if (!authSchema.shape.email.safeParse(email).success) {
+                  notify(C.errors.invalidEmail, true);
+                  return;
+                }
                 void run(async () => {
-                  if (!email) throw new Error("email");
                   const { error } = await db().auth.resetPasswordForEmail(
                     email,
                     { redirectTo: `${location.origin}/auth` },
                   );
                   if (error) throw error;
-                }, C.auth.sent)
-              }
+                }, C.auth.sent);
+              }}
             >
               {C.auth.forgot}
             </button>
