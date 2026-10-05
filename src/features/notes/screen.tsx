@@ -286,6 +286,7 @@ export function NotesScreen() {
           <article
             key={n.id}
             className={`note-card ${n.type === "checklist" ? "checklist-paper" : "envelope-card"}`}
+            data-motion-item={n.id}
           >
             <ActionScope scope={`note:${n.id}`}>
               <div className="row-between">
@@ -299,7 +300,8 @@ export function NotesScreen() {
                 {n.is_pinned && <Pin size={16} />}
               </div>
               <div className="letter-sender">
-                <ProfileAvatar userId={n.author_id}
+                <ProfileAvatar
+                  userId={n.author_id}
                   index={Math.max(
                     0,
                     d.members.findIndex((m) => m.user_id === n.author_id),

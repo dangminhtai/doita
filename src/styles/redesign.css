@@ -227,7 +227,7 @@ time {
   box-shadow: 0 8px 28px color-mix(in srgb, var(--theme-text) 16%, transparent);
   overflow: hidden;
   transform-origin: var(--radix-select-content-transform-origin);
-  animation: picker-enter 160ms var(--control-motion);
+  animation: picker-enter var(--motion-fast) var(--control-motion);
 }
 .doita-select-options {
   padding: 8px;
@@ -973,7 +973,9 @@ textarea {
   pointer-events: none;
 }
 .launch-boat {
-  animation: launch 700ms ease-out forwards;
+  left: 20%;
+  bottom: 24px;
+  animation: prayer-depart var(--motion-cinematic) var(--motion-ease) forwards;
 }
 .prayer-list {
   margin-top: 24px;
@@ -1014,7 +1016,7 @@ textarea {
   background: var(--theme-paper);
   border-color: var(--theme-border);
   text-align: center;
-  animation: card-reveal 200ms ease-out;
+  animation: card-reveal var(--motion-normal) var(--motion-ease);
 }
 .activity-result > .theme-art {
   margin: 0 auto 16px;
@@ -1212,10 +1214,10 @@ textarea {
   padding: 28px;
   max-width: min(740px, calc(100vw - 32px));
   max-height: 85dvh;
-  animation: card-reveal 180ms ease-out;
+  animation: dialog-arrive var(--motion-normal) var(--motion-ease);
 }
 .modal::backdrop {
-  background: #432f3460;
+  background: color-mix(in srgb, var(--theme-text) 38%, transparent);
 }
 .modal h2 {
   overflow-wrap: anywhere;

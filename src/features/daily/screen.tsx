@@ -22,6 +22,7 @@ import { ThemeArt, ProfileAvatar } from "@/components/theme-art";
 import { THEME } from "@/config/themes";
 import { MemoryPhoto } from "@/features/memories/screen";
 import { dailySchema } from "@/features/schemas";
+import { useStreakMotion } from "@/components/motion";
 export function HomeScreen({ go }: { go: (p: string) => void }) {
   const { data: d, user, run } = useApp();
   const today = localDate(new Date(), d.couple?.timezone);
@@ -30,6 +31,12 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
     ? dayGap(today, st.last_completed_date)
     : 999;
   const streak = gap <= 2 ? (st?.current_streak ?? 0) : 0;
+  const streakNode = useRef<HTMLDivElement>(null);
+  useStreakMotion(
+    streakNode,
+    st && !d.errors.streaks ? streak : -1,
+    `${user?.id}:${d.couple?.id}`,
+  );
   const names = d.members.map(
     (m) =>
       d.profiles.find((p) => p.id === m.user_id)?.display_name ||
@@ -49,7 +56,9 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
           />
         </picture>
         <div className="hero-copy">
-          <h1 title={names.join(" & ") || C.brand.name}>{names.join(" & ") || C.brand.name}</h1>
+          <h1 title={names.join(" & ") || C.brand.name}>
+            {names.join(" & ") || C.brand.name}
+          </h1>
           <p>{C.redesign.greeting}</p>
           {d.couple?.relationship_start_date &&
           d.couple.relationship_start_date <= today ? (
@@ -99,7 +108,7 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
         </section>
       )}
       {enabled("streak") && (
-        <div className="streak-inline">
+        <div ref={streakNode} className="streak-inline">
           <Flame size={18} />
           <span>{t(C.home.streak, { count: streak })}</span>
           <details>
@@ -338,9 +347,7 @@ export function DailyScreen() {
     <>
       <PageTitle title={C.daily.title} />
       <section className="daily-detail">
-        <small>
-          {d.daily && <DateLabel date={d.daily.date} />}
-        </small>
+        <small>{d.daily && <DateLabel date={d.daily.date} />}</small>
         <h2>{d.daily?.prompt}</h2>
         {previousAnswer && (
           <div role="status">

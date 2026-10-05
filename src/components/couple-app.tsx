@@ -1,5 +1,12 @@
 "use client";
-import { useEffect, useState, useRef, useCallback } from "react";
+import {
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  useLayoutEffect,
+  type HTMLAttributes,
+} from "react";
 import {
   House,
   NotebookPen,
@@ -27,6 +34,17 @@ import { NotificationBell } from "./notification-bell";
 import { ProfileAvatar, ThemeArt } from "./theme-art";
 import { LinkedContent } from "./linked-content";
 import { ConfirmationProvider } from "./confirmation";
+import { usePageMotion, exitSnapshot } from "./motion";
+function FeedbackToast(props: HTMLAttributes<HTMLDivElement>) {
+  const node = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const current = node.current;
+    return () => {
+      if (current) exitSnapshot(current);
+    };
+  }, []);
+  return <div ref={node} {...props} />;
+}
 export function CoupleApp({ initialPage = "home" }: { initialPage?: string }) {
   return (
     <AppProvider>
@@ -37,6 +55,7 @@ export function CoupleApp({ initialPage = "home" }: { initialPage?: string }) {
   );
 }
 function Shell({ initialPage }: { initialPage: string }) {
+  const contentNode = useRef<HTMLDivElement>(null);
   const [page, setPage] = useState(initialPage),
     [menu, setMenu] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
@@ -243,6 +262,11 @@ function Shell({ initialPage }: { initialPage: string }) {
   const pageError = (pageTables[page] ?? [])
     .map((t) => data.errors[t])
     .find(Boolean);
+  usePageMotion(
+    contentNode,
+    page,
+    `${user?.id}:${data.couple?.id}:${recovery}`,
+  );
   const content =
     !user || recovery ? (
       <AuthScreen />
@@ -409,7 +433,8 @@ function Shell({ initialPage }: { initialPage: string }) {
         )}
         <main id="main-content" className={`main page-${page}`} inert={menu}>
           {message && (
-            <div
+            <FeedbackToast
+              key={message}
               role={error ? "alert" : "status"}
               aria-live="polite"
               className={`toast ${error ? "error" : ""}`}
@@ -427,9 +452,11 @@ function Shell({ initialPage }: { initialPage: string }) {
               >
                 <X size={16} />
               </button>
-            </div>
+            </FeedbackToast>
           )}
-          <div className="page-controls">{content}</div>
+          <div ref={contentNode} className="page-controls">
+            {content}
+          </div>
           {user &&
             data.couple &&
             page !== "profile" &&

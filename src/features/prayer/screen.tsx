@@ -28,6 +28,8 @@ import {
   type PrayerDraft,
 } from "./draft";
 import { useConfirmation } from "@/components/confirmation";
+import { MOTION } from "@/config/motion";
+import { reducedMotion } from "@/components/motion";
 
 export function PrayerScreen() {
   const askConfirmation = useConfirmation();
@@ -37,6 +39,15 @@ export function PrayerScreen() {
     [selected, setSelected] = useState<Row | null>(null),
     [released, setReleased] = useState(false),
     [promptIndex, setPromptIndex] = useState(0);
+  const [releaseId, setReleaseId] = useState(0);
+  useEffect(() => {
+    if (!released) return;
+    const timer = setTimeout(
+      () => setReleased(false),
+      reducedMotion() ? MOTION.fast : MOTION.cinematic,
+    );
+    return () => clearTimeout(timer);
+  }, [released, releaseId]);
   const [filter, setFilter] = useViewState("prayer-filter", "all");
   const { body, visibility, resurface, draftId } = draft;
   const prefix = `couple-draft:${user!.id}:prayer:${d.couple!.id}`;
@@ -145,6 +156,7 @@ export function PrayerScreen() {
       setOpen(false);
       if (status === "released") {
         setReleased(true);
+        setReleaseId((id) => id + 1);
         void flushNotifications();
       }
     }
@@ -239,10 +251,9 @@ export function PrayerScreen() {
           </section>
         </ActionScope>
       )}
-      {prayers.length > 0 && filter !== "archived" && (
+      {(prayers.length > 0 || released) && filter !== "archived" && (
         <section
           className={`river ${released ? "released" : ""} ${!prayers.length || filter === "archived" ? "compact" : ""}`}
-          onAnimationEnd={() => setReleased(false)}
           aria-label={C.prayer.river}
         >
           <div className="boats">
@@ -266,7 +277,14 @@ export function PrayerScreen() {
             ))}
           </div>
           {released && (
-            <Ship className="launch-boat" size={44} aria-hidden="true" />
+            <div
+              key={releaseId}
+              className="prayer-departure"
+              aria-hidden="true"
+            >
+              <span className="prayer-ripple" />
+              <Ship className="launch-boat" size={44} aria-hidden="true" />
+            </div>
           )}
         </section>
       )}

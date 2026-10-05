@@ -301,6 +301,7 @@ export function MemoriesScreen() {
             )}
             <article
               className={`memory-card ${m.photo_path ? "photo-polaroid" : ""}`}
+              data-motion-item={m.id}
             >
               <div className="timeline-dot">
                 <Camera size={18} />

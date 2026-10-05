@@ -1,5 +1,17 @@
 # Nhật ký triển khai redesign Doita
 
+## Motion theo kế hoạch của anh — 05/10/2026
+
+Triển khai Phase A/B với CSS, IntersectionObserver và Web Animations API; dùng token chung, không thêm dependency. Press, dialog/toast enter-exit, chuyển tab không remount, ảnh load, Notes/Memories reveal một lần, Prayer departure sau xác nhận và streak feedback theo thay đổi dữ liệu thật. Không thêm Phase C/presence giả; không sửa API/RPC/RLS/retry để phục vụ motion. Chi tiết tại `doita-test/MOTION_PLAN.md`.
+
+Theo yêu cầu mới của anh, kiểm tra thao tác/thị giác trên web do anh thực hiện. Typecheck, lint và build exit0;25 unit tests qua. Đối chiếu 26 tiêu chí RULES_UX ở mức code; chưa xác nhận Back/focus/mobile/reduced-motion hoặc performance trên web. Không commit/push/deploy.
+
+## Đăng ký và thương hiệu — 05/10/2026
+
+Bỏ tên thương hiệu lặp trong auth-art. Đăng ký chọn giới tính qua Select chung, không chọn sẵn, không có “Chưa thiết lập”; lỗi ngay cạnh trường và focus quay về đó, lựa chọn giữ khi gửi lỗi. Gửi gender trong metadata; migration bổ sung `202610050009_signup_gender.sql` cập nhật trigger lưu vào profile và từ chối thiếu/sai lựa chọn cho tài khoản mới, không đổi hồ sơ cũ. Các lựa chọn khớp hồ sơ hiện tại: Nam/Nữ/Khác/Không muốn chia sẻ.
+
+25 unit tests và 28 nhóm database local qua; build/typecheck/lint auth qua. Browser fixture ban đầu chưa qua do response giả thiếu version header của Supabase; đã sửa fixture, chưa xác nhận lần chạy tiếp theo vì yêu cầu chuyển sang motion và giao kiểm tra web cho anh. Chưa áp dụng migration mới lên Supabase thật.
+
 ## Đường dẫn Hai đứa — 05/10/2026
 
 Theo yêu cầu mới của anh, Hai đứa dùng `/couple`, hồ sơ dùng `/profile`; `/settings` dành cho cài đặt ứng dụng sau này. Đổi route, tên feature/component và khóa nav thành couple, cập nhật các liên kết từ daily/popup hồ sơ và bộ kiểm tra. Thông báo cũ trỏ `/settings` được đổi đích lúc mở hoặc gửi push, giữ query và không mở link ngoài origin. Không tạo alias `/settings` cho Hai đứa; không sửa migration đã áp dụng hay dữ liệu production.

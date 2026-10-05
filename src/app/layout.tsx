@@ -3,6 +3,8 @@ import { Nunito } from "next/font/google";
 import { CONTENT as C } from "@/config/content.vi";
 import "@/styles/globals.css";
 import "@/styles/redesign.css";
+import "@/styles/motion.css";
+import { motionStyle } from "@/config/motion";
 import { THEME, themeStyle } from "@/config/themes";
 import { APP_ICONS } from "@/config/app-icons";
 const nunito = Nunito({
@@ -36,7 +38,7 @@ export default function RootLayout({
       lang="vi"
       className={nunito.variable}
       data-theme={THEME.id}
-      style={themeStyle(THEME)}
+      style={{ ...themeStyle(THEME), ...motionStyle }}
     >
       <body>{children}</body>
     </html>

@@ -1,0 +1,206 @@
+/* Timing comes from config/motion.ts. Content stays visible without JS. */
+:where(.button, .text-button, .doita-select, .bottom-nav a, .desktop-nav a) {
+  transition:
+    transform var(--motion-instant) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease);
+}
+.button {
+  transition:
+    transform var(--motion-instant) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease);
+}
+:where(.button, .text-button, .doita-select):not(:disabled):active {
+  transform: scale(var(--motion-press-scale));
+}
+input,
+textarea {
+  transition: border-color var(--motion-fast) var(--motion-ease);
+}
+summary::after {
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+.note-card,
+.memory-card,
+.memory-photo {
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .button:not(:disabled):hover {
+    transform: translateY(-1px);
+  }
+  .button:not(:disabled):active {
+    transform: scale(var(--motion-press-scale));
+  }
+  .note-card:hover,
+  .memory-card:hover {
+    transform: translateY(-2px);
+  }
+  .photo-polaroid:hover .memory-photo {
+    transform: scale(1.01);
+  }
+}
+.toast {
+  animation: feedback-arrive var(--motion-fast) var(--motion-ease);
+}
+.modal::backdrop {
+  animation: backdrop-arrive var(--motion-fast) var(--motion-ease);
+}
+.motion-exit-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+}
+.motion-exit-backdrop {
+  background: color-mix(in srgb, var(--theme-text) 38%, transparent);
+}
+.motion-exit-copy {
+  pointer-events: none;
+}
+.river[data-motion-visible="true"] .paper-boat {
+  animation: boat-idle var(--motion-ambient) ease-in-out infinite;
+  animation-delay: inherit;
+}
+.river .boat:focus-within .paper-boat {
+  animation-play-state: paused;
+}
+@media (hover: hover) {
+  .river .boat:hover .paper-boat {
+    animation-play-state: paused;
+  }
+}
+.prayer-departure {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.prayer-ripple {
+  position: absolute;
+  left: 20%;
+  bottom: 24px;
+  width: 48px;
+  height: 16px;
+  border: 1px solid var(--theme-primary);
+  border-radius: 50%;
+  animation: prayer-ripple var(--motion-slow) var(--motion-ease) both;
+}
+.streak-inline {
+  position: relative;
+}
+.streak-inline[data-milestone="true"]::before {
+  content: "";
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  left: -11px;
+  top: calc(50% - 20px);
+  border: 1px solid var(--theme-primary);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: milestone-ring var(--motion-feedback) var(--motion-ease);
+}
+@keyframes feedback-arrive {
+  from {
+    opacity: 0.5;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes dialog-arrive {
+  from {
+    opacity: 0.5;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes backdrop-arrive {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes boat-idle {
+  0%,
+  100% {
+    transform: translateY(1px) rotate(-0.5deg);
+  }
+  50% {
+    transform: translateY(-1px) rotate(0.5deg);
+  }
+}
+@keyframes prayer-depart {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  12% {
+    opacity: 1;
+    transform: translate(12px, -1px) scale(1);
+  }
+  80% {
+    opacity: 0.6;
+    transform: translate(48vw, -18px) scale(0.8);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(60vw, -24px) scale(0.7);
+  }
+}
+@keyframes prayer-ripple {
+  from {
+    opacity: 0.45;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2);
+  }
+}
+@keyframes milestone-ring {
+  from {
+    opacity: 0.5;
+    transform: scale(0.65);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.2);
+  }
+}
+@media (max-width: 600px) {
+  .modal::backdrop {
+    backdrop-filter: none;
+  }
+  .river[data-motion-visible="true"] .boat:nth-child(n + 5) .paper-boat {
+    animation: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .text-button,
+  .doita-select,
+  .note-card,
+  .memory-card,
+  .memory-photo {
+    transform: none !important;
+  }
+  .motion-exit-layer {
+    display: none;
+  }
+  .modal::backdrop {
+    animation: none !important;
+  }
+  .streak-inline[data-milestone="true"]::before {
+    display: none;
+  }
+}

@@ -62,3 +62,5 @@ Các thay đổi tiếp theo phải cập nhật quy tắc khi anh đổi yêu c
 - `/settings` dành cho cài đặt ứng dụng thực sự khi có; không dùng làm đường dẫn hay tên màn Hai đứa. Liên kết thông báo cũ được đổi đích sang `/couple` khi mở.
 
 - Đăng ký phải chọn giới tính, không chọn sẵn và không có “Chưa thiết lập” trong form đăng ký. Giữ lựa chọn khi lỗi; lưu ngay vào hồ sơ và kiểm tra ở database cho tài khoản mới. Không lặp tên thương hiệu trong khung auth khi header đã hiển thị.
+
+- Motion bám `doita-test/MOTION_PLAN.md`; timing đi qua `src/config/motion.ts`. Không trì hoãn URL/mutation/focus để chờ animation, không replay cả danh sách khi Realtime refresh. Thả thuyền chỉ sau write được xác nhận; reduced-motion tắt dịch chuyển/ambient và tab ẩn dừng hiệu ứng. Không giả online hoặc thêm dependency để trang trí.
