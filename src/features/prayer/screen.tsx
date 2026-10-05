@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Ship, Plus, Feather } from "lucide-react";
+import { Ship, Plus, Feather } from "@/components/icons";
 import { useApp, flushNotifications, type Row } from "@/components/app-context";
 import {
   Select,

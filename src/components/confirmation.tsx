@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { flushSync } from "react-dom";
-import { ShieldCheck, Trash2 } from "lucide-react";
+import { ShieldCheck, Trash2 } from "@/components/icons";
 import { Modal } from "./ui";
 import { useApp } from "./app-context";
 import { CONTENT as C } from "@/config/content.vi";

@@ -9,6 +9,12 @@
   --soft: var(--theme-soft);
   --white: var(--theme-paper);
 }
+.doita-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  object-fit: contain;
+  vertical-align: middle;
+}
 body {
   background: var(--theme-page);
   font-family: Arial, Helvetica, sans-serif;
@@ -153,7 +159,7 @@ time {
   align-items: flex-start;
   margin: 24px 0;
 }
-.confirmation-body > svg {
+.confirmation-body > .doita-icon {
   flex-shrink: 0;
   color: var(--theme-primary);
 }
@@ -161,7 +167,7 @@ time {
   margin: 0;
   max-width: 65ch;
 }
-.confirmation-body.destructive > svg {
+.confirmation-body.destructive > .doita-icon {
   color: var(--theme-error);
 }
 .confirmation-actions {
@@ -248,17 +254,13 @@ summary::-webkit-details-marker {
 }
 summary::after {
   content: "";
-  flex: 0 0 10px;
-  width: 10px;
-  height: 10px;
-  margin: 0 5px 5px;
-  border-right: 2px solid var(--theme-primary);
-  border-bottom: 2px solid var(--theme-primary);
-  transform: rotate(45deg);
-  transition: transform 160ms ease;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  background: var(--icon-chevron-down) center / contain no-repeat;
 }
 details[open] > summary::after {
-  transform: translateY(5px) rotate(225deg);
+  background-image: var(--icon-chevron-up);
 }
 button,
 .button,
@@ -1125,7 +1127,7 @@ textarea {
   padding: 16px;
   box-shadow: 0 8px 28px color-mix(in srgb, var(--theme-text) 16%, transparent);
 }
-.toast > svg {
+.toast > .doita-icon {
   flex-shrink: 0;
   color: var(--theme-success);
   margin-top: 3px;
@@ -1145,7 +1147,7 @@ textarea {
   background: var(--theme-paper);
   color: var(--theme-text);
 }
-.toast.error > svg {
+.toast.error > .doita-icon {
   color: var(--theme-error);
 }
 .operation-status {
@@ -1418,7 +1420,7 @@ textarea {
     padding: 22px;
     text-align: center;
   }
-  .auth-art > svg,
+  .auth-art > .doita-icon,
   .auth-art > .theme-art {
     display: none;
   }

@@ -2,7 +2,7 @@
 
 import { Children, isValidElement, type ReactNode } from "react";
 import * as Primitive from "@radix-ui/react-select";
-import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, ChevronDown, ChevronUp } from "@/components/icons";
 
 type Option = {
   value: string | number;

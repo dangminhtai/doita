@@ -118,3 +118,11 @@ Kiểm tra public production ngày này: favicon đã là trái tim rose, SHA-25
 
 Lint/typecheck/build exit0. Edge render CSS thật ở 320/390/1440: Enter/Space hoạt động, marker rỗng, chevron/thumb rose, không tràn ngang. Local production HTML có favicon version mới; cả ba URL icon trong manifest trả 200. Đã xem ảnh Activities mobile. Không sửa dữ liệu, không commit/push/deploy.
 `scripts/test-redesign-browser.mjs` trên bản build local qua 24 nhóm regression, exit0; không có pageerror. Đây là fixture, chưa kiểm chứng trên iOS/Android thật.
+
+## Bộ icon doodle của anh — 05/10/2026
+
+Nguồn cuối cùng anh chọn: `doita-test/cuts/mapping.json` và 35 PNG cạnh file đó. Đã sao chép thật, giữ nguyên tên vào `public/assets/doita/doodle-icons`, gồm mapping.json. Bản dùng trên web ở `public/themes/sunset/icons`: WebP lossless, giữ alpha, 96 px (Heart 192 px), tổng 231.246 byte. Không sửa màu, không filter CSS, không tạo lại hình hoặc giả SVG.
+
+Registry `src/config/ui-icons.ts` gắn vào THEME.icons; component `src/components/icons.tsx` thay mọi import Lucide trong 11 file. Giữ tên vai trò House/Ship/etc để handler/nhãn không đổi; Trash2 ánh xạ trash, Volume2/VolumeX ánh xạ volume-on/volume-off. Icon trang trí alt rỗng và aria-hidden, kích thước giữ theo từng nơi. Chevron summary dùng cùng asset qua biến theme; CSS toast/confirmation/auth được cập nhật từ selector svg sang doita-icon. Không thay favicon/PWA hoặc minh họa lớn ở lượt này.
+
+Kiểm chứng: typecheck/lint/build exit0; 35 bản PNG sao chép khớp byte với cuts, 35 URL WebP trả 200 và có alpha/kích thước đúng. Browser fixture local qua 24 nhóm regression cùng kiểm tra icon đang hiện ở 1440/390/320 (tải thành công, đúng registry, aria-hidden, không filter, không bị co kích thước). Lần kiểm tra đầu chờ cả ảnh trong sidebar đang ẩn bị timeout vì lazy loading; sửa phép kiểm tra chỉ chờ ảnh đang hiển thị, không thay code ứng dụng để ép tải ảnh ẩn. Chưa review thẩm mỹ từng ảnh hoặc kiểm tra thiết bị thật; theo yêu cầu anh, tích hợp trực tiếp từ mapping. Không commit/push/deploy.

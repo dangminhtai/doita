@@ -10,7 +10,7 @@ import {
   Wind,
   Leaf,
   Hourglass,
-} from "lucide-react";
+} from "@/components/icons";
 import { useApp, flushNotifications } from "@/components/app-context";
 import { Button, Field, PageTitle, useDraft, DateLabel } from "@/components/ui";
 import { ScopedForm } from "@/components/ui";

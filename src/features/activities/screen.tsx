@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Sparkles, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Sparkles, ThumbsUp, ThumbsDown } from "@/components/icons";
 import { useApp } from "@/components/app-context";
 import { Select, Button, Field, PageTitle, ActionScope } from "@/components/ui";
 import { ThemeArt } from "@/components/theme-art";

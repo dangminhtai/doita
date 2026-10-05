@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { DOODLE_ICONS } from "./ui-icons";
 
 export type ThemeAsset =
   | "heroDesktop"
@@ -30,10 +31,12 @@ export type ThemeDefinition = {
     focus: string;
   };
   assets: Record<ThemeAsset, string>;
+  icons: typeof DOODLE_ICONS;
 };
 export const THEMES = {
   sunset: {
     id: "sunset",
+    icons: DOODLE_ICONS,
     colors: {
       page: "#fff7fa",
       paper: "#ffffff",
@@ -68,10 +71,14 @@ export const THEMES = {
 export const DEFAULT_THEME: keyof typeof THEMES = "sunset";
 export const THEME = THEMES[DEFAULT_THEME];
 export function themeStyle(theme: ThemeDefinition): CSSProperties {
-  return Object.fromEntries(
-    Object.entries(theme.colors).map(([key, value]) => [
-      `--theme-${key}`,
-      value,
-    ]),
-  ) as CSSProperties;
+  return {
+    "--icon-chevron-down": `url("${theme.icons.ChevronDown}")`,
+    "--icon-chevron-up": `url("${theme.icons.ChevronUp}")`,
+    ...Object.fromEntries(
+      Object.entries(theme.colors).map(([key, value]) => [
+        `--theme-${key}`,
+        value,
+      ]),
+    ),
+  } as CSSProperties;
 }

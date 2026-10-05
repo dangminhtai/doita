@@ -1,0 +1,247 @@
+[
+  {
+    "name": "house",
+    "row": 1,
+    "column": 1,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "notebook-pen",
+    "row": 1,
+    "column": 2,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "ship",
+    "row": 1,
+    "column": 3,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "camera",
+    "row": 1,
+    "column": 4,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "sparkles",
+    "row": 1,
+    "column": 5,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "users",
+    "row": 1,
+    "column": 6,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "plus",
+    "row": 2,
+    "column": 1,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "pin",
+    "row": 2,
+    "column": 2,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "feather",
+    "row": 2,
+    "column": 3,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "bell",
+    "row": 2,
+    "column": 4,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "volume-on",
+    "row": 2,
+    "column": 5,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "volume-off",
+    "row": 2,
+    "column": 6,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "menu",
+    "row": 3,
+    "column": 1,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "x",
+    "row": 3,
+    "column": 2,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "check",
+    "row": 3,
+    "column": 3,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "chevron-down",
+    "row": 3,
+    "column": 4,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "chevron-up",
+    "row": 3,
+    "column": 5,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "log-out",
+    "row": 3,
+    "column": 6,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "circle-check",
+    "row": 4,
+    "column": 1,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "circle-alert",
+    "row": 4,
+    "column": 2,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "shield-check",
+    "row": 4,
+    "column": 3,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "trash",
+    "row": 4,
+    "column": 4,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "eye",
+    "row": 4,
+    "column": 5,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "eye-off",
+    "row": 4,
+    "column": 6,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "heart",
+    "row": 5,
+    "column": 1,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "calendar",
+    "row": 5,
+    "column": 2,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "flame",
+    "row": 5,
+    "column": 3,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "sun",
+    "row": 5,
+    "column": 4,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "moon",
+    "row": 5,
+    "column": 5,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "cloud-rain",
+    "row": 5,
+    "column": 6,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "wind",
+    "row": 6,
+    "column": 1,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "leaf",
+    "row": 6,
+    "column": 2,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "hourglass",
+    "row": 6,
+    "column": 3,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "thumbs-up",
+    "row": 6,
+    "column": 4,
+    "width": 209,
+    "height": 209
+  },
+  {
+    "name": "thumbs-down",
+    "row": 6,
+    "column": 5,
+    "width": 209,
+    "height": 209
+  }
+]

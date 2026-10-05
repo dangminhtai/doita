@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Pin, Plus } from "lucide-react";
+import { Pin, Plus } from "@/components/icons";
 import { useApp, type Row } from "@/components/app-context";
 import {
   Select,

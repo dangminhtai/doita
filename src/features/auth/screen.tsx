@@ -1,6 +1,6 @@
 "use client";
 import { useState, useId } from "react";
-import { Heart, Eye, EyeOff } from "lucide-react";
+import { Heart, Eye, EyeOff } from "@/components/icons";
 import { db, configured, rpc } from "@/lib/supabase/browser";
 import { useApp } from "@/components/app-context";
 import { Select, Button, Field } from "@/components/ui";

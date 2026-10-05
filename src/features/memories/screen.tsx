@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef, Fragment } from "react";
-import { Camera, Plus } from "lucide-react";
+import { Camera, Plus } from "@/components/icons";
 import { useApp, type Row } from "@/components/app-context";
 import {
   Select,

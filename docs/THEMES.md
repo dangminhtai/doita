@@ -37,3 +37,5 @@ Script dùng ImageMagick, chỉ tạo các WebP trong theme `sunset`, giữ nguy
 Ảnh riêng do người dùng tải lên vẫn nằm trong Supabase Storage có quyền truy cập; không đưa vào thư mục public của theme. Hiện ảnh kỷ niệm chỉ lấy signed URL khi gần viewport; chưa tạo thumbnail riêng cho ảnh upload.
 
 Icon ứng dụng dùng URL có phiên bản trong `src/config/app-icons.ts` cho favicon/Apple/manifest. Khi thay artwork trong `public/icons` hoặc `public/favicon.svg`, tăng `version` để cache trình duyệt nhận URL mới; giữ tên file nguồn. PWA đã cài có thể cần thời gian hoặc cài lại để hệ điều hành cập nhật icon.
+
+Bộ icon UI mặc định là artwork của anh từ `doita-test/cuts`, registry `src/config/ui-icons.ts` và `THEME.icons`. Dùng exports của `src/components/icons.tsx` thay import thư viện. Nguồn PNG giữ nguyên ở `public/assets/doita/doodle-icons`; WebP dùng trên web ở `public/themes/sunset/icons`. Khi thêm theme, khai báo đủ các vai trò icon, gồm biến chevron cho disclosure; không hard-code đường dẫn trong feature. Tên Trash2/Volume2/VolumeX là vai trò cũ, lần lượt dùng trash/volume-on/volume-off.

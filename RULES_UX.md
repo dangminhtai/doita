@@ -46,3 +46,5 @@
 Các thay đổi tiếp theo phải cập nhật quy tắc khi anh đổi yêu cầu; giữ lịch sử quyết định ở đây, không suy từ trí nhớ cũ.
 
 - Disclosure dùng details/summary nhưng phải ẩn marker mặc định và có chevron theo theme, đổi hướng mở/đóng; giữ Enter/Space và focus-visible. Thanh cuộn dùng primary/soft của theme, không dùng màu muted xám hoặc giả cuộn bằng JavaScript.
+
+- Bộ icon UI dùng artwork của anh qua `THEME.icons` và `components/icons.tsx`; không nhập icon thư viện mặc định trở lại. Icon mới phải có mapping, nguồn thật và được kiểm tra ở kích thước sử dụng, giữ accessible name ở nút và ẩn ảnh trang trí với screen reader.

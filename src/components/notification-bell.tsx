@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Bell, Volume2, VolumeX } from "lucide-react";
+import { Bell, Volume2, VolumeX } from "@/components/icons";
 import { ThemeArt } from "./theme-art";
 import { CONTENT as C } from "@/config/content.vi";
 import { db, rpc } from "@/lib/supabase/browser";

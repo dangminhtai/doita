@@ -11,7 +11,7 @@ import {
   X,
   CircleCheck,
   CircleAlert,
-} from "lucide-react";
+} from "@/components/icons";
 import { CONTENT as C } from "@/config/content.vi";
 import { enabled } from "@/config/app.config";
 import { AppProvider, useApp } from "./app-context";
