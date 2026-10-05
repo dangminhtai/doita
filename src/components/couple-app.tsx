@@ -269,7 +269,7 @@ function Shell({ initialPage }: { initialPage: string }) {
     ) : page === "activities" && enabled("activities") ? (
       <ActivitiesScreen />
     ) : page === "settings" ? (
-      <SettingsScreen go={go} />
+      <SettingsScreen />
     ) : (
       <HomeScreen go={go} />
     );
@@ -362,9 +362,6 @@ function Shell({ initialPage }: { initialPage: string }) {
                 {C.common.close}
               </button>
             )}
-            <p>
-              <small>{C.home.eyebrow}</small>
-            </p>
             <nav>
               {nav.map(({ id, icon: Icon }) => (
                 <a

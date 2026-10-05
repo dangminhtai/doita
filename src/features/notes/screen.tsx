@@ -162,7 +162,6 @@ export function NotesScreen() {
     <>
       <PageTitle
         title={C.notes.title}
-        subtitle={C.notes.subtitle}
         action={
           <Button
             onClick={() => {
@@ -246,16 +245,6 @@ export function NotesScreen() {
             {type === "checklist" ? C.notes.checklistHint : C.notes.draft}
           </small>
           <div className="row">
-            <small>
-              {t(C.common.sharedHint, {
-                visibility:
-                  visibility === "private"
-                    ? C.common.private
-                    : visibility === "partner"
-                      ? C.common.partner
-                      : C.common.shared,
-              })}
-            </small>
             <Button type="submit">{C.common.save}</Button>
             <Button
               secondary
@@ -275,7 +264,6 @@ export function NotesScreen() {
         </ScopedForm>
       )}
       <div className="filters">
-        <small>{C.redesign.searchAll}</small>
         <Field label={C.common.search}>
           <input
             type="search"

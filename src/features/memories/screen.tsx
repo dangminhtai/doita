@@ -98,7 +98,6 @@ export function MemoriesScreen() {
     <>
       <PageTitle
         title={C.memories.title}
-        subtitle={C.memories.subtitle}
         action={
           <Button onClick={() => setOpen(!open)}>
             <Plus size={18} />

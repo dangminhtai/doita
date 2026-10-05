@@ -39,7 +39,7 @@ export function ActivitiesScreen() {
   }
   return (
     <>
-      <PageTitle title={C.activities.title} subtitle={C.activities.subtitle} />
+      <PageTitle title={C.activities.title} />
       <details className="activity-filters">
         <summary>{C.redesign.filterMood}</summary>
         <section className="activity-controls">

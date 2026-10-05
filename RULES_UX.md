@@ -48,3 +48,5 @@ Các thay đổi tiếp theo phải cập nhật quy tắc khi anh đổi yêu c
 - Disclosure dùng details/summary nhưng phải ẩn marker mặc định và có chevron theo theme, đổi hướng mở/đóng; giữ Enter/Space và focus-visible. Thanh cuộn dùng primary/soft của theme, không dùng màu muted xám hoặc giả cuộn bằng JavaScript.
 
 - Bộ icon UI dùng artwork của anh qua `THEME.icons` và `components/icons.tsx`; không nhập icon thư viện mặc định trở lại. Icon mới phải có mapping, nguồn thật và được kiểm tra ở kích thước sử dụng, giữ accessible name ở nút và ẩn ảnh trang trí với screen reader.
+
+- Theo yêu cầu ngày 05/10/2026: không hiện các subtitle Notes/Prayer/Memories/Activities, eyebrow “NHỮNG ĐIỀU NHỎ CỦA HAI ĐỨA”, câu mô tả phạm vi tìm kiếm, câu chờ người ấy, hướng dẫn cài ứng dụng hoặc thẻ Giao diện khi chỉ có một theme. Không lặp “Quyền xem: …” cạnh nút; giữ lựa chọn quyền xem trong form và xác nhận thả điều ước.

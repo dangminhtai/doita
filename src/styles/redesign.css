@@ -1037,10 +1037,6 @@ textarea {
 .danger-zone button {
   color: var(--theme-error);
 }
-.theme-card .theme-art {
-  width: 100px;
-  height: 100px;
-}
 .invite-code {
   background: var(--theme-soft);
 }

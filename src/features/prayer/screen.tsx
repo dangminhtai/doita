@@ -153,7 +153,6 @@ export function PrayerScreen() {
     <>
       <PageTitle
         title={C.prayer.title}
-        subtitle={C.prayer.subtitle}
         action={
           <Button
             onClick={() => {
@@ -215,14 +214,6 @@ export function PrayerScreen() {
               {C.prayer.resurface}
             </label>
             <div className="row">
-              <small>
-                {t(C.common.sharedHint, {
-                  visibility:
-                    visibility === "private"
-                      ? C.common.private
-                      : C.common.partner,
-                })}
-              </small>
               {draftId && (
                 <Button
                   secondary

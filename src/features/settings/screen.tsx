@@ -10,7 +10,7 @@ import {
   DateLabel,
   useDraft,
 } from "@/components/ui";
-import { ThemeArt, DefaultAvatar } from "@/components/theme-art";
+import { DefaultAvatar } from "@/components/theme-art";
 import { useViewState } from "@/components/view-state";
 import { useCollection } from "@/components/collection";
 import { localDate, nextOccurrence } from "@/lib/date";
@@ -21,7 +21,7 @@ import { db, rpc, authenticatedFetch } from "@/lib/supabase/browser";
 import { serviceWorkerReady } from "@/lib/push-device";
 import { useConfirmation } from "@/components/confirmation";
 
-export function SettingsScreen({ go }: { go: (page: string) => void }) {
+export function SettingsScreen() {
   const askConfirmation = useConfirmation();
   const { data: d, user, run, notify, logout } = useApp();
   const [panel, setPanel] = useViewState("settings-panel", "profile");
@@ -174,7 +174,6 @@ export function SettingsScreen({ go }: { go: (page: string) => void }) {
             {C.redesign.copyInvite}
           </button>
           <p>{C.couples.expires}</p>
-          {d.members.length < 2 && <p>{C.couples.waiting}</p>}
           <Button
             secondary
             onClick={() => void run(() => rpc("rotate_invite"))}
@@ -263,8 +262,6 @@ export function SettingsScreen({ go }: { go: (page: string) => void }) {
                 {C.common.retry}
               </Button>
             )}
-            <h3>{C.settings.install}</h3>
-            <p>{C.settings.installHint}</p>
           </section>
         )}
         {enabled("specialDates") && (
@@ -538,18 +535,6 @@ export function SettingsScreen({ go }: { go: (page: string) => void }) {
               {C.settings.deleteAccount}
             </button>
           </div>
-        </section>
-        <section
-          className="settings-card theme-card"
-          hidden={panel !== "profile"}
-        >
-          <ThemeArt asset="mascots" size={100} />
-          <h2>{C.redesign.theme}</h2>
-          <p>{C.redesign.defaultTheme}</p>
-          <small>{C.redesign.themeHint}</small>
-          <Button secondary onClick={() => go("activities")}>
-            {C.nav.activities}
-          </Button>
         </section>
       </section>
     </>

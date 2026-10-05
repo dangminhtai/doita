@@ -127,13 +127,13 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
             <ThemeArt asset="envelope" size={160} />
             <div>
               <h2>{d.notes[0]?.title ?? C.redesign.noLetter}</h2>
-              <p>
-                {d.notes[0]?.visibility === "private"
-                  ? C.common.private
-                  : d.notes[0]
-                    ? C.common.shared
-                    : C.notes.subtitle}
-              </p>
+              {d.notes[0] && (
+                <p>
+                  {d.notes[0].visibility === "private"
+                    ? C.common.private
+                    : C.common.shared}
+                </p>
+              )}
               <Button
                 secondary
                 onClick={() =>
@@ -196,7 +196,6 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
           >
             <ThemeArt asset="mascots" size={96} />
             <span>{C.nav.activities}</span>
-            <small>{C.activities.subtitle}</small>
           </button>
         )}
       </section>
