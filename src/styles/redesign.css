@@ -17,8 +17,10 @@
 }
 body {
   background: var(--theme-page);
-  font-family: Arial, Helvetica, sans-serif;
-  line-height: 1.65;
+  font-family: var(--font-nunito), sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
   --control-paper: color-mix(
     in srgb,
     var(--theme-soft) 24%,
@@ -203,10 +205,19 @@ b {
   overflow-wrap: anywhere;
 }
 h1 {
+  font-weight: 800;
   font-size: clamp(1.9rem, 4vw, 3rem);
 }
 h2 {
+  font-weight: 700;
   font-size: clamp(1.35rem, 2.4vw, 1.85rem);
+}
+h3 {
+  font-weight: 700;
+}
+.bottom-nav a,
+.sidebar nav a {
+  font-weight: 600;
 }
 small,
 .eyebrow {
@@ -299,7 +310,7 @@ select {
   font-size: 1rem;
 }
 textarea {
-  line-height: 1.7;
+  line-height: 1.6;
 }
 .pre-wrap,
 .letter {
@@ -353,6 +364,7 @@ textarea {
   flex: 1;
 }
 .desktop-nav a {
+  font-weight: 600;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -363,7 +375,7 @@ textarea {
 .desktop-nav a.active {
   background: var(--theme-soft);
   color: var(--theme-primary);
-  font-weight: 700;
+  font-weight: 600;
 }
 .avatar {
   padding: 0;
@@ -668,7 +680,7 @@ textarea {
 .answer-card blockquote,
 .answer-card p {
   max-width: 65ch;
-  line-height: 1.75;
+  line-height: 1.6;
 }
 .composer {
   background: var(--theme-paper);
@@ -738,7 +750,7 @@ textarea {
   background: var(--theme-soft);
   border-radius: 12px;
   color: var(--theme-text);
-  line-height: 1.7;
+  line-height: 1.6;
 }
 .letter-preview > .theme-art {
   position: absolute;
@@ -786,8 +798,8 @@ textarea {
 }
 .letter {
   font-family: inherit;
-  font-size: 1.15rem;
-  line-height: 1.8;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 .empty {
   background: var(--theme-paper);

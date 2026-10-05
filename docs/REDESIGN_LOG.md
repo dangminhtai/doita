@@ -144,3 +144,12 @@ Browser fixture trên local dev: PairScreen không có combobox/nhãn múi giờ
 Nhận đủ 12 PNG từ doita-test/doita-doodle-assets/public/assets/doita/doodle-art. Copy thật giữ tên vào public/assets/doita/doodle-art; giữ nguyên tất cả thiết kế cũ. Tạo WebP với Sharp, resize theo kích thước theme hiện có, giữ alpha/tỷ lệ, không vẽ lại hoặc filter đổi màu. THEMES.sunset.assets trỏ sang public/themes/sunset/doodle-art; URL có hash từ nội dung để cache nhận ảnh mới. Script tái tạo scripts/prepare-doodle-art.mjs cập nhật hash registry. Tổng bản dùng trên web 196.028 byte.
 
 Đã kiểm tra 12 bản nguồn khớp byte, 12 URL WebP trả HTTP200 và giữ alpha như nguồn. Browser fixture local: ảnh hiện tải thành công, 7 route không tràn ngang ở 1440/390 px, không pageerror. Typecheck/ESLint phù hợp được chạy; không đổi handler, logic upload ảnh, Supabase hoặc R2. Chưa kiểm tra thiết bị thật, không commit/push/deploy. Flowers vẫn là asset dự trữ theo layout hiện có, không thêm trang trí vào trang.
+
+## Thuyền trong khung Prayer — 05/10/2026
+Thay SVG paper-boat tự vẽ bằng Ship của registry doodle hiện có, size64. Giữ ngày, aria-label của nút, handler mở điều ước và class paper-boat. Typecheck/ESLint qua; browser fixture local với điều ước released kiểm tra ảnh tải, ngày và mở dialog ở1440/390px. Không tạo ảnh mới, không deploy.
+
+## Nunito theo lựa chọn của anh — 05/10/2026
+
+RootLayout dùng next/font/google Nunito bản thường, latin/vietnamese, variable font, display swap. Body và form kế thừa cùng font; nội dung 400/16px/1.6, nút/menu600, h1 800, h2/h3 700. Nội dung lời nhắn và câu trả lời/textarea đồng bộ giãn dòng1.6; không dùng font viết tay. Next đóng gói font để browser tải từ ứng dụng.
+
+Typecheck, ESLint layout và build exit0. Browser fixture local kiểm tra font tải với mẫu tiếng Việt, computed body400/16/25.6 và h1 800; sáu route không tràn ngang ở1440/390. Kiểm tra font cần chờ document.fonts.load với mẫu ký tự, không chỉ fonts.ready trước khi fontface được dùng. Chưa kiểm tra thiết bị thật hoặc deploy.

@@ -2,7 +2,7 @@
 
 Theme mặc định giữ ID `sunset`, hiện dùng bộ doodle-art do anh cung cấp. Chữ, dữ liệu, nút và trạng thái vẫn là HTML. Không đổi tên thương hiệu trong `CONTENT.brand`.
 
-Theo chỉnh sửa ngày 05/10/2026 sau phản hồi của anh: giao diện theo ảnh mẫu trắng/hồng nhẹ, chữ sans-serif hệ thống. Không dùng nền giấy kem/vàng hoặc khối sông xanh đậm. `river` hiện là nền hồng nhạt, chữ trong cảnh dùng `text`; theme sau cần giữ cặp foreground/background này hoặc cập nhật component và audit cùng nhau. Màu hoa/hoàng hôn nằm trong ảnh minh họa, không ép mọi khối nội dung theo màu ảnh.
+Theo chỉnh sửa ngày 05/10/2026 sau phản hồi của anh: giao diện theo ảnh mẫu trắng/hồng nhẹ, chữ Nunito bản thường (nội dung 400/16px/1.6, nút/menu 600, tiêu đề 700–800). Không dùng nền giấy kem/vàng hoặc khối sông xanh đậm. `river` hiện là nền hồng nhạt, chữ trong cảnh dùng `text`; theme sau cần giữ cặp foreground/background này hoặc cập nhật component và audit cùng nhau. Màu hoa/hoàng hôn nằm trong ảnh minh họa, không ép mọi khối nội dung theo màu ảnh.
 
 ## Tạo theme tiếp theo
 

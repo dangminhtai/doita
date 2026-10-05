@@ -53,3 +53,4 @@ Các thay đổi tiếp theo phải cập nhật quy tắc khi anh đổi yêu c
 
 - Người dùng mục tiêu tại Việt Nam: tạo không gian dùng APP_CONFIG.timezone = Asia/Ho_Chi_Minh, không hiện lựa chọn múi giờ trong PairScreen hoặc Settings.
 
+- Font toàn ứng dụng dùng Nunito bản thường: nội dung 400/16px/1.6, nút/menu600, tiêu đề700–800. Không đưa Arial hoặc font viết tay trở lại; kiểm tra dấu tiếng Việt và reflow khi đổi chữ.

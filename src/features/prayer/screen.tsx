@@ -254,24 +254,7 @@ export function PrayerScreen() {
                 onClick={() => setSelected(p)}
                 aria-label={`${C.prayer.open} · ${d.profiles.find((x) => x.id === p.author_id)?.display_name ?? C.home.partner} · ${new Date(p.created_at).toLocaleDateString("vi-VN", { timeZone: d.couple?.timezone })}`}
               >
-                <svg
-                  className="paper-boat"
-                  viewBox="0 0 80 50"
-                  width="64"
-                  height="44"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="M4 27 40 8 76 27 62 45H18Z"
-                    fill="var(--theme-paper)"
-                  />
-                  <path
-                    d="M4 27h72M40 8v19L18 45m22-18 22 18"
-                    fill="none"
-                    stroke="var(--theme-primary)"
-                    strokeWidth="2"
-                  />
-                </svg>
+                <Ship className="paper-boat" size={64} aria-hidden="true" />
                 <small>
                   {new Date(p.created_at).toLocaleDateString("vi-VN", {
                     day: "numeric",
