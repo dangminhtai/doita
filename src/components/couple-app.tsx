@@ -293,7 +293,6 @@ function Shell({ initialPage }: { initialPage: string }) {
         {user && data.couple && !recovery && (
           <nav className="desktop-nav" aria-label={C.common.openMenu}>
             {nav
-              .filter((x) => x.id !== "settings")
               .map(({ id, icon: Icon }) => (
                 <a
                   key={id}

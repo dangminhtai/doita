@@ -131,3 +131,6 @@ Kiểm chứng: typecheck/lint/build exit0; 35 bản PNG sao chép khớp byte v
 
 Bỏ subtitle ở Notes/Prayer/Memories/Activities cùng các lần lặp ở Home; bỏ eyebrow sidebar và dòng mô tả phạm vi tìm kiếm Notes. Bỏ dòng nhắc quyền xem cạnh nút của hai composer; giữ Visibility trong form, nhãn quyền xem ở nội dung và xác nhận thả điều ước. Settings bỏ câu chờ người ấy, hướng dẫn cài app và toàn bộ thẻ Giao diện với mascot/tên theme/CTA Cùng làm. Registry/assets theme và khả năng cài PWA vẫn tồn tại; chỉ bỏ phần UI anh yêu cầu. Bỏ CSS riêng thẻ theme không còn dùng, cập nhật kỳ vọng browser regression về subtitle Prayer thành không xuất hiện.
 Kiểm tra: lint/typecheck/build exit0; browser local fixture xác nhận các câu bị bỏ và theme-card không xuất hiện trên 6 route ở 1440/390 px, cùng 24 nhóm regression qua, không pageerror. Chưa kiểm tra thiết bị thật hoặc deploy. Đã cập nhật RULES_UX để tránh đưa lại các phần dư này.
+
+## Tab Hai đứa trên desktop — 05/10/2026
+Bỏ điều kiện lọc settings khỏi desktop-nav trong couple-app.tsx. Typecheck và ESLint file qua. Browser fixture trên local dev: tab hiện, bấm mở /settings và active đúng ở 1912/1440/1280/1120 px, không tràn ngang. Không deploy.
