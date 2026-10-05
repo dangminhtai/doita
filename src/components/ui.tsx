@@ -3,7 +3,6 @@ import type { ReactNode, ReactElement, FormHTMLAttributes } from "react";
 import { createPortal } from "react-dom";
 import {
   useEffect,
-  useLayoutEffect,
   useState,
   useRef,
   useId,
@@ -16,7 +15,6 @@ import {
 import { CONTENT as C } from "@/config/content.vi";
 import { useApp } from "./app-context";
 import { Select } from "./select";
-import { exitSnapshot } from "./motion";
 export { Select } from "./select";
 const ActionContext = createContext<string | null>(null);
 export function ActionScope({
@@ -248,12 +246,6 @@ export function Modal({
 }) {
   const [node, setNode] = useState<HTMLDialogElement | null>(null);
   const [target, setTarget] = useState<HTMLElement | null>(null);
-  useLayoutEffect(() => {
-    if (!node) return;
-    return () => {
-      if (node.open) exitSnapshot(node, true);
-    };
-  }, [node]);
   useEffect(() => {
     setTarget(document.body);
   }, []);

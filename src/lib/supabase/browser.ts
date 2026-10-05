@@ -27,10 +27,13 @@ export async function rpc(name: string, args: Record<string, unknown> = {}) {
       .eq("user_id", session.session.user.id)
       .maybeSingle();
     if (membership.error) throw membership.error;
-    const scope =
-      name === "pair_couple"
-        ? "pair"
-        : (membership.data?.couple_id ?? "unpaired");
+    const scope = [
+      "pair_couple",
+      "request_couple",
+      "cancel_join_request",
+    ].includes(name)
+      ? "pair"
+      : (membership.data?.couple_id ?? "unpaired");
     const signature = JSON.stringify(
       Object.fromEntries(
         Object.entries(args).sort(([a], [b]) => a.localeCompare(b)),
@@ -75,7 +78,8 @@ export async function authenticatedFetch(path: string, init: RequestInit = {}) {
   if (!data.session) throw new Error("session_expired");
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${data.session.access_token}`);
-  if (!(init.body instanceof FormData)) headers.set("Content-Type", "application/json");
+  if (!(init.body instanceof FormData))
+    headers.set("Content-Type", "application/json");
   const response = await boundedFetch(path, {
     ...init,
     headers,

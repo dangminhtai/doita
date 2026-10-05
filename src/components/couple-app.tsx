@@ -1,12 +1,5 @@
 "use client";
-import {
-  useEffect,
-  useState,
-  useRef,
-  useCallback,
-  useLayoutEffect,
-  type HTMLAttributes,
-} from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import {
   House,
   NotebookPen,
@@ -34,17 +27,8 @@ import { NotificationBell } from "./notification-bell";
 import { ProfileAvatar, ThemeArt } from "./theme-art";
 import { LinkedContent } from "./linked-content";
 import { ConfirmationProvider } from "./confirmation";
-import { usePageMotion, exitSnapshot } from "./motion";
-function FeedbackToast(props: HTMLAttributes<HTMLDivElement>) {
-  const node = useRef<HTMLDivElement>(null);
-  useLayoutEffect(() => {
-    const current = node.current;
-    return () => {
-      if (current) exitSnapshot(current);
-    };
-  }, []);
-  return <div ref={node} {...props} />;
-}
+import { usePageMotion } from "./motion";
+import { ClickHearts } from "./click-hearts";
 export function CoupleApp({ initialPage = "home" }: { initialPage?: string }) {
   return (
     <AppProvider>
@@ -283,7 +267,7 @@ function Shell({ initialPage }: { initialPage: string }) {
         <button onClick={() => void load()}>{C.common.retry}</button>
       </div>
     ) : page === "profile" ? (
-      <ProfileScreen key={user.id} go={go} />
+      <ProfileScreen key={user.id} />
     ) : !data.couple ? (
       <PairScreen />
     ) : page === "daily" && enabled("daily") ? (
@@ -303,6 +287,9 @@ function Shell({ initialPage }: { initialPage: string }) {
     );
   return (
     <div className="app">
+      <ClickHearts
+        scope={`${page}:${user?.id}:${data.couple?.id}:${recovery}`}
+      />
       <a className="skip-link" href="#main-content">
         {C.redesign.skipContent}
       </a>
@@ -433,7 +420,7 @@ function Shell({ initialPage }: { initialPage: string }) {
         )}
         <main id="main-content" className={`main page-${page}`} inert={menu}>
           {message && (
-            <FeedbackToast
+            <div
               key={message}
               role={error ? "alert" : "status"}
               aria-live="polite"
@@ -452,7 +439,7 @@ function Shell({ initialPage }: { initialPage: string }) {
               >
                 <X size={16} />
               </button>
-            </FeedbackToast>
+            </div>
           )}
           <div ref={contentNode} className="page-controls">
             {content}

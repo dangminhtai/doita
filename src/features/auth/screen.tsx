@@ -1,6 +1,7 @@
 "use client";
 import { useState, useId } from "react";
-import { Heart, Eye, EyeOff } from "@/components/icons";
+import { Heart } from "@/components/icons";
+import { Eye, EyeOff } from "lucide-react";
 import { db, configured, rpc } from "@/lib/supabase/browser";
 import { useApp } from "@/components/app-context";
 import { Button, Field, Select } from "@/components/ui";
@@ -10,6 +11,7 @@ import { CONTENT as C } from "@/config/content.vi";
 import { authSchema, signupSchema, inviteSchema } from "@/features/schemas";
 import { APP_CONFIG } from "@/config/app.config";
 import { authRedirectUrl } from "@/lib/auth-redirect";
+import { JoinRequests } from "@/features/couple/join-requests";
 export function AuthScreen() {
   const { run, notify, recovery, setRecovery } = useApp();
   const [showPassword, setShowPassword] = useState(false);
@@ -185,11 +187,15 @@ export function AuthScreen() {
           <small>{C.redesign.passwordHint}</small>
           <button
             type="button"
-            className="text-button"
+            className="text-button password-toggle"
             aria-pressed={showPassword}
             onClick={() => setShowPassword(!showPassword)}
           >
-            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}{" "}
+            {showPassword ? (
+              <EyeOff size={18} aria-hidden="true" />
+            ) : (
+              <Eye size={18} aria-hidden="true" />
+            )}{" "}
             {showPassword ? C.redesign.hidePassword : C.redesign.showPassword}
           </button>
         </div>
@@ -233,6 +239,7 @@ export function AuthScreen() {
 export function PairScreen() {
   const { run, notify, logout } = useApp();
   const [code, setCode] = useState("");
+  const [requestRevision, setRequestRevision] = useState(0);
   return (
     <div className="pair-screen">
       <ThemeArt asset="mascots" size={140} />
@@ -255,15 +262,21 @@ export function PairScreen() {
             return;
           }
           void run(async () => {
-            const id = await rpc("pair_couple", { p_code: code });
+            const id = await rpc("request_couple", {
+              p_public_id: code.trim(),
+            });
             if (!id) throw new Error("invalid invite");
-          }, C.couples.connected);
+            setRequestRevision((revision) => revision + 1);
+          }, C.couples.requestSent);
         }}
       >
         <Field label={C.couples.code}>
           <input
             value={code}
-            maxLength={24}
+            maxLength={9}
+            minLength={9}
+            inputMode="numeric"
+            pattern="[0-9]{9}"
             onChange={(e) => setCode(e.target.value)}
             autoComplete="off"
             required
@@ -273,6 +286,7 @@ export function PairScreen() {
           {C.couples.join}
         </Button>
       </ScopedForm>
+      <JoinRequests refreshKey={requestRevision} />
       <button className="text-button" onClick={() => void logout()}>
         {C.auth.signOut}
       </button>

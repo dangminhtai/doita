@@ -1207,6 +1207,24 @@ textarea {
 .pair-screen .theme-art {
   margin: auto;
 }
+.join-requests {
+  margin-top: 24px;
+  text-align: left;
+}
+.join-request {
+  padding: 16px 0;
+  border-top: 1px solid var(--theme-border);
+}
+.join-request p {
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+}
+.join-request .row {
+  flex-wrap: wrap;
+}
+.join-request code {
+  font-variant-numeric: tabular-nums;
+}
 .modal {
   background: var(--theme-paper);
   border: 1px solid var(--theme-border);

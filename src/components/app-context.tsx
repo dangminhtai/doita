@@ -170,7 +170,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       };
       const couple = await database
         .from("couples")
-        .select("*")
+        .select("id,public_id,relationship_start_date,timezone,created_at")
         .eq("id", cid)
         .single();
       if (couple.error) throw couple.error;

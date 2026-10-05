@@ -4,14 +4,7 @@ import Image from "next/image";
 import { z } from "zod";
 import { useApp } from "@/components/app-context";
 import { ProfileAvatar } from "@/components/theme-art";
-import {
-  Button,
-  Field,
-  Modal,
-  PageTitle,
-  Select,
-  ScopedForm,
-} from "@/components/ui";
+import { Button, Field, PageTitle, Select, ScopedForm } from "@/components/ui";
 import { useConfirmation } from "@/components/confirmation";
 import { CONTENT as C, interpolate as t } from "@/config/content.vi";
 import { authenticatedFetch, db } from "@/lib/supabase/browser";
@@ -36,8 +29,8 @@ function pictureUrl(blob: Blob): Promise<string> {
     reader.readAsDataURL(blob);
   });
 }
-export function ProfileScreen({ go }: { go: (path: string) => void }) {
-  const { user, data, run, load, notify, logout } = useApp();
+export function ProfileScreen() {
+  const { user, data, run, notify, logout } = useApp();
   const ask = useConfirmation();
   const profile = data.profiles.find((p) => p.id === user!.id);
   const key = `couple-draft:${user!.id}:account:profile`;
@@ -57,8 +50,7 @@ export function ProfileScreen({ go }: { go: (path: string) => void }) {
       return initial;
     }
   });
-  const [crop, setCrop] = useState<File | null>(null),
-    [locked, setLocked] = useState(false);
+  const [crop, setCrop] = useState<File | null>(null);
   const [nameError, setNameError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const active = useRef(true),
@@ -152,7 +144,6 @@ export function ProfileScreen({ go }: { go: (path: string) => void }) {
             }
             if (
               draft.gender !== saved.gender &&
-              !data.couple &&
               !(await ask(
                 t(C.profile.genderConfirm, {
                   gender: C.profile.genders[draft.gender ?? "unset"],
@@ -170,9 +161,7 @@ export function ProfileScreen({ go }: { go: (path: string) => void }) {
                   JSON.stringify({
                     requestId: draft.requestId,
                     name: draft.name.trim(),
-                    gender: data.couple
-                      ? (profile?.gender ?? null)
-                      : draft.gender,
+                    gender: draft.gender,
                     resurface: draft.resurface,
                     avatarMode: draft.avatarMode,
                   }),
@@ -194,15 +183,6 @@ export function ProfileScreen({ go }: { go: (path: string) => void }) {
                     error.message === "request_conflict"
                   )
                     persist({ ...draft, requestId: crypto.randomUUID() });
-                  if (
-                    active.current &&
-                    error instanceof Error &&
-                    error.message === "gender_locked"
-                  ) {
-                    setLocked(true);
-                    await load();
-                    return false;
-                  }
                   throw error;
                 }
                 if (!active.current) return;
@@ -309,32 +289,21 @@ export function ProfileScreen({ go }: { go: (path: string) => void }) {
               </p>
             )}
             <Field label={C.profile.gender}>
-              {data.couple ? (
-                <Button secondary onClick={() => setLocked(true)}>
-                  {
-                    C.profile.genders[
-                      (profile?.gender ??
-                        "unset") as keyof typeof C.profile.genders
-                    ]
-                  }
-                </Button>
-              ) : (
-                <Select
-                  value={draft.gender ?? "unset"}
-                  onValueChange={(value) =>
-                    change({
-                      gender:
-                        value === "unset" ? null : (value as Draft["gender"]),
-                    })
-                  }
-                >
-                  {Object.entries(C.profile.genders).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </Select>
-              )}
+              <Select
+                value={draft.gender ?? "unset"}
+                onValueChange={(value) =>
+                  change({
+                    gender:
+                      value === "unset" ? null : (value as Draft["gender"]),
+                  })
+                }
+              >
+                {Object.entries(C.profile.genders).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </Select>
             </Field>
             <label className="checkbox">
               <input
@@ -422,28 +391,6 @@ export function ProfileScreen({ go }: { go: (path: string) => void }) {
               });
           }}
         />
-      )}
-      {locked && (
-        <Modal
-          title={C.profile.lockedTitle}
-          onClose={() => setLocked(false)}
-          role="alertdialog"
-        >
-          <p>{C.profile.locked}</p>
-          <div className="row">
-            <Button secondary onClick={() => setLocked(false)}>
-              {C.common.close}
-            </Button>
-            <Button
-              onClick={() => {
-                setLocked(false);
-                go("couple?panel=account");
-              }}
-            >
-              {C.profile.manage}
-            </Button>
-          </div>
-        </Modal>
       )}
     </>
   );

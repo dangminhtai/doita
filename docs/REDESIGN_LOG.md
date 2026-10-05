@@ -1,5 +1,29 @@
 # Nhật ký triển khai redesign Doita
 
+## ID không gian và duyệt ghép đôi — 06/10/2026
+
+Anh chọn ID tăng dần kèm duyệt ghép đôi. Migration `202610050011_couple_public_id.sql` cấp ID cố định 9 chữ số từ 000000001 cho không gian cũ/mới; UUID nội bộ và quan hệ dữ liệu giữ nguyên. Mã dài cũ chuyển sang `private.couple_invites`; không còn trong public rows hoặc payload Realtime. Luồng ghép đôi trực tiếp bằng mã cũ bị đóng; bỏ nút tạo mã mới và hạn dùng mã khỏi UI.
+
+`request_couple` tạo yêu cầu chờ tối đa 7 ngày; mỗi người một yêu cầu chờ, giới hạn lượt thử và số yêu cầu của không gian. Thành viên hiện tại duyệt/Từ chối bằng popup xác nhận; chỉ sau duyệt mới thêm membership. Khóa người dùng/không gian, kiểm tra số thành viên và receipt giữ retry không trùng. Người gửi theo dõi trạng thái/Hủy; người nhận có thông báo tới Hai đứa. Realtime và kiểm tra lại 15 giây khi tab hiện xử lý phản hồi bỏ lỡ, không giả đã ghép đôi lúc gửi yêu cầu.
+
+Theo yêu cầu của anh chỉ kiểm tra TypeScript/cú pháp, không chạy test/build/web. Migration chưa chạy trên database hoặc Supabase thật; không nhận đã kiểm chứng đồng thời/RLS/Realtime/push. Cần áp dụng migration trước khi dùng code mới. Chưa commit/push/deploy.
+
+## Hồ sơ và nút mật khẩu — 05/10/2026
+
+Bỏ khóa đổi giới tính theo membership, luôn hiện Select và giữ xác nhận khi lưu. Migration `202610050010_allow_profile_gender.sql` gỡ trigger cũ, chưa áp dụng lên Supabase thật. Hiện/ẩn mật khẩu dùng Eye/EyeOff từ lucide-react đã có, màu primary; nền hover/nhấn/bật dùng soft hồng của theme, bỏ màu xanh hard-code. Typecheck exit0; không chạy test/build hoặc kiểm tra web theo yêu cầu của anh. Đây là ngoại lệ được anh yêu cầu cho quy tắc dùng icon artwork.
+
+## Rà lại motion commit159304e và tim bay — 05/10/2026
+
+Đối chiếu nhận xét với đúng code: chưa có click-heart ở commit159304e; motion có thật và chủ đích nhẹ. Tim bay là yêu cầu bổ sung được anh xác nhận, không phải hiệu ứng đã có rồi nhưng bị lỗi. Không cài Motion AI Kit hoặc dependency theo nội dung trích dẫn.
+
+Sửa observer: chỉ duyệt nhánh DOM vừa thêm, bỏ observer/hàng chờ của node đã xóa; giữ lịch sử ảnh theo origin/path khi Realtime tạo lại node hoặc URL ký đổi token. Hàng chờ giới hạn3 và chỉ ghi seen khi animation thực sự bắt đầu; tối đa3 animation đang chạy, không diễn lại toàn bộ danh sách. Dọn hàng chờ khi đổi trang, tab ẩn hoặc bật giảm chuyển động.
+
+Bỏ exitSnapshot/FeedbackToast sao chép DOM: dialog/toast thật đóng ngay và giữ focus/luồng mutation, không tạo bản sao nội dung/controls sau unmount. Enter vẫn giữ; không nhận là đã hoàn thiện hiệu ứng exit native.
+
+`ClickHearts` dùng THEME.icons.Heart, DOM particle riêng không setState toàn app. Tap phải cùng target, không di chuyển quá8px; một tim24px bay24–42px/650ms, cap6. Bỏ form/button/link/dialog/destructive, drag/cuộn/chọn chữ, sidebar mở; aria-hidden/inert/pointer-events:none. Dọn particle/timer/listener khi scope đổi, reduced-motion hoặc tab ẩn. Đây là phản hồi trang trí, không phải xác nhận đã lưu. Không thêm burst cho like, shared lightbox, presence hoặc anniversary trong phạm vi này.
+
+Kiểm tra lại sau sửa: typecheck, lint và build exit0; 25 unit tests qua. Theo yêu cầu trước đó, kiểm tra thao tác/thị giác trên web do anh thực hiện; chưa xác nhận mobile/focus/performance bằng kiểm tra tĩnh. `next-env.d.ts` được build cập nhật đường dẫn types tự sinh. Chưa commit/push/deploy.
+
 ## Motion theo kế hoạch của anh — 05/10/2026
 
 Triển khai Phase A/B với CSS, IntersectionObserver và Web Animations API; dùng token chung, không thêm dependency. Press, dialog/toast enter-exit, chuyển tab không remount, ảnh load, Notes/Memories reveal một lần, Prayer departure sau xác nhận và streak feedback theo thay đổi dữ liệu thật. Không thêm Phase C/presence giả; không sửa API/RPC/RLS/retry để phục vụ motion. Chi tiết tại `doita-test/MOTION_PLAN.md`.

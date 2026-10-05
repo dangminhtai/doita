@@ -1288,6 +1288,22 @@ select {
   opacity: 0.75;
 }
 .text-button[aria-pressed="true"] {
-  background: #e1efea;
+  background: var(--soft);
   border-radius: 8px;
+}
+
+.auth-form .password-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  min-height: 44px;
+  border-radius: 12px;
+  color: var(--theme-primary);
+  text-decoration: none;
+}
+.auth-form .password-toggle:hover,
+.auth-form .password-toggle:active,
+.auth-form .password-toggle[aria-pressed="true"] {
+  background: var(--theme-soft);
 }

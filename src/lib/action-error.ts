@@ -20,6 +20,7 @@ export function actionErrorMessage(error: unknown): string {
         seed_required: C.errors.unavailable,
         invalid: C.errors.invalid,
         "invalid invite": C.errors.invite,
+        join_pending: C.couples.pendingOther,
         "Invalid file": C.errors.invalidFile,
         push_not_ready: C.errors.pushNotReady,
       };

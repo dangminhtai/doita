@@ -24,7 +24,7 @@ export const dailySchema = z.string().trim().min(1).max(3000);
 export const inviteSchema = z
   .string()
   .trim()
-  .regex(/^[A-Fa-f0-9]{24}$/);
+  .regex(/^[0-9]{9}$/);
 export const pushSchema = z.object({
   endpoint: z.url().max(2000),
   keys: z.object({

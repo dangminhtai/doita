@@ -10,6 +10,7 @@ export const MOTION = {
   ambient: 8000,
   distanceSmall: 8,
   distanceMemory: 20,
+  clickHeart: { duration: 650, size: 24, limit: 6, tapSlop: 8 },
   ease: "cubic-bezier(0.16, 1, 0.3, 1)",
   milestones: [7, 30, 100, 365, 500, 1000],
 } as const;

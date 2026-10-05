@@ -18,26 +18,58 @@ export function usePageMotion(
   scope: string,
 ) {
   const seen = useRef(new Set<string>());
+  const imageSources = useRef(new Set<string>());
   const previousScope = useRef(scope);
   useEffect(() => {
     const root = node.current;
     if (!root) return;
     if (previousScope.current !== scope) {
       seen.current.clear();
+      imageSources.current.clear();
       previousScope.current = scope;
     }
     const animations = new Set<Animation>();
-    const play = (element: Element, frames: Keyframe[], duration: number) => {
-      if (!canAnimate() || !element.animate || animations.size >= 3) return;
+    const pending = new Map<Element, () => void>();
+    let stopped = false;
+    const drain = () => {
+      if (stopped || !canAnimate()) return;
+      for (const [element, start] of pending) {
+        if (animations.size >= 3) break;
+        pending.delete(element);
+        const bounds = element.getBoundingClientRect();
+        if (
+          element.isConnected &&
+          bounds.bottom > 0 &&
+          bounds.top < innerHeight
+        )
+          start();
+      }
+    };
+    const play = (
+      element: Element,
+      frames: Keyframe[],
+      duration: number,
+      started = () => {},
+    ) => {
+      if (stopped || !canAnimate() || !element.animate) return false;
+      if (animations.size >= 3) {
+        // Bound deferred arrivals too; never choreograph all thirty list rows.
+        if (pending.size >= 3 && !pending.has(element)) return false;
+        pending.set(element, () => play(element, frames, duration, started));
+        return true;
+      }
+      started();
       const animation = element.animate(frames, {
         duration,
         easing: MOTION.ease,
       });
       animations.add(animation);
-      animation.finished.then(
-        () => animations.delete(animation),
-        () => animations.delete(animation),
-      );
+      const finish = () => {
+        animations.delete(animation);
+        drain();
+      };
+      animation.finished.then(finish, finish);
+      return true;
     };
     play(
       root,
@@ -48,13 +80,11 @@ export function usePageMotion(
       MOTION.normal,
     );
     const observed = new WeakSet<Element>();
-    const imageSources = new WeakMap<HTMLImageElement, string>();
     const intersection =
       typeof IntersectionObserver === "undefined"
         ? null
         : new IntersectionObserver(
             (entries) => {
-              let arrivals = 0;
               for (const entry of entries) {
                 const element = entry.target as HTMLElement;
                 if (!element.isConnected) {
@@ -69,9 +99,6 @@ export function usePageMotion(
                 intersection?.unobserve(element);
                 const key = `${page}:${element.dataset.motionItem}`;
                 if (seen.current.has(key)) continue;
-                seen.current.add(key);
-                // Keep simultaneous arrivals bounded; never stagger a refreshed page.
-                if (arrivals++ >= 3) continue;
                 const memory = element.classList.contains("memory-card");
                 play(
                   element,
@@ -83,6 +110,7 @@ export function usePageMotion(
                     { opacity: 1, transform: "none" },
                   ],
                   memory ? MOTION.slow : MOTION.normal,
+                  () => seen.current.add(key),
                 );
               }
             },
@@ -95,19 +123,23 @@ export function usePageMotion(
         !image.naturalWidth
       )
         return;
-      const source = new URL(image.currentSrc || image.src, location.origin)
-        .pathname;
-      if (imageSources.get(image) === source) return;
-      imageSources.set(image, source);
-      play(image, [{ opacity: 0.5 }, { opacity: 1 }], MOTION.normal);
+      const url = new URL(image.currentSrc || image.src, location.origin);
+      const source = url.origin + url.pathname;
+      if (imageSources.current.has(source)) return;
+      play(image, [{ opacity: 0.5 }, { opacity: 1 }], MOTION.normal, () =>
+        imageSources.current.add(source),
+      );
     };
-    const scan = () => {
-      root.querySelectorAll("[data-motion-item],.river").forEach((element) => {
+    const register = (branch: Element) => {
+      const observe = (element: Element) => {
         if (observed.has(element)) return;
         observed.add(element);
         intersection?.observe(element);
-      });
-      root
+      };
+      if (branch.matches("[data-motion-item],.river")) observe(branch);
+      branch.querySelectorAll("[data-motion-item],.river").forEach(observe);
+      if (branch instanceof HTMLImageElement) revealImage(branch);
+      branch
         .querySelectorAll<HTMLImageElement>(
           "img.memory-photo,img.upload-preview,img.member-avatar",
         )
@@ -119,16 +151,38 @@ export function usePageMotion(
     const preferences = window.matchMedia("(prefers-reduced-motion: reduce)");
     const cancel = () => {
       if (canAnimate()) return;
+      pending.clear();
       animations.forEach((animation) => animation.cancel());
       animations.clear();
     };
-    const mutations = new MutationObserver(scan);
+    const mutations = new MutationObserver((records) => {
+      for (const record of records) {
+        record.addedNodes.forEach((node) => {
+          if (node instanceof Element) register(node);
+        });
+        record.removedNodes.forEach((node) => {
+          if (!(node instanceof Element)) return;
+          pending.delete(node);
+          observed.delete(node);
+          intersection?.unobserve(node);
+          node
+            .querySelectorAll("[data-motion-item],.river,img")
+            .forEach((element) => {
+              pending.delete(element);
+              observed.delete(element);
+              intersection?.unobserve(element);
+            });
+        });
+      }
+    });
     mutations.observe(root, { childList: true, subtree: true });
     root.addEventListener("load", loaded, true);
     preferences.addEventListener("change", cancel);
     document.addEventListener("visibilitychange", cancel);
-    scan();
+    register(root);
     return () => {
+      stopped = true;
+      pending.clear();
       intersection?.disconnect();
       mutations.disconnect();
       root.removeEventListener("load", loaded, true);
@@ -137,45 +191,6 @@ export function usePageMotion(
       animations.forEach((animation) => animation.cancel());
     };
   }, [node, page, scope]);
-}
-
-// Only a brief, inert visual remains after unmount. Focus and mutations proceed
-// immediately; no outgoing dialog or toast stays interactive or gets announced.
-export function exitSnapshot(node: HTMLElement, backdrop = false) {
-  if (!canAnimate() || !node.isConnected || !node.animate) return;
-  const bounds = node.getBoundingClientRect();
-  if (!bounds.width || !bounds.height) return;
-  const overlay = document.createElement("div");
-  overlay.className = "motion-exit-layer";
-  overlay.setAttribute("aria-hidden", "true");
-  overlay.inert = true;
-  const copy = document.createElement("div");
-  copy.className = `${node.className} motion-exit-copy`;
-  node.childNodes.forEach((child) => copy.append(child.cloneNode(true)));
-  copy
-    .querySelectorAll("[id]")
-    .forEach((element) => element.removeAttribute("id"));
-  Object.assign(copy.style, {
-    position: "fixed",
-    top: `${bounds.top}px`,
-    left: `${bounds.left}px`,
-    width: `${bounds.width}px`,
-    height: `${bounds.height}px`,
-    margin: "0",
-    maxWidth: "none",
-    animation: "none",
-  });
-  if (backdrop) overlay.classList.add("motion-exit-backdrop");
-  overlay.append(copy);
-  document.body.append(overlay);
-  const animation = overlay.animate([{ opacity: 1 }, { opacity: 0 }], {
-    duration: MOTION.instant,
-    easing: MOTION.ease,
-  });
-  const remove = () => overlay.remove();
-  animation.finished.then(remove, remove);
-  // Background tabs may not dispatch finish promptly.
-  setTimeout(remove, MOTION.fast);
 }
 
 export function useStreakMotion(

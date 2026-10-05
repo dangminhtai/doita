@@ -56,11 +56,15 @@ Các thay đổi tiếp theo phải cập nhật quy tắc khi anh đổi yêu c
 - Font toàn ứng dụng dùng Nunito bản thường: nội dung 400/16px/1.6, nút/menu600, tiêu đề700–800. Không đưa Arial hoặc font viết tay trở lại; kiểm tra dấu tiếng Việt và reflow khi đổi chữ.
 
 - Hồ sơ cá nhân `/profile` mở từ avatar/menu; Hai đứa `/couple` chỉ quản lý không gian. Không ghép lại tên/avatar/đăng xuất/xóa tài khoản vào thiết lập chung. Người chưa ghép đôi vẫn vào được hồ sơ.
-- Giới tính chỉ đổi khi không còn membership, khóa cả không gian một người và kiểm tra tại database. Popup không tự rời. Khóa giới tính không khóa đổi tên/avatar.
+- Theo yêu cầu mới: được đổi giới tính khi còn trong không gian, không bắt rời. Giữ xác nhận trước khi lưu; gỡ trigger khóa bằng migration mới.
 - Avatar nguồn JPEG/PNG/WebP được crop/nén tại trình duyệt, không áp giới hạn nguồn5MB. Chỉ upload WebP256×256 tối đa80KB; kiểm tra nội dung thật trên server, bucket riêng tư, không lưu ảnh gốc. Giữ ảnh cũ đến khi cập nhật được xác nhận; retry/cleanup không xóa ảnh đang dùng. Draft thuộc đúng tài khoản; Realtime không ghi đè nội dung đang sửa.
 
 - `/settings` dành cho cài đặt ứng dụng thực sự khi có; không dùng làm đường dẫn hay tên màn Hai đứa. Liên kết thông báo cũ được đổi đích sang `/couple` khi mở.
+- Ghép đôi dùng ID không gian cố định 9 chữ số tăng dần, bắt đầu 000000001; đây là định danh, không phải mật khẩu hoặc UUID. Nhập ID chỉ gửi yêu cầu; thành viên hiện tại phải xác nhận thì mới cấp quyền. Mã dài cũ giữ trong schema private, không gửi qua API/Realtime và không cho ghép đôi trực tiếp. Giữ giới hạn hai người, retry không trùng, yêu cầu có Hủy/Từ chối/hết hạn và thông báo chờ duyệt.
 
 - Đăng ký phải chọn giới tính, không chọn sẵn và không có “Chưa thiết lập” trong form đăng ký. Giữ lựa chọn khi lỗi; lưu ngay vào hồ sơ và kiểm tra ở database cho tài khoản mới. Không lặp tên thương hiệu trong khung auth khi header đã hiển thị.
+- Ngoại lệ icon theo yêu cầu mới: hiện/ẩn mật khẩu dùng Eye/EyeOff từ lucide-react đã có, màu primary và nền trạng thái soft của theme.
 
 - Motion bám `doita-test/MOTION_PLAN.md`; timing đi qua `src/config/motion.ts`. Không trì hoãn URL/mutation/focus để chờ animation, không replay cả danh sách khi Realtime refresh. Thả thuyền chỉ sau write được xác nhận; reduced-motion tắt dịch chuyển/ambient và tab ẩn dừng hiệu ứng. Không giả online hoặc thêm dependency để trang trí.
+
+- Anh đã yêu cầu tim bay có giới hạn: một tim doodle khi click/tap vùng không tương tác, tối đa6 tim/650ms. Không sinh tim trên form/control/dialog/thao tác xóa, khi drag/cuộn/chọn chữ hoặc có menu mở. Tim không biểu thị thành công của mutation; tắt/dọn khi reduced-motion, tab ẩn, đổi trang hoặc tài khoản. Không clone nội dung dialog/toast ra body để giả hiệu ứng đóng.

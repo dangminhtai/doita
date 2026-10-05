@@ -19,6 +19,7 @@ import { CONTENT as C, interpolate as t } from "@/config/content.vi";
 import { enabled } from "@/config/app.config";
 import { rpc } from "@/lib/supabase/browser";
 import { useConfirmation } from "@/components/confirmation";
+import { JoinRequests } from "./join-requests";
 
 export function CoupleScreen() {
   const askConfirmation = useConfirmation();
@@ -28,8 +29,8 @@ export function CoupleScreen() {
   useEffect(() => {
     if (panelInitialized.current) return;
     panelInitialized.current = true;
-    if (new URLSearchParams(location.search).get("panel") === "account")
-      setPanel("account");
+    const target = new URLSearchParams(location.search).get("panel");
+    if (target === "account" || target === "profile") setPanel(target);
   }, [setPanel]);
   const [dateSearch, setDateSearch] = useViewState("dates-search", "");
   const [dateFilter, setDateFilter] = useViewState("dates-filter", "all");
@@ -82,27 +83,21 @@ export function CoupleScreen() {
               </div>
             ))}
           </div>
-          <code className="invite-code">{d.couple?.invite_code}</code>
+          <code className="invite-code">{d.couple?.public_id}</code>
           <button
             className="text-button"
             onClick={async () => {
               try {
-                await navigator.clipboard.writeText(d.couple!.invite_code);
+                await navigator.clipboard.writeText(d.couple!.public_id);
                 notify(C.redesign.copied);
               } catch {
                 notify(C.errors.generic, true);
               }
             }}
           >
-            {C.redesign.copyInvite}
+            {C.couples.copyId}
           </button>
-          <p>{C.couples.expires}</p>
-          <Button
-            secondary
-            onClick={() => void run(() => rpc("rotate_invite"))}
-          >
-            {C.couples.rotate}
-          </Button>
+          <JoinRequests />
         </div>
         <ScopedForm
           className="settings-card"

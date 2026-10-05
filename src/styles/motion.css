@@ -47,16 +47,17 @@ summary::after {
 .modal::backdrop {
   animation: backdrop-arrive var(--motion-fast) var(--motion-ease);
 }
-.motion-exit-layer {
+.click-hearts {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 90;
+  overflow: hidden;
+  contain: strict;
   pointer-events: none;
 }
-.motion-exit-backdrop {
-  background: color-mix(in srgb, var(--theme-text) 38%, transparent);
-}
-.motion-exit-copy {
+.click-heart {
+  position: absolute;
+  object-fit: contain;
   pointer-events: none;
 }
 .river[data-motion-visible="true"] .paper-boat {
@@ -194,7 +195,7 @@ summary::after {
   .memory-photo {
     transform: none !important;
   }
-  .motion-exit-layer {
+  .click-hearts {
     display: none;
   }
   .modal::backdrop {
