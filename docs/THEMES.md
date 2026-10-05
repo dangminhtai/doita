@@ -1,6 +1,6 @@
 # Theme và assets của Doita
 
-Theme mặc định là `sunset` (Hoàng hôn dịu dàng). Đây là theme assets AI của lượt redesign; chữ, dữ liệu, nút và trạng thái vẫn là HTML. Không đổi tên thương hiệu trong `CONTENT.brand`.
+Theme mặc định giữ ID `sunset`, hiện dùng bộ doodle-art do anh cung cấp. Chữ, dữ liệu, nút và trạng thái vẫn là HTML. Không đổi tên thương hiệu trong `CONTENT.brand`.
 
 Theo chỉnh sửa ngày 05/10/2026 sau phản hồi của anh: giao diện theo ảnh mẫu trắng/hồng nhẹ, chữ sans-serif hệ thống. Không dùng nền giấy kem/vàng hoặc khối sông xanh đậm. `river` hiện là nền hồng nhạt, chữ trong cảnh dùng `text`; theme sau cần giữ cặp foreground/background này hoặc cập nhật component và audit cùng nhau. Màu hoa/hoàng hôn nằm trong ảnh minh họa, không ép mọi khối nội dung theo màu ảnh.
 
@@ -24,15 +24,15 @@ Hiện có một theme và chưa có trình chọn theme theo tài khoản. Các
 | Trái tim | heart | 256×256 |
 | Trạng thái trống | empty-notes / empty-memories / empty-prayer / empty-notifications | 320×320 |
 
-Avatar mặc định là nhân vật minh họa, không phải ảnh thật của người dùng. 8 ảnh sticker/empty giữ alpha. Hoa được dự trữ trong contract theme, chưa đặt lên nội dung để tránh che chữ. Bộ WebP tổng 243.892 byte, hero desktop 54.612 byte/mobile 48.566 byte; PNG gốc vẫn nằm trong `public/assets/doita` và không được UI tải.
+Avatar mặc định là nhân vật minh họa, không phải ảnh thật của người dùng. 8 ảnh sticker/empty giữ alpha. Hoa được dự trữ trong contract theme, chưa đặt lên nội dung để tránh che chữ. Bộ doodle-art WebP hiện tại tổng 196.028 byte, hero desktop 30.886 byte/mobile 31.188 byte; PNG nguồn nằm trong `public/assets/doita/doodle-art` và không được UI tải. Bộ ảnh cũ vẫn giữ nguyên ở vị trí cũ.
 
 ## Resize lại
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts/prepare-theme-assets.ps1
+node scripts/prepare-doodle-art.mjs
 ```
 
-Script dùng ImageMagick, chỉ tạo các WebP trong theme `sunset`, giữ nguyên PNG nguồn. Đọc/thay danh sách nguồn và đích trong script khi làm theme khác; không ghi đè bản thiết kế gốc. Ảnh mới nên giữ tỉ lệ phù hợp, không nhúng chữ hoặc nút. Ảnh có alpha cần kiểm tra viền trên nền sáng và tối.
+Script dùng Sharp đã có trong môi trường Next, tạo WebP ở `public/themes/sunset/doodle-art`, giữ nguyên PNG nguồn và cập nhật hash phiên bản URL trong registry. `prepare-theme-assets.ps1` là công cụ cho bộ ảnh cũ. Đọc/thay danh sách nguồn và đích trong script khi làm theme khác; không ghi đè bản thiết kế gốc. Ảnh mới nên giữ tỉ lệ phù hợp, không nhúng chữ hoặc nút. Ảnh có alpha cần kiểm tra viền trên nền sáng và tối.
 
 Ảnh riêng do người dùng tải lên vẫn nằm trong Supabase Storage có quyền truy cập; không đưa vào thư mục public của theme. Hiện ảnh kỷ niệm chỉ lấy signed URL khi gần viewport; chưa tạo thumbnail riêng cho ảnh upload.
 

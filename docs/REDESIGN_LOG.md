@@ -138,3 +138,9 @@ Bỏ điều kiện lọc settings khỏi desktop-nav trong couple-app.tsx. Type
 ## Bỏ múi giờ khỏi tạo không gian — 05/10/2026
 PairScreen bỏ dropdown múi giờ và state liên quan; pair_couple dùng APP_CONFIG.timezone (Asia/Ho_Chi_Minh) khi tạo. Không thay dữ liệu cặp đôi cũ hoặc logic tham gia bằng mã mời. Typecheck và ESLint file exit0.
 Browser fixture trên local dev: PairScreen không có combobox/nhãn múi giờ; bấm Tạo không gian gửi p_timezone=Asia/Ho_Chi_Minh qua perform_authorized_action. Không mutation production, chưa deploy.
+
+## Replace doodle-art của anh — 05/10/2026
+
+Nhận đủ 12 PNG từ doita-test/doita-doodle-assets/public/assets/doita/doodle-art. Copy thật giữ tên vào public/assets/doita/doodle-art; giữ nguyên tất cả thiết kế cũ. Tạo WebP với Sharp, resize theo kích thước theme hiện có, giữ alpha/tỷ lệ, không vẽ lại hoặc filter đổi màu. THEMES.sunset.assets trỏ sang public/themes/sunset/doodle-art; URL có hash từ nội dung để cache nhận ảnh mới. Script tái tạo scripts/prepare-doodle-art.mjs cập nhật hash registry. Tổng bản dùng trên web 196.028 byte.
+
+Đã kiểm tra 12 bản nguồn khớp byte, 12 URL WebP trả HTTP200 và giữ alpha như nguồn. Browser fixture local: ảnh hiện tải thành công, 7 route không tràn ngang ở 1440/390 px, không pageerror. Typecheck/ESLint phù hợp được chạy; không đổi handler, logic upload ảnh, Supabase hoặc R2. Chưa kiểm tra thiết bị thật, không commit/push/deploy. Flowers vẫn là asset dự trữ theo layout hiện có, không thêm trang trí vào trang.
