@@ -3,7 +3,7 @@ import { useState, useId } from "react";
 import { Heart, Eye, EyeOff } from "@/components/icons";
 import { db, configured, rpc } from "@/lib/supabase/browser";
 import { useApp } from "@/components/app-context";
-import { Select, Button, Field } from "@/components/ui";
+import { Button, Field } from "@/components/ui";
 import { ScopedForm } from "@/components/ui";
 import { ThemeArt } from "@/components/theme-art";
 import { CONTENT as C } from "@/config/content.vi";
@@ -192,23 +192,15 @@ export function AuthScreen() {
 }
 export function PairScreen() {
   const { run, notify, logout } = useApp();
-  const [code, setCode] = useState(""),
-    [timezone, setTimezone] = useState(APP_CONFIG.timezone);
+  const [code, setCode] = useState("");
   return (
     <div className="pair-screen">
       <ThemeArt asset="mascots" size={140} />
       <h1>{C.couples.title}</h1>
       <p>{C.couples.description}</p>
-      <Field label={C.couples.timezone}>
-        <Select value={timezone} onValueChange={(e) => setTimezone(e)}>
-          {C.couples.timezones.map((zone) => (
-            <option key={zone}>{zone}</option>
-          ))}
-        </Select>
-      </Field>
       <Button
         onClick={() =>
-          void run(() => rpc("pair_couple", { p_timezone: timezone }))
+          void run(() => rpc("pair_couple", { p_timezone: APP_CONFIG.timezone }))
         }
       >
         {C.couples.create}

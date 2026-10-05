@@ -1,4 +1,4 @@
-# Quy tắc UI/UX của Doita
+﻿# Quy tắc UI/UX của Doita
 
 **Bắt buộc đọc trước mỗi lần sửa code. UI/UX là số 1.** Nguồn yêu cầu: `doita-test/UX.md` của anh Tài. Khi chức năng thay đổi, kiểm tra cả thao tác thành công, lỗi mạng, thử lại, reload, đổi trang, hết phiên và mobile. Chỉ đánh dấu đã kiểm chứng khi có bằng chứng chạy thực tế.
 
@@ -50,3 +50,6 @@ Các thay đổi tiếp theo phải cập nhật quy tắc khi anh đổi yêu c
 - Bộ icon UI dùng artwork của anh qua `THEME.icons` và `components/icons.tsx`; không nhập icon thư viện mặc định trở lại. Icon mới phải có mapping, nguồn thật và được kiểm tra ở kích thước sử dụng, giữ accessible name ở nút và ẩn ảnh trang trí với screen reader.
 
 - Theo yêu cầu ngày 05/10/2026: không hiện các subtitle Notes/Prayer/Memories/Activities, eyebrow “NHỮNG ĐIỀU NHỎ CỦA HAI ĐỨA”, câu mô tả phạm vi tìm kiếm, câu chờ người ấy, hướng dẫn cài ứng dụng hoặc thẻ Giao diện khi chỉ có một theme. Không lặp “Quyền xem: …” cạnh nút; giữ lựa chọn quyền xem trong form và xác nhận thả điều ước.
+
+- Người dùng mục tiêu tại Việt Nam: tạo không gian dùng APP_CONFIG.timezone = Asia/Ho_Chi_Minh, không hiện lựa chọn múi giờ trong PairScreen hoặc Settings.
+

@@ -134,3 +134,7 @@ Kiểm tra: lint/typecheck/build exit0; browser local fixture xác nhận các c
 
 ## Tab Hai đứa trên desktop — 05/10/2026
 Bỏ điều kiện lọc settings khỏi desktop-nav trong couple-app.tsx. Typecheck và ESLint file qua. Browser fixture trên local dev: tab hiện, bấm mở /settings và active đúng ở 1912/1440/1280/1120 px, không tràn ngang. Không deploy.
+
+## Bỏ múi giờ khỏi tạo không gian — 05/10/2026
+PairScreen bỏ dropdown múi giờ và state liên quan; pair_couple dùng APP_CONFIG.timezone (Asia/Ho_Chi_Minh) khi tạo. Không thay dữ liệu cặp đôi cũ hoặc logic tham gia bằng mã mời. Typecheck và ESLint file exit0.
+Browser fixture trên local dev: PairScreen không có combobox/nhãn múi giờ; bấm Tạo không gian gửi p_timezone=Asia/Ho_Chi_Minh qua perform_authorized_action. Không mutation production, chưa deploy.
