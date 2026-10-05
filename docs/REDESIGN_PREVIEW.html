@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doita — ảnh trước và sau redesign</title>
+<style>
+body{margin:24px;background:#fff8f1;color:#432f34;font:16px/1.6 Arial,sans-serif}h1,h2{font-family:Georgia,serif}select{font:inherit;padding:12px;border:1px solid #dfcbd0;border-radius:12px;background:#fffcf8}section{margin-top:32px}article{padding:16px;background:#fffcf8;border:1px solid #dfcbd0;border-radius:20px;min-width:0}.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}img{display:block;max-width:100%;height:auto;margin:12px auto}a{color:#a23f57}small{display:block;color:#715b62}@media(max-width:640px){.pair{grid-template-columns:1fr}body{margin:16px}}
+</style>
+<h1>Ảnh trước và sau redesign</h1>
+<p>Ảnh trình duyệt local dùng cùng dữ liệu giả lập, không chứa dữ liệu của người dùng thật. Thư mục evidence ở <code>doita-test/redesign-evidence</code>, được Git bỏ qua. Đây là trang xem ảnh local, không phải endpoint của ứng dụng.</p>
+<label for="width">Viewport </label><select id="width"><option value="390">Mobile 390 px</option><option value="1440">Desktop 1440 px</option></select>
+<main id="gallery"></main>
+<script>
+const routes={home:'Hôm nay',daily:'Mỗi ngày',notes:'Lời nhắn',prayer:'Điều ước',memories:'Kỷ niệm',activities:'Cùng làm',settings:'Hai đứa'};
+function render(){const gallery=document.getElementById('gallery');gallery.replaceChildren();const width=document.getElementById('width').value;for(const[route,label]of Object.entries(routes)){const section=document.createElement('section'),heading=document.createElement('h2'),pair=document.createElement('div');heading.textContent=label;pair.className='pair';section.append(heading,pair);for(const[prefix,caption]of[['before','Trước'],['after','Sau']]){const card=document.createElement('article'),title=document.createElement('b'),link=document.createElement('a'),picture=document.createElement('img');title.textContent=caption;link.href=`../doita-test/redesign-evidence/${prefix}-${route}-${width}.png`;picture.src=link.href;picture.alt=`${label} — ${caption} — viewport ${width}px`;picture.loading='lazy';link.append(picture);card.append(title,link);pair.append(card);}gallery.append(section);}}
+document.getElementById('width').addEventListener('change',render);render();
+</script>
+</html>

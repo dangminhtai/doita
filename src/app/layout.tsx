@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { CONTENT as C } from "@/config/content.vi";
 import "@/styles/globals.css";
+import "@/styles/redesign.css";
+import { THEME, themeStyle } from "@/config/themes";
 export const metadata: Metadata = {
   title: C.brand.name,
   description: C.brand.description,
@@ -15,7 +17,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#153c46",
+  themeColor: THEME.colors.page,
 };
 export default function RootLayout({
   children,
@@ -23,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi">
+    <html lang="vi" data-theme={THEME.id} style={themeStyle(THEME)}>
       <body>{children}</body>
     </html>
   );

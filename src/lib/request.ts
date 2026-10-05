@@ -34,6 +34,7 @@ export const retryableActions = new Set([
   "save_prayer",
   "save_memory",
   "save_special_date",
+  "save_special_date_details",
   "log_activity",
   "daily_reply",
   "set_mood",

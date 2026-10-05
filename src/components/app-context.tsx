@@ -72,6 +72,7 @@ type Context = {
   loadError: boolean;
   busy: boolean;
   busyAction: string | null;
+  pendingActions: string[];
   message: string;
   error: boolean;
   limit: number;
@@ -99,6 +100,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [loading, setLoading] = useState(true),
     [busy, setBusy] = useState(false),
     [busyAction, setBusyAction] = useState<string | null>(null),
+    [pendingActions, setPendingActions] = useState<string[]>([]),
     [message, setMessage] = useState(""),
     [error, setError] = useState(false),
     [limit, setLimit] = useState(30),
@@ -106,8 +108,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [loadError, setLoadError] = useState(false);
   const requestVersion = useRef(0);
   const currentUser = useRef<string | null>(null);
-  const busyRef = useRef(false);
+  const busyRef = useRef(new Map<string, string>());
   const loadQueue = useRef(new LatestRequest<boolean>());
+  const snapshot = useRef<Data>(blank);
+  // Keep invalidations until the latest refresh commits, so superseding events
+  // cannot discard an earlier table's update.
+  const dirtyTables = useRef<Set<string> | null>(null);
   const notify = useCallback((msg: string, err = false) => {
     setMessage(msg);
     setError(err);
@@ -134,18 +140,41 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!membership.data) {
         if (!current()) return false;
         setData({ ...blank, profiles: profile.data ? [profile.data] : [] });
+        snapshot.current = blank;
         setLoadError(false);
         return true;
       }
       const cid = membership.data.couple_id;
+      const cached = snapshot.current;
+      const dirty = cached.couple?.id === cid ? dirtyTables.current : null;
+      const cachedTables: Record<string, Row[]> = {
+        couple_members: cached.members,
+        profiles: cached.profiles,
+        daily_sessions: cached.daily ? [cached.daily] : [],
+        streaks: cached.streak ? [cached.streak] : [],
+        streak_events: cached.events,
+        notes: cached.notes,
+        prayers: cached.prayers,
+        memories: cached.memories,
+        moods: cached.moods,
+        activities: cached.activities,
+        activity_sessions: cached.activityHistory,
+        special_dates: cached.dates,
+        daily_answers: cached.answers,
+        daily_feedback: cached.feedback,
+        note_items: cached.items,
+        prayer_events: cached.prayerEvents,
+      };
       const couple = await database
         .from("couples")
         .select("*")
         .eq("id", cid)
         .single();
       if (couple.error) throw couple.error;
-      const featureErrors: Record<string, string> = {};
-      if (enabled("daily")) {
+      const featureErrors: Record<string, string> = dirty
+        ? { ...cached.errors }
+        : {};
+      if (enabled("daily") && (!dirty || dirty.has("daily_sessions"))) {
         try {
           await rpc("ensure_daily");
         } catch (e) {
@@ -168,6 +197,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ];
       const results = await Promise.all(
         tables.map(async (table) => {
+          if (dirty && !dirty.has(table)) return cachedTables[table] ?? [];
+          delete featureErrors[table];
           try {
             let q = database
               .from(table)
@@ -213,11 +244,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         { data: onThisDay, error: anniversaryError },
         { count: memoryCount, error: countError },
       ] = await Promise.all([
-        database.rpc("memories_on_this_day"),
-        database
-          .from("memories")
-          .select("id", { head: true, count: "exact" })
-          .eq("couple_id", cid),
+        dirty && !dirty.has("memories")
+          ? Promise.resolve({ data: cached.onThisDay, error: null })
+          : database.rpc("memories_on_this_day"),
+        dirty && !dirty.has("memories")
+          ? Promise.resolve({ count: cached.memoryCount, error: null })
+          : database
+              .from("memories")
+              .select("id", { head: true, count: "exact" })
+              .eq("couple_id", cid),
       ]);
       if (anniversaryError)
         featureErrors.memories = actionErrorMessage(anniversaryError);
@@ -234,6 +269,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ] as const;
       await Promise.all(
         children.map(async ([table, column, ids]) => {
+          const parent = table.startsWith("daily_")
+            ? "daily_sessions"
+            : table === "note_items"
+              ? "notes"
+              : "prayers";
+          if (dirty && !dirty.has(parent)) {
+            t[table] = cachedTables[table];
+            return;
+          }
+          delete featureErrors[table];
           t[table] = [];
           if (!ids.length) return;
           // Pagination avoids the default REST row cap, including long checklists.
@@ -262,7 +307,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       );
       if (!current()) return false;
       setLoadError(false);
-      setData({
+      const updated: Data = {
         errors: featureErrors,
         couple: couple.data,
         profiles: t.profiles,
@@ -285,8 +330,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
         activities: t.activities,
         activityHistory: t.activity_sessions,
         dates: t.special_dates,
-      });
-      if (Object.keys(featureErrors).length) {
+      };
+      snapshot.current = updated;
+      dirtyTables.current = new Set();
+      setData(updated);
+      if (
+        Object.keys(featureErrors).some(
+          (table) =>
+            !dirty ||
+            dirty.has(table) ||
+            (table.startsWith("daily_") && dirty.has("daily_sessions")) ||
+            (table === "note_items" && dirty.has("notes")) ||
+            (table === "prayer_events" && dirty.has("prayers")),
+        )
+      ) {
         notify(C.errors.loadFailed, true);
         return false;
       }
@@ -306,7 +363,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (current()) setLoading(false);
     }
   }, [user, limit, notify]);
-  const load = useCallback(() => loadQueue.current.run(loadWork), [loadWork]);
+  const load = useCallback(() => {
+    dirtyTables.current = null;
+    return loadQueue.current.run(loadWork);
+  }, [loadWork]);
+  const refreshTables = useCallback(
+    (tables: string[]) => {
+      for (const table of tables) dirtyTables.current?.add(table);
+      return loadQueue.current.run(loadWork);
+    },
+    [loadWork],
+  );
   useEffect(() => {
     if (!configured()) {
       setLoading(false);
@@ -319,6 +386,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (id !== currentUser.current || !session) {
           requestVersion.current++;
           currentUser.current = id;
+          snapshot.current = blank;
+          dirtyTables.current = null;
           setData(blank);
           setLoadError(false);
           setRecovery(false);
@@ -353,9 +422,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!cid || !user) return;
     const channel = db().channel(`couple-${cid}`);
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const refresh = () => {
+    const pending = new Set<string>();
+    const refresh = (table: string) => {
+      pending.add(table);
+      if (table === "couple_members") pending.add("profiles");
+      if (
+        [
+          "daily_sessions",
+          "notes",
+          "prayers",
+          "activity_sessions",
+          "special_dates",
+        ].includes(table)
+      )
+        pending.add("memories");
+      if (table === "daily_sessions")
+        for (const related of ["streaks", "streak_events"])
+          pending.add(related);
       clearTimeout(timer);
-      timer = setTimeout(() => void load(), 200);
+      timer = setTimeout(() => {
+        const tables = [...pending];
+        pending.clear();
+        void refreshTables(tables);
+      }, 200);
     };
     for (const table of [
       "daily_sessions",
@@ -372,7 +461,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       channel.on(
         "postgres_changes",
         { event: "*", schema: "public", table, filter: `couple_id=eq.${cid}` },
-        refresh,
+        () => refresh(table),
       );
     channel.on(
       "postgres_changes",
@@ -382,7 +471,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         table: "couples",
         filter: `id=eq.${cid}`,
       },
-      refresh,
+      () => refresh("couples"),
     );
     for (const id of data.members.map((m) => m.user_id)) {
       channel.on(
@@ -393,7 +482,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           table: "profiles",
           filter: `id=eq.${id}`,
         },
-        refresh,
+        () => refresh("profiles"),
       );
     }
     channel.subscribe();
@@ -405,7 +494,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     data.couple?.id,
     data.members.map((m) => m.user_id).join(","),
     user?.id,
-    load,
+    refreshTables,
   ]);
   useEffect(() => {
     if (!user) return;
@@ -441,11 +530,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     fn: () => Promise<unknown>,
     msg = C.common.success as string,
   ) => {
-    if (busyRef.current) return false;
-    busyRef.current = true;
-    setBusyAction(
-      (document.activeElement as HTMLElement | null)?.dataset.actionId ?? null,
-    );
+    const element = document.activeElement as HTMLElement | null;
+    const scope =
+      element?.closest<HTMLElement>("[data-action-scope]")?.dataset
+        .actionScope ??
+      element?.dataset.actionId ??
+      location.pathname;
+    const actionKey = `${currentUser.current ?? "auth"}:${scope}`;
+    if (busyRef.current.has(actionKey)) return false;
+    busyRef.current.set(actionKey, scope);
+    setPendingActions([...busyRef.current.values()]);
+    setBusyAction(element?.dataset.actionId ?? null);
     setBusy(true);
     setMessage("");
     const actionPath = location.pathname;
@@ -455,7 +550,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (result === false) return false;
       if (actionUser && actionUser === currentUser.current)
         void flushNotifications();
-      const refreshed = user ? await load() : true;
+      const affected: Record<string, string[]> = {
+        "/activities": ["activities", "activity_sessions", "memories"],
+        "/notes": ["notes", "memories"],
+        "/prayer": ["prayers", "memories"],
+        "/memories": ["memories"],
+        "/daily": ["daily_sessions", "streaks", "streak_events", "memories"],
+      };
+      const refreshed = user
+        ? await (affected[actionPath]
+            ? refreshTables(affected[actionPath])
+            : load())
+        : true;
       if (
         location.pathname === actionPath &&
         actionUser === currentUser.current
@@ -471,8 +577,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         notify(actionErrorMessage(e), true);
       return false;
     } finally {
-      busyRef.current = false;
-      setBusy(false);
+      busyRef.current.delete(actionKey);
+      setPendingActions([...busyRef.current.values()]);
+      setBusy(busyRef.current.size > 0);
       setBusyAction(null);
     }
   };
@@ -513,6 +620,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         loadError,
         busy,
         busyAction,
+        pendingActions,
         message,
         error,
         limit,

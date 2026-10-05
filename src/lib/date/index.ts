@@ -26,8 +26,13 @@ export function nextOccurrence(
   date: string,
   kind: string,
   today: string,
+  repeatRule?: string | null,
 ): string | null {
-  if (!["birthday", "anniversary"].includes(kind))
+  if (
+    !(repeatRule
+      ? repeatRule === "yearly"
+      : ["birthday", "anniversary"].includes(kind))
+  )
     return date >= today ? date : null;
   // Feb 29 recurs only in leap years, matching the cron's MM-DD comparison.
   for (
@@ -44,4 +49,37 @@ export function nextOccurrence(
       return candidate;
   }
   return null;
+}
+
+// Resolve calendar midnight in the couple timezone, including DST offsets.
+export function dayBoundary(date: string, timezone: string) {
+  const target = Date.parse(date + "T00:00:00Z");
+  let candidate = target;
+  const format = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hourCycle: "h23",
+  });
+  for (let i = 0; i < 4; i++) {
+    const parts = Object.fromEntries(
+      format.formatToParts(candidate).map((p) => [p.type, Number(p.value)]),
+    );
+    const observed = Date.UTC(
+      parts.year,
+      parts.month - 1,
+      parts.day,
+      parts.hour,
+      parts.minute,
+      parts.second,
+    );
+    const shift = target - observed;
+    if (!shift) break;
+    candidate += shift;
+  }
+  return new Date(candidate).toISOString();
 }

@@ -1,15 +1,24 @@
 "use client";
-import { useState } from "react";
-import { Heart } from "lucide-react";
+import { useState, useId } from "react";
+import { Heart, Eye, EyeOff } from "lucide-react";
 import { db, configured, rpc } from "@/lib/supabase/browser";
 import { useApp } from "@/components/app-context";
 import { Button, Field } from "@/components/ui";
+import { ScopedForm } from "@/components/ui";
+import { ThemeArt } from "@/components/theme-art";
 import { CONTENT as C } from "@/config/content.vi";
 import { authSchema, inviteSchema } from "@/features/schemas";
 import { APP_CONFIG } from "@/config/app.config";
 import { authRedirectUrl } from "@/lib/auth-redirect";
 export function AuthScreen() {
   const { run, notify, recovery, setRecovery } = useApp();
+  const [showPassword, setShowPassword] = useState(false);
+  const fieldId = useId();
+  const [invalidFields, setInvalidFields] = useState<Record<string, boolean>>(
+    {},
+  );
+  const invalid = (field: string) =>
+    setInvalidFields((fields) => ({ ...fields, [field]: true }));
   const [signup, setSignup] = useState(false),
     [email, setEmail] = useState(""),
     [password, setPassword] = useState(""),
@@ -28,11 +37,9 @@ export function AuthScreen() {
         <Heart size={48} />
         <h1>{C.brand.name}</h1>
         <p>{C.auth.intro}</p>
-        <div className="auth-rings" aria-hidden="true">
-          ♡
-        </div>
+        <ThemeArt asset="envelope" size={240} />
       </div>
-      <form
+      <ScopedForm
         className="auth-form"
         onSubmit={async (e) => {
           e.preventDefault();
@@ -72,16 +79,34 @@ export function AuthScreen() {
           }, C.common.success);
         }}
       >
-        <h2>{recovery ? C.auth.reset : C.auth.title}</h2>
+        <h2>
+          {recovery
+            ? C.auth.reset
+            : signup
+              ? C.redesign.signupTitle
+              : C.auth.title}
+        </h2>
         {!recovery && (
           <Field label={C.auth.email}>
             <input
               required
               type="email"
               autoComplete="email"
+              aria-invalid={
+                invalidFields.email &&
+                !authSchema.shape.email.safeParse(email).success
+              }
+              aria-describedby={fieldId + "-email"}
+              onInvalid={() => invalid("email")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
+            {invalidFields.email &&
+              !authSchema.shape.email.safeParse(email).success && (
+                <small className="field-error" id={fieldId + "-email"}>
+                  {C.errors.invalidEmail}
+                </small>
+              )}
           </Field>
         )}
         {signup && !recovery && (
@@ -100,14 +125,34 @@ export function AuthScreen() {
             required
             minLength={8}
             maxLength={128}
-            type="password"
+            type={showPassword ? "text" : "password"}
             autoComplete={
               signup || recovery ? "new-password" : "current-password"
             }
+            aria-invalid={invalidFields.password && password.length < 8}
+            aria-describedby={fieldId + "-password"}
+            onInvalid={() => invalid("password")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+          {invalidFields.password && password.length < 8 && (
+            <small className="field-error" id={fieldId + "-password"}>
+              {C.redesign.passwordHint}
+            </small>
+          )}
         </Field>
+        <div className="row">
+          <small>{C.redesign.passwordHint}</small>
+          <button
+            type="button"
+            className="text-button"
+            aria-pressed={showPassword}
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}{" "}
+            {showPassword ? C.redesign.hidePassword : C.redesign.showPassword}
+          </button>
+        </div>
         <Button type="submit">
           {recovery ? C.auth.reset : signup ? C.auth.signUp : C.auth.signIn}
         </Button>
@@ -141,7 +186,7 @@ export function AuthScreen() {
             </button>
           </>
         )}
-      </form>
+      </ScopedForm>
     </section>
   );
 }
@@ -151,7 +196,7 @@ export function PairScreen() {
     [timezone, setTimezone] = useState(APP_CONFIG.timezone);
   return (
     <div className="pair-screen">
-      <Heart size={40} />
+      <ThemeArt asset="mascots" size={140} />
       <h1>{C.couples.title}</h1>
       <p>{C.couples.description}</p>
       <Field label={C.couples.timezone}>
@@ -168,7 +213,7 @@ export function PairScreen() {
       >
         {C.couples.create}
       </Button>
-      <form
+      <ScopedForm
         onSubmit={(e) => {
           e.preventDefault();
           if (!inviteSchema.safeParse(code).success) {
@@ -193,7 +238,7 @@ export function PairScreen() {
         <Button secondary type="submit">
           {C.couples.join}
         </Button>
-      </form>
+      </ScopedForm>
       <button className="text-button" onClick={() => void logout()}>
         {C.auth.signOut}
       </button>

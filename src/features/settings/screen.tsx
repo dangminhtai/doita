@@ -1,14 +1,29 @@
-"use client";
+﻿"use client";
 import { useEffect, useState } from "react";
 import { Bell, Heart, LogOut, Calendar } from "lucide-react";
 import { useApp, clearDrafts } from "@/components/app-context";
 import { Button, Field, PageTitle, DateLabel, useDraft } from "@/components/ui";
+import { ThemeArt, DefaultAvatar } from "@/components/theme-art";
+import { useViewState } from "@/components/view-state";
+import { useCollection } from "@/components/collection";
+import { localDate, nextOccurrence } from "@/lib/date";
+import { ScopedForm } from "@/components/ui";
 import { CONTENT as C, interpolate as t } from "@/config/content.vi";
 import { enabled } from "@/config/app.config";
 import { db, rpc, authenticatedFetch } from "@/lib/supabase/browser";
 import { serviceWorkerReady } from "@/lib/push-device";
-export function SettingsScreen() {
+export function SettingsScreen({ go }: { go: (page: string) => void }) {
   const { data: d, user, run, notify, logout } = useApp();
+  const [panel, setPanel] = useViewState("settings-panel", "profile");
+  const [dateSearch, setDateSearch] = useViewState("dates-search", "");
+  const [dateFilter, setDateFilter] = useViewState("dates-filter", "all");
+  const dates = useCollection("special_dates", {
+    search: dateSearch,
+    filter: dateFilter,
+  });
+  const [customLabel, setCustomLabel] = useState("");
+  const [repeatRule, setRepeatRule] = useState("none");
+  const today = localDate(new Date(), d.couple!.timezone);
   const profile = d.profiles.find((p) => p.id === user?.id);
   const [name, setName] = useState(profile?.display_name ?? ""),
     [timezone, setTimezone] = useState(
@@ -104,11 +119,50 @@ export function SettingsScreen() {
   return (
     <>
       <PageTitle title={C.settings.title} />
+      <nav className="settings-tabs" aria-label={C.settings.title}>
+        {(["profile", "dates", "notifications", "weekly", "account"] as const)
+          .filter((id) => id !== "dates" || enabled("specialDates"))
+          .filter((id) => id !== "notifications" || enabled("notifications"))
+          .filter((id) => id !== "weekly" || enabled("weekly"))
+          .map((id) => (
+            <button
+              key={id}
+              aria-pressed={panel === id}
+              onClick={() => setPanel(id)}
+            >
+              {id === "notifications" ? C.notifications.inbox : C.redesign[id]}
+            </button>
+          ))}
+      </nav>
       <section className="settings-grid">
-        <div className="settings-card">
+        <div className="settings-card" hidden={panel !== "profile"}>
           <Heart size={24} />
           <h2>{C.couples.invite}</h2>
+          <div className="daily-members">
+            {d.members.map((m, i) => (
+              <div className="daily-member" key={m.user_id}>
+                <DefaultAvatar index={i} />
+                <span>
+                  {d.profiles.find((p) => p.id === m.user_id)?.display_name ??
+                    C.home.partner}
+                </span>
+              </div>
+            ))}
+          </div>
           <code className="invite-code">{d.couple?.invite_code}</code>
+          <button
+            className="text-button"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(d.couple!.invite_code);
+                notify(C.redesign.copied);
+              } catch {
+                notify(C.errors.generic, true);
+              }
+            }}
+          >
+            {C.redesign.copyInvite}
+          </button>
           <p>{C.couples.expires}</p>
           {d.members.length < 2 && <p>{C.couples.waiting}</p>}
           <Button
@@ -118,8 +172,9 @@ export function SettingsScreen() {
             {C.couples.rotate}
           </Button>
         </div>
-        <form
+        <ScopedForm
           className="settings-card"
+          hidden={panel !== "profile"}
           onSubmit={(e) => {
             e.preventDefault();
             void run(
@@ -170,9 +225,9 @@ export function SettingsScreen() {
             {C.settings.resurface}
           </label>
           <Button type="submit">{C.common.save}</Button>
-        </form>
+        </ScopedForm>
         {enabled("notifications") && (
-          <section className="settings-card">
+          <section className="settings-card" hidden={panel !== "notifications"}>
             <Bell />
             <h2>{C.settings.notifications}</h2>
             <p role="status">
@@ -196,24 +251,31 @@ export function SettingsScreen() {
                   : C.settings.enablePush}
               </Button>
             </div>
+            {pushState === "error" && (
+              <Button secondary onClick={() => void checkPush()}>
+                {C.common.retry}
+              </Button>
+            )}
             <h3>{C.settings.install}</h3>
             <p>{C.settings.installHint}</p>
           </section>
         )}
         {enabled("specialDates") && (
-          <section className="settings-card">
+          <section className="settings-card" hidden={panel !== "dates"}>
             <Calendar />
             <h2>{C.settings.special}</h2>
-            <form
+            <ScopedForm
               onSubmit={async (e) => {
                 e.preventDefault();
                 if (
                   await run(() =>
-                    rpc("save_special_date", {
+                    rpc("save_special_date_details", {
                       p_title: title,
                       p_date: date,
                       p_kind: kind,
                       p_id: dateId,
+                      p_custom_label: customLabel || null,
+                      p_repeat_rule: repeatRule,
                     }),
                   )
                 ) {
@@ -223,7 +285,7 @@ export function SettingsScreen() {
                 }
               }}
             >
-              <Field label={C.common.title}>
+              <Field label={C.redesign.eventName}>
                 <input
                   required
                   maxLength={120}
@@ -240,7 +302,17 @@ export function SettingsScreen() {
                 />
               </Field>
               <Field label={C.settings.kind}>
-                <select value={kind} onChange={(e) => setKind(e.target.value)}>
+                <select
+                  value={kind}
+                  onChange={(e) => {
+                    setKind(e.target.value);
+                    setRepeatRule(
+                      ["birthday", "anniversary"].includes(e.target.value)
+                        ? "yearly"
+                        : "none",
+                    );
+                  }}
+                >
                   {Object.entries(C.settings.kinds).map(([k, v]) => (
                     <option key={k} value={k}>
                       {v}
@@ -248,16 +320,89 @@ export function SettingsScreen() {
                   ))}
                 </select>
               </Field>
-              <Button type="submit">
-                {dateId ? C.common.edit : C.common.save}
-              </Button>
-            </form>
-            {d.dates.map((x) => (
+              {kind === "custom" && (
+                <Field label={C.redesign.customKind}>
+                  <input
+                    required
+                    maxLength={60}
+                    value={customLabel}
+                    onChange={(e) => setCustomLabel(e.target.value)}
+                  />
+                </Field>
+              )}
+              <Field label={C.redesign.repeat}>
+                <select
+                  value={repeatRule}
+                  onChange={(e) => setRepeatRule(e.target.value)}
+                >
+                  <option value="none">{C.redesign.repeatNone}</option>
+                  <option value="yearly">{C.redesign.repeatYearly}</option>
+                </select>
+              </Field>
+              <Button type="submit">{C.common.save}</Button>
+            </ScopedForm>
+            <div className="filters">
+              <Field label={C.redesign.dateSearch}>
+                <input
+                  type="search"
+                  value={dateSearch}
+                  onChange={(e) => setDateSearch(e.target.value)}
+                />
+              </Field>
+              <Field label={C.common.filters}>
+                <select
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
+                >
+                  <option value="all">{C.common.all}</option>
+                  {Object.entries(C.settings.kinds).map(([key, label]) => (
+                    <option key={key} value={key}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+            {dates.loading && <p role="status">{C.common.loading}</p>}
+            {dates.error && (
+              <div role="alert">
+                <p>{C.redesign.paginationError}</p>
+                <Button secondary onClick={dates.retry}>
+                  {C.common.retry}
+                </Button>
+              </div>
+            )}
+            {!dates.loading && !dates.error && !dates.rows.length && (
+              <p>{C.redesign.noDates}</p>
+            )}
+            {dates.rows.map((x) => (
               <div className="date-row" key={x.id}>
                 <p>
-                  {x.title}
+                  <b>{x.title}</b> ·{" "}
+                  {x.custom_label ||
+                    C.settings.kinds[x.kind as keyof typeof C.settings.kinds]}
+                  <small className="next-date">
+                    {x.repeat_rule === "yearly" ||
+                    (!x.repeat_rule &&
+                      ["birthday", "anniversary"].includes(x.kind))
+                      ? C.redesign.repeatYearly
+                      : C.redesign.repeatNone}
+                  </small>
                   <br />
                   <DateLabel date={x.date} />
+                  {nextOccurrence(x.date, x.kind, today, x.repeat_rule) && (
+                    <small className="next-date">
+                      {C.redesign.nextDate}:{" "}
+                      <DateLabel
+                        date={nextOccurrence(
+                          x.date,
+                          x.kind,
+                          today,
+                          x.repeat_rule,
+                        )!}
+                      />
+                    </small>
+                  )}
                 </p>
                 {x.author_id === user?.id && (
                   <>
@@ -268,6 +413,13 @@ export function SettingsScreen() {
                         setDate(x.date);
                         setKind(x.kind);
                         setDateId(x.id);
+                        setCustomLabel(x.custom_label ?? "");
+                        setRepeatRule(
+                          x.repeat_rule ??
+                            (["birthday", "anniversary"].includes(x.kind)
+                              ? "yearly"
+                              : "none"),
+                        );
                       }}
                     >
                       {C.common.edit}
@@ -287,10 +439,19 @@ export function SettingsScreen() {
                 )}
               </div>
             ))}
+            {dates.more && (
+              <Button
+                secondary
+                disabled={dates.loading}
+                onClick={dates.loadMore}
+              >
+                {C.common.more}
+              </Button>
+            )}
           </section>
         )}
         {enabled("weekly") && (
-          <section className="settings-card">
+          <section className="settings-card" hidden={panel !== "weekly"}>
             <h2>{C.settings.weekly}</h2>
             {C.settings.weeklyQuestions.map((q, i) => (
               <p key={q}>
@@ -318,7 +479,8 @@ export function SettingsScreen() {
             </Button>
           </section>
         )}
-        <section className="settings-card">
+        <section className="settings-card" hidden={panel !== "account"}>
+          <h2>{C.redesign.account}</h2>
           <div className="row">
             <Button secondary onClick={() => void logout()}>
               <LogOut size={18} />
@@ -351,6 +513,18 @@ export function SettingsScreen() {
               {C.settings.deleteAccount}
             </button>
           </div>
+        </section>
+        <section
+          className="settings-card theme-card"
+          hidden={panel !== "profile"}
+        >
+          <ThemeArt asset="mascots" size={100} />
+          <h2>{C.redesign.theme}</h2>
+          <p>{C.redesign.defaultTheme}</p>
+          <small>{C.redesign.themeHint}</small>
+          <Button secondary onClick={() => go("activities")}>
+            {C.nav.activities}
+          </Button>
         </section>
       </section>
     </>

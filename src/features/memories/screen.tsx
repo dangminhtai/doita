@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import { Camera, Plus } from "lucide-react";
 import { useApp, type Row } from "@/components/app-context";
 import {
@@ -7,25 +7,42 @@ import {
   Field,
   PageTitle,
   Empty,
-  More,
   DateLabel,
   useDraft,
   Modal,
 } from "@/components/ui";
+import { ScopedForm } from "@/components/ui";
+import { ThemeArt } from "@/components/theme-art";
+import { useCollection } from "@/components/collection";
 import { CONTENT as C, interpolate as t } from "@/config/content.vi";
 import { rpc, db, authenticatedFetch } from "@/lib/supabase/browser";
 import { uncertainWrite } from "@/lib/request";
 import { useViewState } from "@/components/view-state";
 export function MemoriesScreen() {
-  const { data: d, user, run, notify, limit } = useApp();
+  const { data: d, user, run, notify } = useApp();
   const [open, setOpen] = useState(false),
     [body, setBody] = useDraft("memory"),
     [file, setFile] = useState<File | null>(null),
     [selected, setSelected] = useState<Row | null>(null),
     [detail, setDetail] = useState<Row[]>([]),
     [detailError, setDetailError] = useState(false),
+    [detailLoading, setDetailLoading] = useState(false),
     [detailAttempt, setDetailAttempt] = useState(0);
   const [filter, setFilter] = useViewState("memories-filter", "all");
+  const [search, setSearch] = useViewState("memories-search", "");
+  const [from, setFrom] = useViewState("memories-from", "");
+  const [to, setTo] = useViewState("memories-to", "");
+  const collection = useCollection("memories", { filter, search, from, to });
+  const [preview, setPreview] = useState("");
+  useEffect(() => {
+    if (!file) {
+      setPreview("");
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
   const upload = useRef<{ file: File | null; path: string } | null>(null);
   const [uploadedName, setUploadedName] = useState("");
   const uploadKey = `couple-draft:${user!.id}:${d.couple!.id}:memory-upload`;
@@ -44,13 +61,12 @@ export function MemoriesScreen() {
       notify(C.common.draftStorageError, true);
     }
   }, [uploadKey]);
-  const memories = d.memories.filter(
-    (m) => filter === "all" || m.type === filter,
-  );
+  const memories = collection.rows;
   const old = d.onThisDay;
   useEffect(() => {
     setDetail([]);
     setDetailError(false);
+    setDetailLoading(Boolean(selected?.source_id));
     if (!selected?.source_id) return;
     let active = true;
     const source = {
@@ -58,6 +74,7 @@ export function MemoriesScreen() {
       note: ["notes", "id"],
       prayer: ["prayers", "id"],
     }[selected.type as "daily" | "note" | "prayer"];
+    if (!source) setDetailLoading(false);
     if (source)
       void db()
         .from(source[0])
@@ -66,6 +83,7 @@ export function MemoriesScreen() {
         .then(({ data, error }) => {
           if (!active) return;
           setDetailError(Boolean(error));
+          setDetailLoading(false);
           setDetail(data ?? []);
         });
     return () => {
@@ -85,7 +103,7 @@ export function MemoriesScreen() {
         }
       />
       {open && (
-        <form
+        <ScopedForm
           className="composer"
           onSubmit={async (e) => {
             e.preventDefault();
@@ -171,16 +189,41 @@ export function MemoriesScreen() {
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              onChange={(e) => {
+                const next = e.target.files?.[0];
+                if (
+                  next &&
+                  (!["image/jpeg", "image/png", "image/webp"].includes(
+                    next.type,
+                  ) ||
+                    next.size > 5 * 1024 * 1024)
+                ) {
+                  notify(C.errors.invalidFile, true);
+                  return;
+                }
+                setFile(next ?? null);
+              }}
             />
           </Field>
+          {preview && (
+            <img
+              className="upload-preview"
+              src={preview}
+              alt={C.redesign.photoPreview}
+              width={320}
+              height={240}
+            />
+          )}
           {uploadedName && (
             <p role="status">
               {t(C.memories.uploadedPhoto, { name: uploadedName })}
             </p>
           )}
           <Button type="submit">{C.common.save}</Button>
-        </form>
+          <Button secondary onClick={() => setOpen(false)}>
+            {C.common.close}
+          </Button>
+        </ScopedForm>
       )}
       {old.length > 0 && (
         <section className="on-this-day">
@@ -197,10 +240,32 @@ export function MemoriesScreen() {
           ))}
         </section>
       )}
-      <div className="filters">
+      <div className="filters memory-filters">
+        <Field label={C.redesign.memorySearch}>
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </Field>
+        <Field label={C.redesign.fromDate}>
+          <input
+            type="date"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+          />
+        </Field>
+        <Field label={C.redesign.toDate}>
+          <input
+            type="date"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+          />
+        </Field>
         <Field label={C.common.filters}>
           <select value={filter} onChange={(e) => setFilter(e.target.value)}>
             <option value="all">{C.common.all}</option>
+            <option value="photos">{C.redesign.photosOnly}</option>
             {Object.entries(C.memories.types).map(([key, label]) => (
               <option key={key} value={key}>
                 {label}
@@ -210,27 +275,60 @@ export function MemoriesScreen() {
         </Field>
       </div>
       <div className="timeline">
-        {memories.map((m) => (
-          <article key={m.id} className="memory-card">
-            <div className="timeline-dot">
-              <Camera size={18} />
-            </div>
-            <span className="tag">
-              {C.memories.types[m.type as keyof typeof C.memories.types] ??
-                C.memories.types.moment}
-            </span>
-            <DateLabel date={m.created_at} />
-            <button className="memory-open" onClick={() => setSelected(m)}>
-              {m.content ||
-                C.memories.types[m.type as keyof typeof C.memories.types]}
-            </button>
-            {m.photo_path && <MemoryPhoto path={m.photo_path} />}
-          </article>
+        {memories.map((m, i) => (
+          <Fragment key={m.id}>
+            {(i === 0 ||
+              new Date(memories[i - 1].created_at).toLocaleDateString("vi-VN", {
+                month: "long",
+                year: "numeric",
+                timeZone: d.couple?.timezone,
+              }) !==
+                new Date(m.created_at).toLocaleDateString("vi-VN", {
+                  month: "long",
+                  year: "numeric",
+                  timeZone: d.couple?.timezone,
+                })) && (
+              <h2 className="timeline-month">
+                {new Date(m.created_at).toLocaleDateString("vi-VN", {
+                  month: "long",
+                  year: "numeric",
+                  timeZone: d.couple?.timezone,
+                })}
+              </h2>
+            )}
+            <article
+              className={`memory-card ${m.photo_path ? "photo-polaroid" : ""}`}
+            >
+              <div className="timeline-dot">
+                <Camera size={18} />
+              </div>
+              <span className="tag">
+                {C.memories.types[m.type as keyof typeof C.memories.types] ??
+                  C.memories.types.moment}
+              </span>
+              <DateLabel date={m.created_at} />
+              <button className="memory-open" onClick={() => setSelected(m)}>
+                {m.content ||
+                  C.memories.types[m.type as keyof typeof C.memories.types]}
+              </button>
+              {m.photo_path && <MemoryPhoto path={m.photo_path} />}
+            </article>
+          </Fragment>
         ))}
       </div>
-      {!memories.length && (
+      {collection.loading && <p role="status">{C.common.loading}</p>}
+      {collection.error && (
+        <div role="alert">
+          <p>{C.redesign.paginationError}</p>
+          <Button secondary onClick={collection.retry}>
+            {C.common.retry}
+          </Button>
+        </div>
+      )}
+      {!memories.length && !collection.loading && !collection.error && (
         <Empty>
-          {filter === "all" ? (
+          <ThemeArt asset="emptyMemories" size={140} />
+          {filter === "all" && !search && !from && !to ? (
             <>
               {C.memories.empty}
               <Button onClick={() => setOpen(true)}>{C.memories.new}</Button>
@@ -238,14 +336,30 @@ export function MemoriesScreen() {
           ) : (
             <>
               {C.common.noResults}
-              <Button secondary onClick={() => setFilter("all")}>
+              <Button
+                secondary
+                onClick={() => {
+                  setFilter("all");
+                  setSearch("");
+                  setFrom("");
+                  setTo("");
+                }}
+              >
                 {C.common.clearFilters}
               </Button>
             </>
           )}
         </Empty>
       )}
-      {d.memories.length >= limit && <More />}
+      {collection.more && (
+        <Button
+          secondary
+          disabled={collection.loading}
+          onClick={collection.loadMore}
+        >
+          {C.common.more}
+        </Button>
+      )}
       {selected && (
         <Modal
           title={
@@ -267,6 +381,11 @@ export function MemoriesScreen() {
               </Button>
             </div>
           )}
+          {detailLoading && <p role="status">{C.common.loading}</p>}
+          {selected.source_id &&
+            !detailLoading &&
+            !detailError &&
+            !detail.length && <p>{C.redesign.noSource}</p>}
           {detail.map((row) => (
             <p className="pre-wrap" key={row.id ?? row.user_id}>
               <b>
@@ -315,45 +434,82 @@ export function MemoriesScreen() {
     </>
   );
 }
-function MemoryPhoto({ path }: { path: string }) {
-  const [url, setUrl] = useState("");
-  const [attempt, setAttempt] = useState(0);
+export function MemoryPhoto({ path }: { path: string }) {
+  const node = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false),
+    [url, setUrl] = useState(""),
+    [error, setError] = useState(false),
+    [attempt, setAttempt] = useState(0);
   useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    if (node.current) observer.observe(node.current);
+    return () => observer.disconnect();
+  }, [path]);
+  useEffect(() => {
+    if (!visible) return;
     let active = true;
+    let expires = 0;
+    setError(false);
     setUrl("");
-    const timer = setInterval(() => {
-      if (active) {
-        setAttempt(0);
-        renew();
+    const renew = async () => {
+      if (document.visibilityState !== "visible" || Date.now() < expires)
+        return;
+      try {
+        const result = await db()
+          .storage.from("memories")
+          .createSignedUrl(path, 300);
+        if (!active) return;
+        if (result.error || !result.data?.signedUrl) {
+          setError(true);
+          return;
+        }
+        expires = Date.now() + 240000;
+        setUrl(result.data.signedUrl);
+      } catch {
+        if (active) setError(true);
       }
-    }, 240000);
-    const renew = () => {
-      db()
-        .storage.from("memories")
-        .createSignedUrl(path, 300)
-        .then(({ data }) => {
-          if (active) setUrl(data?.signedUrl ?? "");
-        });
     };
-    renew();
+    void renew();
     window.addEventListener("focus", renew);
     return () => {
       active = false;
-      clearInterval(timer);
       window.removeEventListener("focus", renew);
     };
-  }, [path, attempt]);
-  return url ? (
-    <img
-      className="memory-photo"
-      src={url}
-      alt={C.memories.types.moment}
-      loading="lazy"
-      decoding="async"
-      onError={() => {
-        if (attempt < 2) setAttempt(attempt + 1);
-        else setUrl("");
-      }}
-    />
-  ) : null;
+  }, [path, attempt, visible]);
+  return (
+    <div ref={node} className="memory-media">
+      {error ? (
+        <div role="status">
+          <p>{C.redesign.signedPhotoExpired}</p>
+          <Button secondary onClick={() => setAttempt((n) => n + 1)}>
+            {C.common.retry}
+          </Button>
+        </div>
+      ) : url ? (
+        <img
+          className="memory-photo"
+          src={url}
+          width={640}
+          height={480}
+          alt={C.memories.types.moment}
+          loading="lazy"
+          decoding="async"
+          onError={() => {
+            if (attempt < 1) setAttempt(attempt + 1);
+            else setError(true);
+          }}
+        />
+      ) : visible ? (
+        <span>{C.common.loading}</span>
+      ) : null}
+    </div>
+  );
 }

@@ -1,9 +1,54 @@
 "use client";
-import type { ReactNode } from "react";
+import type { ReactNode, ReactElement, FormHTMLAttributes } from "react";
 import { createPortal } from "react-dom";
-import { useEffect, useState, useRef, useId } from "react";
+import {
+  useEffect,
+  useState,
+  useRef,
+  useId,
+  createContext,
+  useContext,
+  Children,
+  cloneElement,
+  isValidElement,
+} from "react";
 import { CONTENT as C } from "@/config/content.vi";
 import { useApp } from "./app-context";
+const ActionContext = createContext<string | null>(null);
+export function ActionScope({
+  scope,
+  children,
+}: {
+  scope: string;
+  children: ReactNode;
+}) {
+  const { pendingActions } = useApp();
+  return (
+    <ActionContext.Provider value={scope}>
+      <fieldset
+        className="action-scope"
+        data-action-scope={scope}
+        disabled={pendingActions.includes(scope)}
+        aria-busy={pendingActions.includes(scope)}
+      >
+        {children}
+        {pendingActions.includes(scope) && (
+          <p className="button-progress" role="status">
+            {C.common.processing}
+          </p>
+        )}
+      </fieldset>
+    </ActionContext.Provider>
+  );
+}
+export function ScopedForm(props: FormHTMLAttributes<HTMLFormElement>) {
+  const scope = useId();
+  return (
+    <ActionScope scope={scope}>
+      <form {...props} />
+    </ActionScope>
+  );
+}
 export function Button({
   children,
   onClick,
@@ -17,20 +62,22 @@ export function Button({
   type?: "button" | "submit";
   disabled?: boolean;
 }) {
-  const { busy, busyAction } = useApp();
+  const { pendingActions } = useApp();
   const actionId = useId();
-  const pending = busy && busyAction === actionId;
+  const inheritedScope = useContext(ActionContext);
+  const scope = inheritedScope ?? actionId;
+  const pending = pendingActions.includes(scope);
   return (
     <button
       type={type}
       className={secondary ? "button secondary" : "button"}
-      disabled={busy || disabled}
+      disabled={pending || disabled}
       data-action-id={actionId}
       aria-busy={pending}
       onClick={onClick}
     >
       {children}
-      {pending && (
+      {pending && !inheritedScope && (
         <span className="button-progress" role="status">
           {C.common.processing}
         </span>
@@ -45,10 +92,20 @@ export function Field({
   label: string;
   children: ReactNode;
 }) {
+  const labelId = useId();
   return (
     <label className="field">
-      <span>{label}</span>
-      {children}
+      <span id={labelId}>{label}</span>
+      {Children.map(children, (child) =>
+        isValidElement(child) &&
+        typeof child.type === "string" &&
+        ["input", "select", "textarea"].includes(child.type)
+          ? cloneElement(
+              child as ReactElement<{ "aria-labelledby"?: string }>,
+              { "aria-labelledby": labelId },
+            )
+          : child,
+      )}
     </label>
   );
 }

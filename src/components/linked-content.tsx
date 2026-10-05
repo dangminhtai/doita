@@ -100,6 +100,12 @@ export function LinkedContent({
                   : C.common.shared}
             </span>
           )}
+          {table === "special_dates" && (
+            <p>
+              {row.custom_label ||
+                C.settings.kinds[row.kind as keyof typeof C.settings.kinds]}
+            </p>
+          )}
           <p className="pre-wrap">
             {row.content ?? row.description ?? row.daily_prompts?.prompt}
           </p>

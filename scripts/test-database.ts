@@ -33,7 +33,39 @@ await db.exec(migration);
 for (const file of readdirSync("supabase/migrations")
   .filter((file) => file.endsWith(".sql") && file !== "202610040001_core.sql")
   .sort()) {
+  if (file === "202610050007_redesign_dates.sql") {
+    await db.exec(`
+      insert into auth.users(id) values('ff000000-0000-0000-0000-000000000001');
+      insert into public.couples(id) values('ff000000-0000-0000-0000-000000000002');
+      insert into public.special_dates(couple_id,author_id,title,date,kind)
+      select 'ff000000-0000-0000-0000-000000000002','ff000000-0000-0000-0000-000000000001',kind,'2000-02-29',kind from unnest(array['birthday','anniversary','meetup','custom']) kind;
+    `);
+  }
   await db.exec(readFileSync(`supabase/migrations/${file}`, "utf8"));
+  if (file === "202610050007_redesign_dates.sql") {
+    const upgraded = await db.query<{
+      kind: string;
+      date: string;
+      repeat_rule: string;
+      custom_label: string | null;
+    }>(
+      "select kind,date,repeat_rule,custom_label from public.special_dates order by kind",
+    );
+    for (const row of upgraded.rows) {
+      assert.equal(
+        row.repeat_rule,
+        ["birthday", "anniversary"].includes(row.kind) ? "yearly" : "none",
+      );
+      assert.equal(row.custom_label, null);
+      assert.equal(new Date(row.date).toISOString().slice(0, 10), "2000-02-29");
+    }
+    await db.exec(
+      "delete from public.couples where id='ff000000-0000-0000-0000-000000000002';delete from auth.users where id='ff000000-0000-0000-0000-000000000001';",
+    );
+    console.log(
+      "PASS additive date migration preserves legacy kind rules and original dates",
+    );
+  }
 }
 await db.exec(readFileSync("supabase/seed.sql", "utf8"));
 const A = "00000000-0000-0000-0000-000000000001",
@@ -95,6 +127,59 @@ assert.equal(
 console.log("PASS invite attempt limiter persists across invalid codes");
 await as(A);
 const requestId = "20000000-0000-0000-0000-000000000001";
+const customDateArgs = {
+  p_title: "Our custom event",
+  p_date: "2020-02-29",
+  p_kind: "custom",
+  p_custom_label: "  First trip  ",
+  p_repeat_rule: "yearly",
+};
+const dateReceiptId = "20000000-0000-0000-0000-000000000099";
+const customDate = await one(
+  "select public.perform_authorized_action('save_special_date_details',$1::jsonb,$2) as id",
+  [JSON.stringify(customDateArgs), dateReceiptId],
+);
+assert.equal(
+  (
+    await one(
+      "select public.perform_authorized_action('save_special_date_details',$1::jsonb,$2) as id",
+      [JSON.stringify(customDateArgs), dateReceiptId],
+    )
+  ).id,
+  customDate.id,
+);
+const savedCustomDate = await one(
+  "select custom_label,repeat_rule from public.special_dates where id=$1",
+  [customDate.id],
+);
+assert.deepEqual(savedCustomDate, {
+  custom_label: "First trip",
+  repeat_rule: "yearly",
+});
+await denied(
+  "select public.save_special_date_details('Invalid','2026-10-05','custom',null,'','yearly')",
+);
+await denied(
+  "select public.save_special_date_details('Invalid','2026-10-05','custom',null,'Trip','monthly')",
+);
+await as(C);
+assert.equal(
+  (
+    await db.query("select * from public.special_dates where id=$1", [
+      customDate.id,
+    ])
+  ).rows.length,
+  0,
+);
+await denied(
+  "select public.save_special_date_details('Attack','2026-10-05','custom',$1,'Trip','yearly')",
+  [customDate.id],
+);
+await as(A);
+await one("select public.delete_special_date($1)", [customDate.id]);
+console.log(
+  "PASS custom dates: label, recurrence, receipt dedupe, invalid values and couple isolation",
+);
 const requestArgs = {
   p_title: "UX retry",
   p_content: "one saved note",
@@ -603,6 +688,55 @@ await as(B);
 await denied("select public.queue_abandoned_assets()");
 console.log(
   "PASS abandoned upload recovery waits 24 hours and is service-only",
+);
+await as(A);
+const todayLocal = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Ho_Chi_Minh",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+}).format(new Date());
+const legacyDate = "2000" + todayLocal.slice(4);
+const annualEvent = await one(
+  "select public.save_special_date_details('Yearly custom',$1,'custom',null,'Travel','yearly') as id",
+  [legacyDate],
+);
+const singleBirthday = await one(
+  "select public.save_special_date_details('Once birthday',$1,'birthday',null,null,'none') as id",
+  [legacyDate],
+);
+await as(null, "service_role");
+await one("select public.daily_maintenance()");
+assert.equal(
+  (
+    await one(
+      "select count(*)::int as n from public.notification_outbox where dedupe like $1",
+      [`special:${annualEvent.id}:%`],
+    )
+  ).n,
+  2,
+);
+assert.equal(
+  (
+    await one(
+      "select count(*)::int as n from public.notification_outbox where dedupe like $1",
+      [`special:${singleBirthday.id}:%`],
+    )
+  ).n,
+  0,
+);
+await one("select public.daily_maintenance()");
+assert.equal(
+  (
+    await one(
+      "select count(*)::int as n from public.notification_outbox where dedupe like $1",
+      [`special:${annualEvent.id}:%`],
+    )
+  ).n,
+  2,
+);
+console.log(
+  "PASS cron respects custom yearly and explicit one-off birthday, without duplicate reminders",
 );
 await as(B);
 await one("select public.leave_couple()");

@@ -1,4 +1,5 @@
 import { CONTENT as C } from "@/config/content.vi";
+import { THEME } from "@/config/themes";
 import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -8,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/home",
     scope: "/",
     display: "standalone",
-    background_color: "#f6f8f7",
-    theme_color: "#153c46",
+    background_color: THEME.colors.page,
+    theme_color: THEME.colors.page,
     icons: [
       {
         src: "/icons/icon-192.png",

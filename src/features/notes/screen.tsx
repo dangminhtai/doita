@@ -8,13 +8,17 @@ import {
   Empty,
   PageTitle,
   Visibility,
-  More,
+  Modal,
+  ActionScope,
   DateLabel,
 } from "@/components/ui";
+import { ScopedForm } from "@/components/ui";
 import { CONTENT as C, interpolate as t } from "@/config/content.vi";
 import { APP_CONFIG as A } from "@/config/app.config";
 import { rpc } from "@/lib/supabase/browser";
 import { noteSchema } from "@/features/schemas";
+import { useCollection } from "@/components/collection";
+import { ThemeArt, DefaultAvatar } from "@/components/theme-art";
 import { useViewState } from "@/components/view-state";
 import {
   emptyNoteDraft,
@@ -23,9 +27,11 @@ import {
   type NoteDraft,
 } from "./draft";
 export function NotesScreen() {
-  const { data: d, user, run, notify, limit } = useApp();
+  const { data: d, user, run, notify } = useApp();
   const [search, setSearch] = useViewState("notes-search", "");
   const [filter, setFilter] = useViewState("notes-filter", "all");
+  const [selected, setSelected] = useState<Row | null>(null);
+  const collection = useCollection("notes", { search, filter });
   const [open, setOpen] = useState(false),
     [draft, setDraft] = useState<NoteDraft>(emptyNoteDraft);
   const { editing, title, body, type, visibility } = draft;
@@ -141,18 +147,7 @@ export function NotesScreen() {
     );
     setOpen(true);
   };
-  const notes = d.notes
-    .filter(
-      (n) =>
-        (filter === "all" ||
-          (filter === "private"
-            ? n.visibility === "private"
-            : n.visibility !== "private")) &&
-        (n.title + " " + n.content)
-          .toLowerCase()
-          .includes(search.toLowerCase()),
-    )
-    .sort((a, b) => Number(b.is_pinned) - Number(a.is_pinned));
+  const notes = collection.rows;
   return (
     <>
       <PageTitle
@@ -171,7 +166,7 @@ export function NotesScreen() {
         }
       />
       {open && (
-        <form
+        <ScopedForm
           className="composer"
           onSubmit={async (e) => {
             e.preventDefault();
@@ -264,10 +259,10 @@ export function NotesScreen() {
               {C.common.close}
             </Button>
           </div>
-        </form>
+        </ScopedForm>
       )}
       <div className="filters">
-        <small>{C.notes.searchScope}</small>
+        <small>{C.redesign.searchAll}</small>
         <Field label={C.common.search}>
           <input
             type="search"
@@ -280,79 +275,139 @@ export function NotesScreen() {
           <select value={filter} onChange={(e) => setFilter(e.target.value)}>
             <option value="all">{C.common.all}</option>
             <option value="private">{C.common.private}</option>
+            <option value="theirs">{C.common.theirs}</option>
             <option value="shared">{C.common.shared}</option>
           </select>
         </Field>
       </div>
       <div className="notes-grid">
         {notes.map((n) => (
-          <article key={n.id} className="note-card">
-            <div className="row-between">
-              <span className="tag">
-                {n.visibility === "private"
-                  ? C.common.private
-                  : C.common.shared}
-              </span>
-              {n.is_pinned && <Pin size={16} />}
-            </div>
-            <h2>{n.title}</h2>
-            {n.type === "checklist" ? (
-              <div className="checklist">
-                {d.items
-                  .filter((i) => i.note_id === n.id)
-                  .sort((a, b) => a.position - b.position)
-                  .map((i) => (
-                    <label key={i.id}>
-                      <input
-                        type="checkbox"
-                        checked={i.completed}
-                        onChange={() =>
+          <article
+            key={n.id}
+            className={`note-card ${n.type === "checklist" ? "checklist-paper" : "envelope-card"}`}
+          >
+            <ActionScope scope={`note:${n.id}`}>
+              <div className="row-between">
+                <span className="tag">
+                  {n.visibility === "private"
+                    ? C.common.private
+                    : n.visibility === "partner"
+                      ? C.common.partner
+                      : C.common.shared}
+                </span>
+                {n.is_pinned && <Pin size={16} />}
+              </div>
+              <div className="letter-sender">
+                <DefaultAvatar
+                  index={Math.max(
+                    0,
+                    d.members.findIndex((m) => m.user_id === n.author_id),
+                  )}
+                />
+                <span>
+                  {t(C.redesign.fromTo, {
+                    from:
+                      d.profiles.find((p) => p.id === n.author_id)
+                        ?.display_name ?? C.home.partner,
+                    to:
+                      n.visibility === "private"
+                        ? C.home.you
+                        : (d.profiles.find((p) => p.id !== n.author_id)
+                            ?.display_name ?? C.home.partner),
+                  })}
+                </span>
+              </div>
+              <h2>{n.title}</h2>
+              {n.type === "checklist" ? (
+                <div className="checklist">
+                  {collection.children
+                    .filter((i) => i.note_id === n.id)
+                    .sort((a, b) => a.position - b.position)
+                    .map((i) => (
+                      <label key={i.id}>
+                        <input
+                          type="checkbox"
+                          checked={i.completed}
+                          onChange={() =>
+                            void run(() =>
+                              rpc("toggle_note_item", { p_id: i.id }),
+                            )
+                          }
+                        />
+                        <span className={i.completed ? "done" : ""}>
+                          {i.content}
+                        </span>
+                      </label>
+                    ))}
+                </div>
+              ) : (
+                <button
+                  className="letter-preview"
+                  onClick={() => setSelected(n)}
+                >
+                  <span className="pre-wrap">
+                    {n.content.slice(0, 160)}
+                    {n.content.length > 160 ? "…" : ""}
+                  </span>
+                  <span className="open-letter-label">
+                    {C.redesign.openLetter}
+                  </span>
+                  <ThemeArt asset="heart" size={48} />
+                </button>
+              )}
+              <small>
+                <DateLabel date={n.created_at} />
+              </small>
+              {n.author_id === user?.id && (
+                <details className="note-actions action-menu">
+                  <summary
+                    aria-label={t(C.redesign.actionsFor, { title: n.title })}
+                  >
+                    {C.redesign.actions}
+                  </summary>
+                  <div className="row">
+                    <button onClick={() => edit(n)}>{C.common.edit}</button>
+                    <button
+                      onClick={() =>
+                        void run(() =>
+                          rpc("note_action", { p_id: n.id, p_action: "pin" }),
+                        )
+                      }
+                    >
+                      {n.is_pinned ? C.notes.unpin : C.notes.pin}
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm(C.common.confirmDelete))
                           void run(() =>
-                            rpc("toggle_note_item", { p_id: i.id }),
-                          )
-                        }
-                      />
-                      <span className={i.completed ? "done" : ""}>
-                        {i.content}
-                      </span>
-                    </label>
-                  ))}
-              </div>
-            ) : (
-              <p className="pre-wrap">{n.content}</p>
-            )}
-            <small>
-              <DateLabel date={n.created_at} />
-            </small>
-            {n.author_id === user?.id && (
-              <div className="row note-actions">
-                <button onClick={() => edit(n)}>{C.common.edit}</button>
-                <button
-                  onClick={() =>
-                    void run(() =>
-                      rpc("note_action", { p_id: n.id, p_action: "pin" }),
-                    )
-                  }
-                >
-                  {n.is_pinned ? C.notes.unpin : C.notes.pin}
-                </button>
-                <button
-                  onClick={() => {
-                    if (confirm(C.common.confirmDelete))
-                      void run(() =>
-                        rpc("note_action", { p_id: n.id, p_action: "delete" }),
-                      );
-                  }}
-                >
-                  {C.common.delete}
-                </button>
-              </div>
-            )}
+                            rpc("note_action", {
+                              p_id: n.id,
+                              p_action: "delete",
+                            }),
+                          );
+                      }}
+                    >
+                      {C.common.delete}
+                    </button>
+                  </div>
+                </details>
+              )}
+            </ActionScope>
           </article>
         ))}
       </div>
-      {!notes.length && (
+      {collection.loading && <p role="status">{C.common.loading}</p>}
+      {collection.error && (
+        <div role="alert">
+          <p>{C.redesign.paginationError}</p>
+          <Button secondary onClick={collection.retry}>
+            {C.common.retry}
+          </Button>
+        </div>
+      )}
+      {!notes.length && !collection.loading && !collection.error && (
         <Empty>
+          <ThemeArt asset="emptyNotes" size={140} />
           {search || filter !== "all" ? (
             <>
               {C.common.noResults}
@@ -374,7 +429,36 @@ export function NotesScreen() {
           )}
         </Empty>
       )}
-      {d.notes.length >= limit && <More />}
+      {collection.more && (
+        <Button
+          secondary
+          disabled={collection.loading}
+          onClick={collection.loadMore}
+        >
+          {C.common.more}
+        </Button>
+      )}
+      {selected && (
+        <Modal title={selected.title} onClose={() => setSelected(null)}>
+          <div className="letter-reader">
+            <span className="tag">
+              {selected.visibility === "private"
+                ? C.common.private
+                : selected.visibility === "partner"
+                  ? C.common.partner
+                  : C.common.shared}
+            </span>
+            <p className="letter pre-wrap">{selected.content}</p>
+            <p>
+              {
+                d.profiles.find((p) => p.id === selected.author_id)
+                  ?.display_name
+              }
+            </p>
+            <DateLabel date={selected.created_at} />
+          </div>
+        </Modal>
+      )}
     </>
   );
 }

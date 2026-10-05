@@ -1,7 +1,6 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import {
-  Heart,
   House,
   NotebookPen,
   Ship,
@@ -22,6 +21,7 @@ import { MemoriesScreen } from "@/features/memories/screen";
 import { ActivitiesScreen } from "@/features/activities/screen";
 import { SettingsScreen } from "@/features/settings/screen";
 import { NotificationBell } from "./notification-bell";
+import { DefaultAvatar, ThemeArt } from "./theme-art";
 import { LinkedContent } from "./linked-content";
 export function CoupleApp({ initialPage = "home" }: { initialPage?: string }) {
   return (
@@ -43,8 +43,16 @@ function Shell({ initialPage }: { initialPage: string }) {
         "keyboard-open",
         !!viewport && window.innerHeight - viewport.height > 150,
       );
+    const visibility = () =>
+      document.documentElement.classList.toggle(
+        "page-hidden",
+        document.visibilityState !== "visible",
+      );
+    document.addEventListener("visibilitychange", visibility);
     viewport?.addEventListener("resize", resize);
     return () => {
+      document.removeEventListener("visibilitychange", visibility);
+      document.documentElement.classList.remove("page-hidden");
       viewport?.removeEventListener("resize", resize);
       document.documentElement.classList.remove("keyboard-open");
     };
@@ -54,7 +62,7 @@ function Shell({ initialPage }: { initialPage: string }) {
     const focusable = () => [
       ...(sidebar.current?.querySelectorAll<HTMLElement>("a,button") ?? []),
     ];
-    focusable()[0]?.focus();
+    focusable()[0]?.focus({ preventScroll: true });
     const keydown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setMenu(false);
@@ -77,7 +85,7 @@ function Shell({ initialPage }: { initialPage: string }) {
     window.addEventListener("keydown", keydown);
     return () => {
       window.removeEventListener("keydown", keydown);
-      menuButton.current?.focus();
+      menuButton.current?.focus({ preventScroll: true });
     };
   }, [menu]);
   const {
@@ -89,12 +97,27 @@ function Shell({ initialPage }: { initialPage: string }) {
     message,
     error,
     recovery,
-    busy,
     notify,
   } = useApp();
+  const scrollKey = useCallback(
+    (path = location.pathname + location.search) =>
+      `couple-view:${user?.id}:${data.couple?.id}:scroll:${path}`,
+    [user?.id, data.couple?.id],
+  );
+  const savedScroll = useCallback(() => {
+    try {
+      return (
+        Number(sessionStorage.getItem(scrollKey())) ||
+        history.state?.doitaScroll ||
+        0
+      );
+    } catch {
+      return history.state?.doitaScroll ?? 0;
+    }
+  }, [scrollKey]);
   useEffect(() => {
     const pop = () => {
-      restoreScroll.current = history.state?.doitaScroll ?? 0;
+      restoreScroll.current = savedScroll();
       setPage(location.pathname.slice(1) || "home");
       setMenu(false);
       notify("");
@@ -102,27 +125,44 @@ function Shell({ initialPage }: { initialPage: string }) {
     window.addEventListener("popstate", pop);
     const previous = history.scrollRestoration;
     history.scrollRestoration = "manual";
-    const storeScroll = () =>
+    const storeScroll = () => {
+      if (restoreScroll.current !== null) return;
       history.replaceState(
         { ...history.state, doitaScroll: window.scrollY },
         "",
       );
+    };
     window.addEventListener("scroll", storeScroll, { passive: true });
     return () => {
       window.removeEventListener("popstate", pop);
       window.removeEventListener("scroll", storeScroll);
       history.scrollRestoration = previous;
     };
-  }, [notify]);
+  }, [notify, savedScroll]);
   useEffect(() => {
-    if (restoreScroll.current === null || loading) return;
+    if (loading) return;
+    if (restoreScroll.current === null && savedScroll() > 0)
+      restoreScroll.current = savedScroll();
+    if (restoreScroll.current === null) return;
     const position = restoreScroll.current;
-    restoreScroll.current = null;
-    const timer = requestAnimationFrame(() =>
-      window.scrollTo({ top: position }),
-    );
-    return () => cancelAnimationFrame(timer);
-  }, [page, loading]);
+    const restore = (ready = false) => {
+      window.scrollTo({ top: position });
+      if (
+        ready ||
+        document.documentElement.scrollHeight - innerHeight >= position
+      )
+        restoreScroll.current = null;
+    };
+    const ready = () => {
+      if (restoreScroll.current !== null) restore(true);
+    };
+    window.addEventListener("couple-list-ready", ready);
+    const timer = requestAnimationFrame(() => restore());
+    return () => {
+      cancelAnimationFrame(timer);
+      window.removeEventListener("couple-list-ready", ready);
+    };
+  }, [page, loading, savedScroll]);
   const go = (next: string) => {
     const destination = new URL(`/${next}`, location.origin);
     const nextPage = destination.pathname.slice(1);
@@ -140,6 +180,9 @@ function Shell({ initialPage }: { initialPage: string }) {
     )
       return;
     history.replaceState({ ...history.state, doitaScroll: window.scrollY }, "");
+    try {
+      sessionStorage.setItem(scrollKey(), String(window.scrollY));
+    } catch {}
     setPage(nextPage);
     setMenu(false);
     notify("");
@@ -212,12 +255,15 @@ function Shell({ initialPage }: { initialPage: string }) {
     ) : page === "activities" && enabled("activities") ? (
       <ActivitiesScreen />
     ) : page === "settings" ? (
-      <SettingsScreen />
+      <SettingsScreen go={go} />
     ) : (
       <HomeScreen go={go} />
     );
   return (
     <div className="app">
+      <a className="skip-link" href="#main-content">
+        {C.redesign.skipContent}
+      </a>
       <header className="topbar">
         <a
           className="brand"
@@ -227,10 +273,39 @@ function Shell({ initialPage }: { initialPage: string }) {
             go("home");
           }}
         >
-          <Heart size={23} fill="currentColor" />
+          <ThemeArt asset="heart" size={36} />
           <span>{C.brand.name}</span>
         </a>
-        <p>{C.brand.tagline}</p>
+        {user && data.couple && !recovery && (
+          <nav className="desktop-nav" aria-label={C.common.openMenu}>
+            {nav
+              .filter((x) => x.id !== "settings")
+              .map(({ id, icon: Icon }) => (
+                <a
+                  key={id}
+                  href={`/${id}`}
+                  className={
+                    page === id || (page === "daily" && id === "home")
+                      ? "active"
+                      : ""
+                  }
+                  aria-current={
+                    page === id || (page === "daily" && id === "home")
+                      ? "page"
+                      : undefined
+                  }
+                  onClick={(e) => {
+                    e.preventDefault();
+                    go(id);
+                  }}
+                >
+                  <Icon size={19} />
+                  <span>{C.nav[id as keyof typeof C.nav]}</span>
+                </a>
+              ))}
+          </nav>
+        )}
+
         {user && data.couple && enabled("notifications") && !recovery && (
           <NotificationBell key={`${user.id}:${data.couple.id}`} go={go} />
         )}
@@ -252,10 +327,12 @@ function Shell({ initialPage }: { initialPage: string }) {
             onClick={() => go("settings")}
             aria-label={C.nav.settings}
           >
-            {(
-              data.profiles.find((p) => p.id === user.id)?.display_name ||
-              C.home.you
-            ).slice(0, 1)}
+            <DefaultAvatar
+              index={Math.max(
+                0,
+                data.members.findIndex((m) => m.user_id === user.id),
+              )}
+            />
           </button>
         )}
       </header>
@@ -277,8 +354,16 @@ function Shell({ initialPage }: { initialPage: string }) {
                 <a
                   key={id}
                   href={`/${id}`}
-                  aria-current={page === id ? "page" : undefined}
-                  className={page === id ? "active" : ""}
+                  aria-current={
+                    page === id || (page === "daily" && id === "home")
+                      ? "page"
+                      : undefined
+                  }
+                  className={
+                    page === id || (page === "daily" && id === "home")
+                      ? "active"
+                      : ""
+                  }
                   onClick={(e) => {
                     e.preventDefault();
                     go(id);
@@ -291,7 +376,7 @@ function Shell({ initialPage }: { initialPage: string }) {
             </nav>
           </aside>
         )}
-        <main className="main" aria-busy={busy} inert={menu}>
+        <main id="main-content" className={`main page-${page}`} inert={menu}>
           {message && (
             <div
               role={error ? "alert" : "status"}
@@ -308,14 +393,7 @@ function Shell({ initialPage }: { initialPage: string }) {
               </button>
             </div>
           )}
-          {busy && (
-            <p className="operation-status" role="status">
-              {C.common.processing}
-            </p>
-          )}
-          <fieldset className="page-controls" disabled={busy}>
-            {content}
-          </fieldset>
+          <div className="page-controls">{content}</div>
           {user && data.couple && !recovery && !pageError && (
             <LinkedContent
               key={page}
@@ -340,22 +418,32 @@ function Shell({ initialPage }: { initialPage: string }) {
       </div>
       {user && data.couple && (
         <nav className="bottom-nav" inert={menu}>
-          {nav.map(({ id, icon: Icon }) => (
-            <a
-              key={id}
-              href={`/${id}`}
-              aria-label={C.nav[id as keyof typeof C.nav]}
-              aria-current={page === id ? "page" : undefined}
-              className={page === id ? "active" : ""}
-              onClick={(e) => {
-                e.preventDefault();
-                go(id);
-              }}
-            >
-              <Icon size={21} />
-              <span>{C.nav[id as keyof typeof C.nav]}</span>
-            </a>
-          ))}
+          {nav
+            .filter((x) => x.id !== "activities")
+            .map(({ id, icon: Icon }) => (
+              <a
+                key={id}
+                href={`/${id}`}
+                aria-label={C.nav[id as keyof typeof C.nav]}
+                aria-current={
+                  page === id || (page === "daily" && id === "home")
+                    ? "page"
+                    : undefined
+                }
+                className={
+                  page === id || (page === "daily" && id === "home")
+                    ? "active"
+                    : ""
+                }
+                onClick={(e) => {
+                  e.preventDefault();
+                  go(id);
+                }}
+              >
+                <Icon size={21} />
+                <span>{C.nav[id as keyof typeof C.nav]}</span>
+              </a>
+            ))}
         </nav>
       )}
     </div>

@@ -3,9 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   Flame,
   Heart,
-  Ship,
-  NotebookPen,
-  Sparkles,
   Check,
   Sun,
   Moon,
@@ -16,10 +13,14 @@ import {
 } from "lucide-react";
 import { useApp, flushNotifications } from "@/components/app-context";
 import { Button, Field, PageTitle, useDraft, DateLabel } from "@/components/ui";
+import { ScopedForm } from "@/components/ui";
 import { CONTENT as C, interpolate as t } from "@/config/content.vi";
 import { enabled } from "@/config/app.config";
 import { rpc } from "@/lib/supabase/browser";
 import { localDate, dayGap, canRepair, nextOccurrence } from "@/lib/date";
+import { ThemeArt, DefaultAvatar } from "@/components/theme-art";
+import { THEME } from "@/config/themes";
+import { MemoryPhoto } from "@/features/memories/screen";
 import { dailySchema } from "@/features/schemas";
 export function HomeScreen({ go }: { go: (p: string) => void }) {
   const { data: d, user, run } = useApp();
@@ -36,35 +37,80 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
   );
   return (
     <>
-      <PageTitle title={C.home.greeting} subtitle={names.join(" & ")} />
-      <section className="home-grid">
-        <div className="daily-card">
-          <span className="eyebrow">{C.nav.daily}</span>
-          <h2>{C.home.daily}</h2>
-          <p>{C.home.dailyDesc}</p>
-          <div className="daily-prompt">
-            {d.daily?.daily_prompts?.prompt ?? d.daily?.prompt}
-          </div>
-          {enabled("daily") && (
-            <Button onClick={() => go("daily")}>
-              {d.daily?.status === "completed"
-                ? C.home.completed
-                : d.answers.some((a) => a.user_id === user?.id)
-                  ? C.daily.viewOwn
-                  : C.home.write}
-            </Button>
+      <section className="couple-hero">
+        <picture>
+          <source media="(max-width: 600px)" srcSet={THEME.assets.heroMobile} />
+          <img
+            src={THEME.assets.heroDesktop}
+            alt=""
+            width={1280}
+            height={720}
+            fetchPriority="high"
+          />
+        </picture>
+        <div className="hero-copy">
+          <span className="eyebrow">{C.redesign.together}</span>
+          <h1 title={names.join(" & ") || C.brand.name}>{names.join(" & ") || C.brand.name}</h1>
+          <p>{C.redesign.greeting}</p>
+          {d.couple?.relationship_start_date &&
+          d.couple.relationship_start_date <= today ? (
+            <span className="together-pill">
+              <Heart size={18} />
+              {t(C.redesign.togetherDays, {
+                count: dayGap(today, d.couple.relationship_start_date) + 1,
+              })}
+            </span>
+          ) : (
+            <button className="together-pill" onClick={() => go("settings")}>
+              {C.redesign.addStart}
+            </button>
           )}
-          <small>{C.home.pending}</small>
         </div>
-        {enabled("streak") && (
-          <div className="streak-card">
-            <Flame size={36} />
-            <strong>{streak}</strong>
-            <span>{t(C.home.streak, { count: streak })}</span>
-            <small>
-              {t(C.home.longest, { count: st?.longest_streak ?? 0 })}
-            </small>
+      </section>
+      {enabled("daily") && (
+        <section className="daily-card journal-card">
+          <div>
+            <span className="eyebrow">
+              <Sun size={20} />
+              {C.nav.daily}
+            </span>
+            <h2>{d.daily?.prompt ?? C.home.daily}</h2>
+          </div>
+          <div className="daily-members">
+            {d.members.map((m, i) => (
+              <div className="daily-member" key={m.user_id}>
+                <DefaultAvatar index={i} />
+                <span>
+                  <b>{names[i]}</b>
+                  <small>
+                    {d.daily?.status === "completed"
+                      ? C.streak.completed
+                      : m.user_id === user?.id &&
+                          d.answers.some((a) => a.user_id === user?.id)
+                        ? C.daily.wait
+                        : C.home.pending}
+                  </small>
+                </span>
+              </div>
+            ))}
+          </div>
+          <Button onClick={() => go("daily")}>
+            {d.daily?.status === "completed"
+              ? C.daily.reveal
+              : d.answers.some((a) => a.user_id === user?.id)
+                ? C.daily.viewOwn
+                : C.home.write}
+          </Button>
+        </section>
+      )}
+      {enabled("streak") && (
+        <div className="streak-inline">
+          <Flame size={18} />
+          <span>{t(C.home.streak, { count: streak })}</span>
+          <details>
+            <summary>{C.daily.history}</summary>
             <p>{C.home.noPressure}</p>
+            <p>{t(C.home.longest, { count: st?.longest_streak ?? 0 })}</p>
             {canRepair(
               st?.last_completed_date ?? null,
               today,
@@ -77,36 +123,92 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
                 {C.home.repair}
               </Button>
             )}
-          </div>
+          </details>
+        </div>
+      )}
+      <section className="home-summary">
+        {enabled("notes") && (
+          <article className="home-letter">
+            <ThemeArt asset="envelope" size={160} />
+            <div>
+              <span className="eyebrow">{C.redesign.recentNotes}</span>
+              <h2>{d.notes[0]?.title ?? C.redesign.noLetter}</h2>
+              <p>
+                {d.notes[0]?.visibility === "private"
+                  ? C.common.private
+                  : d.notes[0]
+                    ? C.common.shared
+                    : C.notes.subtitle}
+              </p>
+              <Button
+                secondary
+                onClick={() =>
+                  go(d.notes[0] ? `notes?item=${d.notes[0].id}` : "notes")
+                }
+              >
+                {d.notes[0] ? C.redesign.openLetter : C.notes.new}
+              </Button>
+            </div>
+          </article>
+        )}
+        {enabled("memories") && (
+          <article className="home-album">
+            <div className="row-between">
+              <h2>{C.redesign.recentMemories}</h2>
+              <button className="text-button" onClick={() => go("memories")}>
+                {C.redesign.viewAll}
+              </button>
+            </div>
+            <div className="album-preview">
+              {d.memories.slice(0, 3).map((m) => (
+                <button
+                  key={m.id}
+                  className="mini-polaroid"
+                  onClick={() => go(`memories?item=${m.id}`)}
+                >
+                  {m.photo_path ? (
+                    <MemoryPhoto path={m.photo_path} />
+                  ) : (
+                    <ThemeArt asset="emptyMemories" size={96} />
+                  )}
+                  <span>
+                    {m.content ||
+                      C.memories.types[m.type as keyof typeof C.memories.types]}
+                  </span>
+                </button>
+              ))}
+              {!d.memories.length && (
+                <ThemeArt asset="emptyMemories" size={160} />
+              )}
+            </div>
+            <small>{t(C.home.memory, { count: d.memoryCount })}</small>
+          </article>
         )}
       </section>
       <section className="quick-grid">
-        {enabled("notes") && (
-          <button className="quick-card" onClick={() => go("notes")}>
-            <NotebookPen />
-            <span>{C.notes.new}</span>
-          </button>
-        )}
         {enabled("prayer") && (
           <button
             className="quick-card river-mini"
             onClick={() => go("prayer")}
           >
-            <Ship />
+            <ThemeArt asset="emptyPrayer" size={96} />
             <span>{C.home.prayer}</span>
-            <small>{C.home.prayerDesc}</small>
           </button>
         )}
         {enabled("activities") && (
-          <button className="quick-card" onClick={() => go("activities")}>
-            <Sparkles />
-            <span>{C.home.activity}</span>
+          <button
+            className="quick-card together-card"
+            onClick={() => go("activities")}
+          >
+            <ThemeArt asset="mascots" size={96} />
+            <span>{C.nav.activities}</span>
+            <small>{C.activities.subtitle}</small>
           </button>
         )}
       </section>
       {enabled("presence") && (
-        <section className="section">
-          <h2>{C.moods.title}</h2>
+        <details className="section presence-section">
+          <summary>{C.moods.title}</summary>
           <div className="mood-list">
             {(
               ["happy", "tired", "sad", "stressed", "calm", "busy"] as const
@@ -166,6 +268,7 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
                         {new Date(mood.created_at).toLocaleTimeString("vi-VN", {
                           hour: "2-digit",
                           minute: "2-digit",
+                          timeZone: d.couple?.timezone,
                         })}
                       </small>
                     </>
@@ -200,7 +303,7 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
                 {C.moods.fromPartner}: {C.moods[x.mood as keyof typeof C.moods]}
               </p>
             ))}
-        </section>
+        </details>
       )}
       {enabled("specialDates") && d.dates.length > 0 && (
         <section className="section">
@@ -210,7 +313,7 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
               ...x,
               id: x.id,
               title: x.title,
-              occurrence: nextOccurrence(x.date, x.kind, today),
+              occurrence: nextOccurrence(x.date, x.kind, today, x.repeat_rule),
             }))
             .filter((x) => x.occurrence)
             .sort((a, b) => a.occurrence!.localeCompare(b.occurrence!))
@@ -222,11 +325,6 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
               </p>
             ))}
         </section>
-      )}
-      {enabled("memories") && (
-        <button className="text-button" onClick={() => go("memories")}>
-          {t(C.home.memory, { count: d.memoryCount })}
-        </button>
       )}
     </>
   );
@@ -267,7 +365,7 @@ export function DailyScreen() {
         )}
         {d.members.length < 2 && <p>{C.daily.needPair}</p>}
         {!own ? (
-          <form
+          <ScopedForm
             onSubmit={async (e) => {
               e.preventDefault();
               if (!dailySchema.safeParse(answer).success) {
@@ -296,7 +394,7 @@ export function DailyScreen() {
               />
             </Field>
             <Button type="submit">{C.daily.submit}</Button>
-          </form>
+          </ScopedForm>
         ) : d.daily?.status !== "completed" ? (
           <div className="answer-card">
             <Check />
@@ -317,7 +415,7 @@ export function DailyScreen() {
                 </article>
               ))}
             </div>
-            <form
+            <ScopedForm
               className="reply-form"
               onSubmit={async (e) => {
                 e.preventDefault();
@@ -357,7 +455,7 @@ export function DailyScreen() {
                 <Heart size={18} />
                 {C.daily.react}
               </Button>
-            </form>
+            </ScopedForm>
             {d.feedback.map((f) => (
               <p key={f.id}>
                 <b>

@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Bell, Volume2, VolumeX } from "lucide-react";
+import { ThemeArt } from "./theme-art";
 import { CONTENT as C } from "@/config/content.vi";
 import { db, rpc } from "@/lib/supabase/browser";
 import { notificationSound } from "@/lib/notifications/sound";
@@ -237,7 +238,10 @@ export function NotificationBell({ go }: { go: (page: string) => void }) {
           {loading ? (
             <p>{C.common.loading}</p>
           ) : !error && !items.length ? (
-            <p className="empty">{C.notifications.empty}</p>
+            <div className="empty notification-empty">
+              <ThemeArt asset="emptyNotifications" size={120} />
+              <p>{C.notifications.empty}</p>
+            </div>
           ) : (
             <ul className="notification-list">
               {items.map((item) => (
