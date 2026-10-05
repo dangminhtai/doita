@@ -331,7 +331,6 @@ export function MemoriesScreen() {
           {filter === "all" && !search && !from && !to ? (
             <>
               {C.memories.empty}
-              <Button onClick={() => setOpen(true)}>{C.memories.new}</Button>
             </>
           ) : (
             <>

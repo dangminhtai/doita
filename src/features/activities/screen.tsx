@@ -97,10 +97,6 @@ export function ActivitiesScreen() {
               ))}
             </select>
           </Field>
-          <Button secondary onClick={choose}>
-            <Sparkles size={18} />
-            {C.activities.choose}
-          </Button>
         </section>
       </details>
       {!chosen && (

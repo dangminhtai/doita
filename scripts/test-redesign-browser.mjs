@@ -160,6 +160,26 @@ try {
   assert.equal(await page.locator('.bottom-nav a[href="/settings"]').count(),1);
   assert.equal(await page.locator('.bottom-nav a[href="/activities"]').count(),0);
   assert.equal(await page.locator('.bottom-nav a').count(),5);
+  for(const width of [1440,390,320]){
+    await page.setViewportSize({width,height:900});await page.goto('http://localhost:3100/notes');
+    await page.getByRole('searchbox').waitFor();
+    const fields=await page.locator('.filters .field').evaluateAll(items=>items.map(el=>({width:el.getBoundingClientRect().width,labelHeight:el.querySelector('span').getBoundingClientRect().height,lineHeight:parseFloat(getComputedStyle(el.querySelector('span')).lineHeight)})));
+    assert.ok(fields.every(field=>field.width>=200&&field.labelHeight<=field.lineHeight*2+1),'Search/filter must keep usable width and readable labels');
+    assert.equal(await page.getByRole('button',{name:C.notes.new,exact:true}).count(),1);
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+    await page.goto('http://localhost:3100/activities');
+    await page.locator('.activity-filters summary').click();
+    assert.equal(await page.getByRole('button',{name:C.activities.choose,exact:true}).count(),1);
+    await page.screenshot({path:`doita-test/redesign-evidence/after-activities-filters-${width}.png`,fullPage:true});
+    await page.locator('.activity-filters summary').click();
+    assert.equal(await page.getByRole('button',{name:C.activities.choose,exact:true}).count(),1);
+    await page.goto('http://localhost:3100/prayer');
+    await page.getByRole('heading',{name:C.prayer.title,exact:true}).waitFor();
+    assert.equal(await page.getByText(C.prayer.subtitle,{exact:true}).count(),1);
+    assert.equal(await page.getByRole('button',{name:C.prayer.write,exact:true}).count(),1);
+  }
+  await page.setViewportSize({width:390,height:844});await page.goto('http://localhost:3100/home');await page.locator('.bottom-nav').waitFor();
+  console.log('PASS readable search/filter at desktop and narrow mobile; one compose/choose CTA and one Prayer subtitle');
   await go('prayer');
   await page.getByRole('button',{name:C.prayer.write,exact:true}).first().click();
   await page.locator('.composer textarea').fill('PRIVATE LOCAL DRAFT');
@@ -194,7 +214,7 @@ try {
   tableRequests.length=0;
   await page.getByRole('button',{name:C.activities.like,exact:true}).click();
   assert.equal(await page.getByRole('button',{name:C.activities.dislike,exact:true}).isDisabled(),true);
-  assert.equal(await page.locator('.activity-filters').getByRole('button',{name:C.activities.choose,exact:true,includeHidden:true}).isEnabled(),true);
+  assert.equal(await page.locator('.activity-filters select').first().isEnabled(),true);
   await page.getByText(C.activities.liked,{exact:true}).waitFor();
   assert.equal(raceDelayCount,1);
   assert.equal(tableRequests.includes('notes'),false);
@@ -278,6 +298,14 @@ try {
   assert.equal(await page.locator('dialog .tag').textContent(),C.common.private);
   await page.locator('dialog button').filter({hasText:C.common.close}).click();
   console.log('PASS archive has a discoverable filter, restore and unchanged private visibility');
+  if(await page.locator('.composer').count())await page.locator('.composer').getByRole('button',{name:C.common.close,exact:true}).click();
+  await page.evaluate(()=>window.scrollTo(0,0));
+  await page.locator('.boat').first().waitFor();
+  for(const width of [1440,390]){
+    await page.setViewportSize({width,height:900});
+    await page.screenshot({path:`doita-test/redesign-evidence/after-prayer-filled-${width}.png`,fullPage:true});
+  }
+  await page.setViewportSize({width:390,height:844});
   await go('notes');
   await page.getByRole('searchbox').fill('UX note');
   await page.locator('.filters select').selectOption('private');

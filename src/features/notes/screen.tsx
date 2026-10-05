@@ -422,10 +422,7 @@ export function NotesScreen() {
               </Button>
             </>
           ) : (
-            <>
-              {C.notes.subtitle}
-              <Button onClick={() => setOpen(true)}>{C.notes.new}</Button>
-            </>
+            <>{C.notes.empty}</>
           )}
         </Empty>
       )}

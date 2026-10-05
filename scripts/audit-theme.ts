@@ -22,7 +22,7 @@ const pairs: [string, string, string][] = [
   ["muted/note", colors.muted, colors.note],
   ["primary/soft", colors.primary, colors.soft],
   ["button", "#ffffff", colors.primary],
-  ["river", colors.paper, colors.river],
+  ["river", colors.text, colors.river],
   ["success", colors.success, "#e9f2ec"],
   ["error", colors.error, "#fff0f0"],
 ];

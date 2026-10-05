@@ -2,6 +2,8 @@
 
 Theme mặc định là `sunset` (Hoàng hôn dịu dàng). Đây là theme assets AI của lượt redesign; chữ, dữ liệu, nút và trạng thái vẫn là HTML. Không đổi tên thương hiệu trong `CONTENT.brand`.
 
+Theo chỉnh sửa ngày 05/10/2026 sau phản hồi của anh: giao diện theo ảnh mẫu trắng/hồng nhẹ, chữ sans-serif hệ thống. Không dùng nền giấy kem/vàng hoặc khối sông xanh đậm. `river` hiện là nền hồng nhạt, chữ trong cảnh dùng `text`; theme sau cần giữ cặp foreground/background này hoặc cập nhật component và audit cùng nhau. Màu hoa/hoàng hôn nằm trong ảnh minh họa, không ép mọi khối nội dung theo màu ảnh.
+
 ## Tạo theme tiếp theo
 
 1. Đặt ảnh mới vào `public/themes/<theme-id>/`, giữ PNG thiết kế gốc ở thư mục nguồn riêng.

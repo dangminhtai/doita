@@ -82,3 +82,21 @@ Browser bao gồm: Prayer draft private/resurface/edit; Back/Forward; like chồ
 Đã xem render Home mobile/desktop, Settings mobile, Notes có nội dung, Prayer desktop và Auth mobile. Visual review phát hiện màu paragraph Auth còn kế thừa màu mint cũ quá nhạt; đã override bằng theme text và thêm kiểm tra computed color, chờ ảnh Auth load trước khi chụp. Bộ lọc ngày native ở 320 px được chuyển một cột; tên dài có wrap ở member card; header z-index/focus được sửa để card không chặn nút menu.
 
 Evidence local có 14 ảnh trước và 17 ảnh sau (7 route × 2 viewport, Auth × 2 và Notes filled mobile), trong `doita-test/redesign-evidence`. Gallery kiểm tra đủ 28 đường dẫn so sánh. Thư mục này được Git bỏ qua: cần giữ/copy evidence riêng khi chia sẻ gallery, không kỳ vọng push code tự mang theo ảnh. Trạng thái Done/Remaining đã ghi ở mục 14 của plan; các checklist nghiệm thu rộng hơn chưa tự tick.
+
+## Sửa theo phản hồi và skill design-doita — 05/10/2026
+
+Checkout lúc bắt đầu: `a280c12` (`refactor UI`), tracked files sạch. Đã truy cập và đọc `C:/Users/minh tai/.codex/skills/.system/design-doita/SKILL.md` cùng 3 references project-contract, copy-and-layout, verification-and-sources. Đọc lại AGENTS/RULES_UX/THEMES và code hiện tại; snapshot của skill không thay trạng thái repo. Phiên này không có tool Supabase MCP hoặc browser MCP; dùng source và Edge/Playwright local đã có, không đọc dữ liệu riêng hoặc khóa để làm mẫu.
+
+Anh chỉ ra đúng các lỗi mà lần kiểm tra trước chưa bao phủ: CSS không làm trang tràn vẫn có thể ép search/select thành cột bé; build và contrast token qua không chứng minh màu đúng hướng ảnh mẫu; CTA nằm trong disclosure chưa mở vẫn có thể lặp khi người dùng mở nó. Bản trước tự chọn nền giấy/serif và khối xanh đậm không đúng hướng trắng/hồng trong ảnh đã duyệt.
+
+| UI → nguyên nhân → sửa | Contract giữ nguyên |
+| --- | --- |
+| Notes search/filter → `.filters` flex, dòng `<small>` có basis 100% nhưng desktop không wrap → grid 2 cột có `minmax(0,1fr)`, hướng dẫn span toàn hàng, mobile 1 cột; bỏ flex/min-width cũ và rút label thành Tìm lời nhắn | `useCollection` vẫn tìm trên server/debounce/pagination, filter private/shared và Back không đổi |
+| Activities → 2 Button cùng `choose()` khi mở filter → chỉ giữ CTA ngoài filter; khi có kết quả giữ hành động đổi gợi ý ở card | `recommend()` cục bộ với time/energy/preference/history; like/complete vẫn `log_activity` và action scope cũ |
+| Prayer → subtitle nằm ở PageTitle và river-caption → giữ ở PageTitle, bỏ caption lặp, chỉ hiện cảnh khi có điều ước released; archive/empty không dựng cảnh trống | Mở thuyền vẫn `setSelected`, save/action RPC và author/private/draft không đổi |
+| Notes/Prayer/Memories empty → nút viết/thêm lặp nút đầu trang → giữ một CTA đầu trang, empty nói trạng thái; nút xóa bộ lọc vẫn giữ vì hành động khác | Không đổi lưu draft, submit hoặc quyền xem |
+| Theme → cream/yellow/serif/dark teal và rule nth-child vàng ở globals → registry đổi trắng/hồng, chữ sans hệ thống; river dùng theme river + text, bỏ gradient teal hard-code và rule nth-child | AI assets, PNG nguồn, registry theme mặc định `sunset` giữ nguyên; không thêm dependency |
+
+Kiểm tra tại repo gốc: lint exit 0, typecheck exit 0 và Turbopack build exit 0. Lint lại file Memories và script browser sau thay đổi cuối. Browser trên bản build local qua 23 nhóm (22 regression cũ và nhóm mới: search/filter có chiều rộng dùng được/label không dựng đứng ở 1440/390/320; CTA duy nhất khi disclosure mở/đóng; subtitle Prayer duy nhất). Không có pageerror. Audit 11 cặp màu nền đặc qua: 4,86–14,53:1, chữ trắng/nút rose 5,66:1. Không gọi kết quả token này là chứng nhận toàn web đạt WCAG.
+
+Đã xem render mới Home desktop, Notes desktop, Activities desktop và Prayer mobile. Thêm ảnh Activities khi filter mở ở 1440/390/320 và Prayer có thuyền ở 1440/390 để review đúng trạng thái anh gặp; ảnh fixture, không phải dữ liệu production. Ảnh bản trước giữ trong `doita-test/redesign-evidence/review-before-*`; ảnh hiện tại `after-*`. Cập nhật THEMES/RULES_UX để giữ hướng màu và kiểm tra thực chiều rộng/control/CTA lặp ở lượt sau. Không chạy lại SQL vì không đổi handler/API/schema/RLS. Chưa kiểm tra zoom trình duyệt 200%, màn hình vật lý hoặc screen reader; không deploy, gửi thông báo hoặc mutation production.

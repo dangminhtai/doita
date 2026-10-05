@@ -33,6 +33,7 @@
 
 - Khi sửa giao diện, đọc thêm `docs/THEMES.md`; assets và màu đi qua `src/config/themes.ts`. Giữ nguồn thiết kế gốc, tối ưu bản dùng trên web, dùng HTML cho nội dung/nút. Theme mới phải kiểm tra contrast, alpha, kích thước, mobile và reduced-motion.
 - Không khôi phục khóa toàn trang khi một thao tác đang gửi. Phân trang/lọc trên server, thứ tự có ID phụ; Back chờ danh sách đủ chiều cao trước khi khôi phục cuộn.
+- Theo ảnh mẫu đã duyệt: nền trắng/hồng nhẹ, chữ rõ; không tự chuyển sang giấy vàng/serif hoặc cảnh xanh đậm. Kiểm tra CTA trùng giữa header, empty state và disclosure mở/đóng. Kiểm tra chiều rộng thực của search/select trên desktop và mobile, không chỉ kiểm tra trang không tràn.
 
 - Đọc diff và đối chiếu các tiêu chí bị ảnh hưởng; không thêm tính năng bị anh xóa.
 - Chạy test logic/database nếu thay đổi dữ liệu hoặc quyền; lint/typecheck/build theo thay đổi.

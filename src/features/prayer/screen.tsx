@@ -238,56 +238,54 @@ export function PrayerScreen() {
           </section>
         </ActionScope>
       )}
-      <section
-        className={`river ${released ? "released" : ""} ${!prayers.length || filter === "archived" ? "compact" : ""}`}
-        onAnimationEnd={() => setReleased(false)}
-        aria-label={C.prayer.river}
-      >
-        <div className="river-caption">
-          <span>{C.prayer.river}</span>
-          <p>{C.prayer.subtitle}</p>
-        </div>
-        <div className="boats">
-          {prayers.slice(0, 8).map((p, i) => (
-            <button
-              key={p.id}
-              className="boat"
-              style={{ animationDelay: `${i * -1.7}s` }}
-              onClick={() => setSelected(p)}
-              aria-label={`${C.prayer.open} · ${d.profiles.find((x) => x.id === p.author_id)?.display_name ?? C.home.partner} · ${new Date(p.created_at).toLocaleDateString("vi-VN", { timeZone: d.couple?.timezone })}`}
-            >
-              <svg
-                className="paper-boat"
-                viewBox="0 0 80 50"
-                width="64"
-                height="44"
-                aria-hidden="true"
+      {prayers.length > 0 && filter !== "archived" && (
+        <section
+          className={`river ${released ? "released" : ""} ${!prayers.length || filter === "archived" ? "compact" : ""}`}
+          onAnimationEnd={() => setReleased(false)}
+          aria-label={C.prayer.river}
+        >
+          <div className="boats">
+            {prayers.slice(0, 8).map((p, i) => (
+              <button
+                key={p.id}
+                className="boat"
+                style={{ animationDelay: `${i * -1.7}s` }}
+                onClick={() => setSelected(p)}
+                aria-label={`${C.prayer.open} · ${d.profiles.find((x) => x.id === p.author_id)?.display_name ?? C.home.partner} · ${new Date(p.created_at).toLocaleDateString("vi-VN", { timeZone: d.couple?.timezone })}`}
               >
-                <path
-                  d="M4 27 40 8 76 27 62 45H18Z"
-                  fill="var(--theme-paper)"
-                />
-                <path
-                  d="M4 27h72M40 8v19L18 45m22-18 22 18"
-                  fill="none"
-                  stroke="var(--theme-primary)"
-                  strokeWidth="2"
-                />
-              </svg>
-              <small>
-                {new Date(p.created_at).toLocaleDateString("vi-VN", {
-                  day: "numeric",
-                  month: "numeric",
-                  timeZone: d.couple?.timezone,
-                })}
-              </small>
-            </button>
-          ))}
-        </div>
-        {released && (
-          <Ship className="launch-boat" size={44} aria-hidden="true" />
-        )}
-      </section>
+                <svg
+                  className="paper-boat"
+                  viewBox="0 0 80 50"
+                  width="64"
+                  height="44"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M4 27 40 8 76 27 62 45H18Z"
+                    fill="var(--theme-paper)"
+                  />
+                  <path
+                    d="M4 27h72M40 8v19L18 45m22-18 22 18"
+                    fill="none"
+                    stroke="var(--theme-primary)"
+                    strokeWidth="2"
+                  />
+                </svg>
+                <small>
+                  {new Date(p.created_at).toLocaleDateString("vi-VN", {
+                    day: "numeric",
+                    month: "numeric",
+                    timeZone: d.couple?.timezone,
+                  })}
+                </small>
+              </button>
+            ))}
+          </div>
+          {released && (
+            <Ship className="launch-boat" size={44} aria-hidden="true" />
+          )}
+        </section>
+      )}
       <div className="filters">
         <Field label={C.common.filters}>
           <select value={filter} onChange={(e) => setFilter(e.target.value)}>
@@ -335,10 +333,7 @@ export function PrayerScreen() {
               </Button>
             </>
           ) : (
-            <>
-              {C.prayer.empty}
-              <Button onClick={() => setOpen(true)}>{C.prayer.write}</Button>
-            </>
+            <>{C.prayer.empty}</>
           )}
         </Empty>
       )}
