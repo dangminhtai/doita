@@ -44,3 +44,5 @@
 - Ghi file thay đổi, kết quả thực tế và giới hạn trong báo cáo. Không ghi đạt cho push/email thật, iOS/Android hay screen reader khi chưa chạy.
 
 Các thay đổi tiếp theo phải cập nhật quy tắc khi anh đổi yêu cầu; giữ lịch sử quyết định ở đây, không suy từ trí nhớ cũ.
+
+- Disclosure dùng details/summary nhưng phải ẩn marker mặc định và có chevron theo theme, đổi hướng mở/đóng; giữ Enter/Space và focus-visible. Thanh cuộn dùng primary/soft của theme, không dùng màu muted xám hoặc giả cuộn bằng JavaScript.

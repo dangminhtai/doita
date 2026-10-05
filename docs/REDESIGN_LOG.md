@@ -109,3 +109,12 @@ Typecheck/build/lint exit0; Edge/Playwright fixture qua 24 nhóm, không pageerr
 ## Icon ứng dụng — 05/10/2026
 
 Theo yêu cầu chỉnh icon đơn giản, thay thuyền xanh cũ bằng trái tim rose `#bc3156` trên nền hồng nhạt `#ffe8f0`, cùng palette theme hiện tại. Nguồn vector chỉnh sửa được: `public/icons/icon.svg`; đồng bộ `public/favicon.svg` và ba PNG hiện có, giữ tên và đường dẫn manifest. PNG được kiểm tra đúng 192/512 px; đã xem bản thu nhỏ và crop tròn để kiểm tra khoảng an toàn maskable. Chưa kiểm tra cài PWA trên thiết bị thật.
+
+## Thanh cuộn, disclosure và cache icon — 05/10/2026
+
+Thanh cuộn dùng primary/soft của theme thay muted; Chromium dùng thumb bo tròn, trình duyệt hỗ trợ chuẩn dùng scrollbar-color. Giữ cuộn native, không chặn thao tác cuộn. Summary bỏ marker tam giác trình duyệt, thay chevron rose ở bên phải, đổi hướng khi mở; vẫn dùng details/summary cho Enter/Space và trạng thái mở/đóng. Áp dụng thống nhất cả bộ lọc Activities, lịch sử daily, mood và thao tác lời nhắn. Reduced motion tắt transition như các control khác.
+
+Kiểm tra public production ngày này: favicon đã là trái tim rose, SHA-256 PNG192 khớp file local; manifest còn dùng URL icon không phiên bản. Service worker chỉ cache trang offline, không cache icon. Thêm src/config/app-icons.ts làm nguồn URL version cho metadata favicon/Apple và manifest; tăng version khi thay artwork lần sau. Bản PWA đã cài có thể cập nhật icon theo lịch riêng của hệ điều hành; không khẳng định thay ngay sau deploy.
+
+Lint/typecheck/build exit0. Edge render CSS thật ở 320/390/1440: Enter/Space hoạt động, marker rỗng, chevron/thumb rose, không tràn ngang. Local production HTML có favicon version mới; cả ba URL icon trong manifest trả 200. Đã xem ảnh Activities mobile. Không sửa dữ liệu, không commit/push/deploy.
+`scripts/test-redesign-browser.mjs` trên bản build local qua 24 nhóm regression, exit0; không có pageerror. Đây là fixture, chưa kiểm chứng trên iOS/Android thật.

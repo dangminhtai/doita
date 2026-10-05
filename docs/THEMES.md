@@ -35,3 +35,5 @@ powershell -ExecutionPolicy Bypass -File scripts/prepare-theme-assets.ps1
 Script dùng ImageMagick, chỉ tạo các WebP trong theme `sunset`, giữ nguyên PNG nguồn. Đọc/thay danh sách nguồn và đích trong script khi làm theme khác; không ghi đè bản thiết kế gốc. Ảnh mới nên giữ tỉ lệ phù hợp, không nhúng chữ hoặc nút. Ảnh có alpha cần kiểm tra viền trên nền sáng và tối.
 
 Ảnh riêng do người dùng tải lên vẫn nằm trong Supabase Storage có quyền truy cập; không đưa vào thư mục public của theme. Hiện ảnh kỷ niệm chỉ lấy signed URL khi gần viewport; chưa tạo thumbnail riêng cho ảnh upload.
+
+Icon ứng dụng dùng URL có phiên bản trong `src/config/app-icons.ts` cho favicon/Apple/manifest. Khi thay artwork trong `public/icons` hoặc `public/favicon.svg`, tăng `version` để cache trình duyệt nhận URL mới; giữ tên file nguồn. PWA đã cài có thể cần thời gian hoặc cài lại để hệ điều hành cập nhật icon.

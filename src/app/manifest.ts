@@ -1,5 +1,6 @@
 import { CONTENT as C } from "@/config/content.vi";
 import { THEME } from "@/config/themes";
+import { APP_ICONS } from "@/config/app-icons";
 import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -13,19 +14,19 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: THEME.colors.page,
     icons: [
       {
-        src: "/icons/icon-192.png",
+        src: APP_ICONS.small,
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icons/icon-512.png",
+        src: APP_ICONS.large,
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icons/icon-maskable.png",
+        src: APP_ICONS.maskable,
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
