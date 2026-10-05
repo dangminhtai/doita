@@ -4,6 +4,21 @@ export async function DELETE(request: Request) {
   if (!ctx) return Response.json({ ok: false }, { status: 401 });
   try {
     const db = service();
+    for (let round = 0; round < 100; round++) {
+      const listed = await db.storage
+        .from("avatars")
+        .list(ctx.user.id, { limit: 100 });
+      if (listed.error) {
+        if (/bucket.*not found/i.test(listed.error.message)) break;
+        throw listed.error;
+      }
+      if (!listed.data?.length) break;
+      const removed = await db.storage
+        .from("avatars")
+        .remove(listed.data.map((file) => `${ctx.user.id}/${file.name}`));
+      if (removed.error) throw removed.error;
+      if (round === 99) throw new Error("Avatar cleanup incomplete");
+    }
     // Registry survives leaving old couples and deleting the original memory.
     for (;;) {
       const assets = await db

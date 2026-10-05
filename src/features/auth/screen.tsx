@@ -3,11 +3,11 @@ import { useState, useId } from "react";
 import { Heart, Eye, EyeOff } from "@/components/icons";
 import { db, configured, rpc } from "@/lib/supabase/browser";
 import { useApp } from "@/components/app-context";
-import { Button, Field } from "@/components/ui";
+import { Button, Field, Select } from "@/components/ui";
 import { ScopedForm } from "@/components/ui";
 import { ThemeArt } from "@/components/theme-art";
 import { CONTENT as C } from "@/config/content.vi";
-import { authSchema, inviteSchema } from "@/features/schemas";
+import { authSchema, signupSchema, inviteSchema } from "@/features/schemas";
 import { APP_CONFIG } from "@/config/app.config";
 import { authRedirectUrl } from "@/lib/auth-redirect";
 export function AuthScreen() {
@@ -22,7 +22,8 @@ export function AuthScreen() {
   const [signup, setSignup] = useState(false),
     [email, setEmail] = useState(""),
     [password, setPassword] = useState(""),
-    [name, setName] = useState("");
+    [name, setName] = useState(""),
+    [gender, setGender] = useState("");
   if (!configured())
     return (
       <div className="welcome">
@@ -35,7 +36,6 @@ export function AuthScreen() {
     <section className="auth-wrap">
       <div className="auth-art">
         <Heart size={48} />
-        <h1>{C.brand.name}</h1>
         <p>{C.auth.intro}</p>
         <ThemeArt asset="envelope" size={240} />
       </div>
@@ -56,7 +56,13 @@ export function AuthScreen() {
             }
             return;
           }
-          if (!authSchema.safeParse({ email, password, name }).success) {
+          if (signup && !signupSchema.shape.gender.safeParse(gender).success) {
+            invalid("gender");
+            document.getElementById(fieldId + "-gender")?.focus();
+            return;
+          }
+          const schema = signup ? signupSchema : authSchema;
+          if (!schema.safeParse({ email, password, name, gender }).success) {
             notify(C.errors.invalid, true);
             return;
           }
@@ -66,7 +72,7 @@ export function AuthScreen() {
                   email,
                   password,
                   options: {
-                    data: { display_name: name },
+                    data: { display_name: name.trim(), gender },
                     emailRedirectTo: authRedirectUrl(location.origin),
                   },
                 })
@@ -107,6 +113,40 @@ export function AuthScreen() {
                   {C.errors.invalidEmail}
                 </small>
               )}
+          </Field>
+        )}
+        {signup && !recovery && (
+          <Field label={C.profile.gender}>
+            <Select
+              id={fieldId + "-gender"}
+              value={gender}
+              placeholder={C.auth.chooseGender}
+              aria-required
+              aria-invalid={!!invalidFields.gender && !gender}
+              aria-describedby={
+                invalidFields.gender && !gender
+                  ? fieldId + "-gender-error"
+                  : undefined
+              }
+              onValueChange={setGender}
+            >
+              {Object.entries(C.profile.genders)
+                .filter(([value]) => value !== "unset")
+                .map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+            </Select>
+            {invalidFields.gender && !gender && (
+              <small
+                className="field-error"
+                id={fieldId + "-gender-error"}
+                role="alert"
+              >
+                {C.auth.chooseGender}
+              </small>
+            )}
           </Field>
         )}
         {signup && !recovery && (
@@ -200,7 +240,9 @@ export function PairScreen() {
       <p>{C.couples.description}</p>
       <Button
         onClick={() =>
-          void run(() => rpc("pair_couple", { p_timezone: APP_CONFIG.timezone }))
+          void run(() =>
+            rpc("pair_couple", { p_timezone: APP_CONFIG.timezone }),
+          )
         }
       >
         {C.couples.create}

@@ -1,15 +1,15 @@
 # Kế hoạch tách Hồ sơ và Hai đứa
 
-Ngày: 05/10/2026. Trạng thái: đề xuất dựa trên code hiện tại, chưa triển khai hoặc thay dữ liệu Supabase.
+Ngày: 05/10/2026. Trạng thái: đã triển khai trong code và kiểm tra local; chưa áp dụng migration hoặc thay dữ liệu Supabase production.
 
-## 1. Mục tiêu và hiện trạng
+## 1. Mục tiêu và hiện trạng lúc lập kế hoạch
 
 Avatar là lối vào thông tin **cá nhân**; tab Hai đứa là lối vào **không gian chung**. Hai nơi phải có tiêu đề, đường dẫn và hành động khác nhau, không mở cùng một form.
 
 Đã đối chiếu:
 
 - `src/components/couple-app.tsx`: avatar và mục nav `settings` cùng gọi `go("settings")`. Nhánh chưa có couple luôn mở PairScreen, nên cần xử lý để người chưa ghép đôi vẫn vào được hồ sơ.
-- `src/features/settings/screen.tsx`: tên hiển thị đang gửi qua `update_settings` cùng ngày bắt đầu, timezone và resurfacing. Tên tab nội bộ `profile` hiện chứa cả thông tin cá nhân và không gian.
+- `src/features/settings/screen.tsx` lúc lập kế hoạch (nay là `src/features/couple/screen.tsx`): tên hiển thị đang gửi qua `update_settings` cùng ngày bắt đầu, timezone và resurfacing. Tên tab nội bộ `profile` hiện chứa cả thông tin cá nhân và không gian.
 - `src/components/theme-art.tsx`: DefaultAvatar chỉ chọn avatarA/avatarB theo index, chưa dùng avatar thật của tài khoản.
 - `src/components/app-context.tsx`: đã đọc hồ sơ chính mình khi chưa ghép đôi; luồng refresh/action cần được kiểm tra thêm cho thao tác cá nhân không có couple.
 - Migration core có `profiles.display_name` tối đa 60 ký tự và `avatar_path`; chưa có `gender` hay username duy nhất. Bucket ảnh hiện thấy trong migrations là `memories`, chưa có bucket avatar riêng.
@@ -22,11 +22,13 @@ Avatar là lối vào thông tin **cá nhân**; tab Hai đứa là lối vào **
 | Lối vào | Đường dẫn | Nội dung |
 | --- | --- | --- |
 | Avatar góc header | `/profile` | Ảnh đại diện, tên hiển thị, giới tính, thông tin tài khoản |
-| Tab Hai đứa | `/settings` | Hai thành viên, mã mời, ngày bắt đầu, ngày đặc biệt, thiết lập chung, rời không gian |
+| Tab Hai đứa | `/couple` | Hai thành viên, mã mời, ngày bắt đầu, ngày đặc biệt, thiết lập chung, rời không gian |
 
-Hồ sơ dùng tiêu đề **Hồ sơ của bạn**. Hai đứa giữ tiêu đề hiện tại và active trong thanh điều hướng khi mở `/settings`. Khi ở `/profile`, avatar có trạng thái được chọn; không tô active tab Hai đứa.
+Điều chỉnh theo yêu cầu mới: `/settings` dành cho cài đặt ứng dụng sau này; màn không gian chung dùng `CoupleScreen` tại `src/features/couple/screen.tsx`. Các ghi nhận hiện trạng ở mục 1 là trước khi triển khai.
 
-Desktop: avatar mở thẳng hồ sơ. Mobile: giữ tab Hai đứa; bổ sung lối vào Hồ sơ của bạn trong menu, dùng avatar cá nhân. Khi chưa ghép đôi vẫn hiện lối vào hồ sơ; `/settings` khi đó dẫn đến tạo/tham gia không gian.
+Hồ sơ dùng tiêu đề **Hồ sơ của bạn**. Hai đứa giữ tiêu đề hiện tại và active trong thanh điều hướng khi mở `/couple`. Khi ở `/profile`, avatar có trạng thái được chọn; không tô active tab Hai đứa.
+
+Desktop: avatar mở thẳng hồ sơ. Mobile: giữ tab Hai đứa; bổ sung lối vào Hồ sơ của bạn trong menu, dùng avatar cá nhân. Khi chưa ghép đôi vẫn hiện lối vào hồ sơ; `/couple` khi đó dẫn đến tạo/tham gia không gian.
 
 Không thêm tab Hồ sơ thứ bảy vào thanh điều hướng chính. Không đổi tên thương hiệu, bố cục các feature khác, hoặc khôi phục admin/privacy/export/theme picker/múi giờ.
 
@@ -55,7 +57,7 @@ Popup crop có vùng vuông và preview tròn, điều chỉnh vị trí/zoom b�
 
 Quy cách đề xuất:
 
-- Nhận JPEG/PNG/WebP, file nguồn tối đa 5 MB; không nhận SVG hoặc ảnh động trong bước đầu.
+- Nhận JPEG/PNG/WebP; không chặn ảnh nguồn theo giới hạn5MB theo yêu cầu mới của anh. Xử lý tại trình duyệt; avatar lưu là ảnh tĩnh WebP, không nhận SVG.
 - Crop theo lựa chọn, xuất **WebP 256 × 256 px**. Mục tiêu khoảng 30–50 KB; giới hạn bản lưu **80 KB**. Chỉ gửi bản đã nén, không lưu bản gốc người dùng.
 - Xử lý orientation và bỏ metadata khi tạo lại ảnh. Nếu không xử lý được định dạng, báo lỗi rõ và giữ ảnh hiện tại.
 - Server kiểm tra nội dung thực, định dạng, kích thước và dung lượng; không tin tên file hoặc kiểm tra client. 256 × 256 không tự đảm bảo file nhỏ.
@@ -90,7 +92,7 @@ Popup khi bị khóa:
 >
 > Bạn đang ở trong một không gian. Để đổi giới tính trong hồ sơ, bạn cần rời không gian trước.
 
-Nút: **Đóng** và **Quản lý không gian**. Nút thứ hai mở `/settings` tại phần quản lý/rời không gian; không tự rời, không đổi dữ liệu và không gửi RPC rời ngay từ popup.
+Nút: **Đóng** và **Quản lý không gian**. Nút thứ hai mở `/couple` tại phần quản lý/rời không gian; không tự rời, không đổi dữ liệu và không gửi RPC rời ngay từ popup.
 
 Rời không gian vẫn dùng confirmation hiện có, giải thích quyền truy cập nội dung chung bị thu hồi. Nếu hồ sơ có draft chưa lưu, xử lý guard trước khi chuyển trang. Không gộp rời không gian và đổi giới tính thành một thao tác.
 
@@ -100,7 +102,7 @@ Database phải chặn thay đổi thật của gender khi có membership, kể 
 
 ## 6. Hai đứa sau khi tách
 
-- Giữ các thành viên, mã mời và ngày bắt đầu tại `/settings`.
+- Giữ các thành viên, mã mời và ngày bắt đầu tại `/couple`.
 - Bỏ ô tên cá nhân khỏi form thiết lập chung. Giữ thiết lập thực sự của không gian ở đây; chuyển thiết lập cá nhân theo dữ liệu sở hữu tương ứng, không sao chép một lựa chọn thành hai nơi lưu.
 - Thông báo thiết bị/âm thanh chuyển vào phần tài khoản cá nhân nếu tách trong cùng đợt; ngày đặc biệt và weekly giữ ở không gian. Khi triển khai phải xác minh trường resurfacing hiện thuộc profile hay couple trước khi đặt nó.
 - Đăng xuất/xóa tài khoản nằm ở hồ sơ; **Rời không gian** nằm ở Hai đứa. Không đánh đồng xóa tài khoản với rời không gian.
@@ -114,7 +116,7 @@ Phát hiện cần xử lý khi triển khai: Settings vẫn còn dropdown múi 
 | --- | --- |
 | `src/app/profile/page.tsx` và feature profile mới | Route và màn cá nhân, hỗ trợ người chưa ghép đôi |
 | `src/components/couple-app.tsx` | Avatar mở profile; phân biệt active; route profile được xử lý trước gate chưa có couple; lối vào mobile |
-| `src/features/settings/screen.tsx` | Bỏ tên/account cá nhân khỏi màn chung theo phân chia đã chốt; giữ quản lý couple |
+| `src/features/couple/screen.tsx` | Bỏ tên/account cá nhân khỏi màn chung theo phân chia đã chốt; giữ quản lý couple |
 | Component avatar dùng chung | Đọc profile theo user ID, ảnh riêng tư và fallback; thay các chỗ chỉ dùng DefaultAvatar |
 | `src/components/app-context.tsx` | Load/refresh/profile mutation khi không có couple, session guard, cập nhật tên/ảnh của người ấy |
 | `src/features/schemas.ts`, content và CSS | Validation/microcopy/trạng thái/crop theo theme, không thêm khẩu hiệu |
@@ -136,7 +138,7 @@ Không thêm thư viện crop trước khi kiểm tra giải pháp hiện có; n
 
 ## 9. Tiêu chí nghiệm thu
 
-- Avatar mở `/profile`; Hai đứa mở `/settings`; Back/Forward và deep link đúng, kể cả chưa có couple.
+- Avatar mở `/profile`; Hai đứa mở `/couple`; Back/Forward và deep link đúng, kể cả chưa có couple.
 - Đổi tên 1–60 ký tự, dấu tiếng Việt, khoảng trắng và tên dài hoạt động; các chỗ hiển thị tên cập nhật đúng.
 - Chọn/crop ảnh vuông/tròn không méo; bản lưu đúng 256 × 256, không quá 80 KB. Hủy hoặc lỗi không làm mất avatar cũ.
 - Hai tab đổi ảnh hoặc retry sau mất phản hồi không xóa nhầm ảnh đang dùng, không tích lũy bản không còn tham chiếu.
@@ -147,4 +149,13 @@ Không thêm thư viện crop trước khi kiểm tra giải pháp hiện có; n
 - Mobile 320/390, desktop 1120/1440, zoom200%, tên dài và bàn phím/crop không tràn; focus và Escape hoạt động.
 - Theo RULES_UX: đủ phản hồi đang lưu/đã lưu/lỗi/chưa xác nhận; không chỉ lấy build qua làm bằng chứng UX. Không phục hồi các mục anh đã xóa.
 
-Kế hoạch chưa triển khai: không có avatar upload, trường gender hay route profile mới được tạo trong lượt soạn tài liệu này.
+## 10. Kết quả triển khai
+
+- Avatar/menu mở `/profile`; Hai đứa dùng `/couple`. Hồ sơ hoạt động khi chưa ghép đôi. Hai đứa giữ thiết lập chung/rời không gian; thông báo, đổi mật khẩu, đăng xuất/xóa tài khoản chuyển sang hồ sơ.
+- Tên hiển thị, giới tính, resurfacing và ảnh preview có draft riêng theo tài khoản. Crop với zoom/vị trí, keyboard, Hủy/Escape; WebP256×256 tối đa80KB. Ảnh gốc không gửi lên server. Có khôi phục ảnh mặc định.
+- Migration `202610050008_profile.sql`: gender, RPC/receipt theo tài khoản, trigger khóa giới tính theo membership, bucket riêng tư và registry cleanup. Khóa giới tính không khóa tên/avatar; popup không tự rời không gian.
+- API kiểm tra ảnh thật bằng Sharp, giới hạn multipart. Retry không ghi đè bản mới hoặc tái upload ảnh đã xác nhận. Avatar dùng component chung và URL ký hạn5phút; fallback theo theme. Cron/endpoint hiện có dọn ảnh cũ/upload bỏ dở; ảnh đang được profile tham chiếu được giữ.
+- Kiểm tra: 23 unit tests; 27 nhóm PGlite database; API với Sharp thật và Supabase HTTP giả lập; browser fixture cho route, retry, PNG nguồn hơn5MB, crop256×256/80KB, draft/reload, gender lock, membership thay đổi và responsive. 24 nhóm browser regression cũ qua trên bản production local. Có chạy build/typecheck/lint.
+- Chưa kiểm chứng Supabase/bucket thật, transaction đồng thời trên PostgreSQL production, iOS/Android, screen reader hoặc email/push thật. Edge headless với viewport mobile/desktop không thay cho thiết bị thật.
+
+Trước khi dùng luồng lưu hồ sơ với Supabase thật: áp dụng **chỉ migration mới** `supabase/migrations/202610050008_profile.sql` sau các migration đã có. Chưa commit/push/deploy; không đọc hoặc in khóa bí mật.

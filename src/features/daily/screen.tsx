@@ -18,7 +18,7 @@ import { CONTENT as C, interpolate as t } from "@/config/content.vi";
 import { enabled } from "@/config/app.config";
 import { rpc } from "@/lib/supabase/browser";
 import { localDate, dayGap, canRepair, nextOccurrence } from "@/lib/date";
-import { ThemeArt, DefaultAvatar } from "@/components/theme-art";
+import { ThemeArt, ProfileAvatar } from "@/components/theme-art";
 import { THEME } from "@/config/themes";
 import { MemoryPhoto } from "@/features/memories/screen";
 import { dailySchema } from "@/features/schemas";
@@ -60,7 +60,7 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
               })}
             </span>
           ) : (
-            <button className="together-pill" onClick={() => go("settings")}>
+            <button className="together-pill" onClick={() => go("couple")}>
               {C.redesign.addStart}
             </button>
           )}
@@ -74,7 +74,7 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
           <div className="daily-members">
             {d.members.map((m, i) => (
               <div className="daily-member" key={m.user_id}>
-                <DefaultAvatar index={i} />
+                <ProfileAvatar userId={m.user_id} index={i} />
                 <span>
                   <b>{names[i]}</b>
                   <small>

@@ -81,6 +81,7 @@ let inboxError=false;
 let expireSession=false,dropNoteResponse=false;
 const receiptCache=new Map(),noteRequestIds=[];
 await context.route('**/api/push',route=>route.fulfill({json:{ok:true}}));
+await context.route('**/api/assets/cleanup',route=>route.fulfill({json:{ok:true}}));
 await context.route(`${url}/**`,async route=>{
   const request=route.request(),u=new URL(request.url());
   if(u.pathname.includes('/auth/v1/logout'))return route.fulfill({status:204});
@@ -201,13 +202,13 @@ try {
   console.log('PASS custom picker keyboard/Escape/focus, mobile/desktop bounds, draft cancel and accepted navigation');
   if(process.env.REDESIGN_SNAPSHOTS){
     const prefix=process.env.REDESIGN_SNAPSHOTS;await mkdir('doita-test/redesign-evidence',{recursive:true});
-    for(const width of [390,1440])for(const route of ['home','daily','notes','prayer','memories','activities','settings']){
+    for(const width of [390,1440])for(const route of ['home','daily','notes','prayer','memories','activities','couple']){
       await page.setViewportSize({width,height:900});await page.goto(`http://localhost:3100/${route}`);await page.locator('.bottom-nav').waitFor({state:'attached'});await page.waitForTimeout(250);
       await page.screenshot({path:`doita-test/redesign-evidence/${prefix}-${route}-${width}.png`,fullPage:true});
     }
     await page.setViewportSize({width:390,height:844});await page.goto('http://localhost:3100/home');await page.locator('.bottom-nav').waitFor();
   }
-  assert.equal(await page.locator('.bottom-nav a[href="/settings"]').count(),1);
+  assert.equal(await page.locator('.bottom-nav a[href="/couple"]').count(),1);
   assert.equal(await page.locator('.bottom-nav a[href="/activities"]').count(),0);
   assert.equal(await page.locator('.bottom-nav a').count(),5);
   for(const width of [1440,390,320]){
@@ -441,16 +442,17 @@ try {
   await page.setViewportSize({width:390,height:844});
   console.log('PASS notification opens specific content; missing content explains access; small viewport keeps submit reachable');
   for (const [kind,path,table,row,label] of [
-    ['special','settings','special_dates',{id:'80000000-0000-0000-0000-000000000001',title:'Specific birthday',date:'2000-02-29'},'Specific birthday'],
+    ['special','couple','special_dates',{id:'80000000-0000-0000-0000-000000000001',title:'Specific birthday',date:'2000-02-29'},'Specific birthday'],
     ['care','home','moods',{id:'80000000-0000-0000-0000-000000000002',mood:'hug',created_at:new Date().toISOString()},C.moods.hug],
   ]) {
     tables[table].push(row);
-    const notice={...specific,read_at:null,id:row.id,kind,url:`/${path}?item=${row.id}`,created_at:new Date().toISOString()};
+    const notice={...specific,read_at:null,id:row.id,kind,url:`/${kind==='special'?'settings':path}?item=${row.id}`,created_at:new Date().toISOString()};
     tables.notifications.unshift(notice);emit('notifications',notice);
     await page.locator('.notification-badge').filter({hasText:'1'}).waitFor();
     await page.locator('.notification-bell').click();
     await page.locator('.notification-item').filter({hasText:C.notifications[kind]}).first().click();
     await page.locator('dialog').getByText(label,{exact:true}).waitFor();
+    assert.ok(page.url().includes(`/${path}?item=${row.id}`));
     await page.locator('dialog').getByRole('button',{name:C.common.back,exact:true}).click();
   }
   console.log('PASS special-date and care notifications open their specific record');
@@ -490,14 +492,14 @@ try {
   await page.emulateMedia({reducedMotion:'no-preference'});await page.setViewportSize({width:390,height:844});
   console.log('PASS theme assets load, no Home overflow at six widths, reduced-motion retains static accessible boats');
   tables.profiles[0].display_name='A'.repeat(60);
-  for(const width of [320,1440])for(const route of ['home','daily','notes','prayer','memories','activities','settings']){
+  for(const width of [320,1440])for(const route of ['home','daily','notes','prayer','memories','activities','couple']){
     await page.setViewportSize({width,height:900});await page.goto(`http://localhost:3100/${route}`);
     await page.locator('.bottom-nav').waitFor({state:'attached'});await page.waitForTimeout(150);
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${route} overflow at ${width}`);
   }
   console.log('PASS seven core routes fit narrow mobile and desktop with a 60-character member name');
   await page.setViewportSize({width:390,height:844});
-  await go('settings');
+  await go('couple');
   await page.getByRole('button',{name:C.redesign.dates,exact:true}).click();
   await page.getByLabel(C.redesign.eventName,{exact:true}).fill('Custom trip');
   await page.getByLabel(C.common.date,{exact:true}).fill('2020-02-29');
@@ -511,7 +513,9 @@ try {
   assert.equal(await page.locator('select:disabled').count(),0);
   assert.equal(await page.getByText(C.couples.timezone,{exact:true}).count(),0);
   delayLoad=true;
-  await page.getByRole('button',{name:C.redesign.account,exact:true}).click();
+  await page.locator('.mobile-menu').click();
+  await page.locator('.sidebar a[href="/profile"]').click();
+  await page.locator('.profile-account').waitFor();
   await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
   await page.getByRole('button',{name:C.auth.signOut,exact:true}).click();
   await page.getByRole('heading',{name:C.auth.title,exact:true}).waitFor();

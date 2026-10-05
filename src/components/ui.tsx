@@ -20,9 +20,11 @@ const ActionContext = createContext<string | null>(null);
 export function ActionScope({
   scope,
   children,
+  showProgress = true,
 }: {
   scope: string;
   children: ReactNode;
+  showProgress?: boolean;
 }) {
   const { pendingActions } = useApp();
   return (
@@ -34,7 +36,7 @@ export function ActionScope({
         aria-busy={pendingActions.includes(scope)}
       >
         {children}
-        {pendingActions.includes(scope) && (
+        {showProgress && pendingActions.includes(scope) && (
           <p className="button-progress" role="status">
             {C.common.processing}
           </p>
@@ -43,10 +45,13 @@ export function ActionScope({
     </ActionContext.Provider>
   );
 }
-export function ScopedForm(props: FormHTMLAttributes<HTMLFormElement>) {
+export function ScopedForm({
+  showProgress = true,
+  ...props
+}: FormHTMLAttributes<HTMLFormElement> & { showProgress?: boolean }) {
   const scope = useId();
   return (
-    <ActionScope scope={scope}>
+    <ActionScope scope={scope} showProgress={showProgress}>
       <form {...props} />
     </ActionScope>
   );

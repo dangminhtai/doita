@@ -5,6 +5,10 @@ export const authSchema = z.object({
   password: z.string().min(8).max(128),
   name: z.string().trim().max(60),
 });
+export const signupSchema = authSchema.extend({
+  name: authSchema.shape.name.min(1),
+  gender: z.enum(["male", "female", "other", "undisclosed"]),
+});
 export const noteSchema = z.object({
   title: z.string().trim().min(1).max(120),
   content: z.string().trim().min(1).max(A.notes.maxLength),

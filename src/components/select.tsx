@@ -17,7 +17,12 @@ export function Select({
   disabled,
   name,
   required,
+  id,
+  placeholder,
   "aria-labelledby": labelledBy,
+  "aria-describedby": describedBy,
+  "aria-invalid": invalid,
+  "aria-required": ariaRequired,
 }: {
   value: string | number;
   onValueChange: (value: string) => void;
@@ -25,7 +30,12 @@ export function Select({
   disabled?: boolean;
   name?: string;
   required?: boolean;
+  id?: string;
+  placeholder?: string;
   "aria-labelledby"?: string;
+  "aria-describedby"?: string;
+  "aria-invalid"?: boolean;
+  "aria-required"?: boolean;
 }) {
   const options = Children.toArray(children).filter(isValidElement<Option>);
   return (
@@ -39,9 +49,13 @@ export function Select({
       <Primitive.Trigger
         className="doita-select"
         aria-labelledby={labelledBy}
+        id={id}
+        aria-describedby={describedBy}
+        aria-invalid={invalid}
+        aria-required={ariaRequired ?? required}
         data-value={String(value)}
       >
-        <Primitive.Value />
+        <Primitive.Value placeholder={placeholder} />
         <Primitive.Icon>
           <ChevronDown size={18} />
         </Primitive.Icon>

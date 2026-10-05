@@ -1,5 +1,6 @@
 import "server-only";
 import { service } from "@/lib/supabase/server";
+import { cleanupAvatars } from "./avatar-cleanup";
 
 export async function cleanupAssets(
   userId?: string,
@@ -52,5 +53,6 @@ export async function cleanupAssets(
   if (userId) remaining = remaining.eq("user_id", userId);
   const { count, error } = await remaining;
   if (error) throw error;
-  return { cleaned, pending: count ?? 0 };
+  const avatars = Date.now() < deadline ? await cleanupAvatars(userId, deadline) : 0;
+  return { cleaned, pending: count ?? 0, avatars };
 }

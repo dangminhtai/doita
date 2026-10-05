@@ -1,6 +1,7 @@
 import "server-only";
 import webpush from "web-push";
 import { processWithinBudget } from "./worker";
+import { notificationTarget } from "./target";
 import { service } from "@/lib/supabase/server";
 import { CONTENT as C } from "@/config/content.vi";
 export function allowedEndpoint(endpoint: string) {
@@ -107,7 +108,7 @@ export async function flushPush(actor?: string, deadline = Date.now() + 40000) {
             body:
               C.notifications[job.kind as keyof typeof C.notifications] ??
               C.notifications.reminder,
-            url: job.url,
+            url: notificationTarget(job.url),
             tag: job.id,
           }),
           {

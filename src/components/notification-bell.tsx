@@ -5,6 +5,7 @@ import { ThemeArt } from "./theme-art";
 import { CONTENT as C } from "@/config/content.vi";
 import { db, rpc } from "@/lib/supabase/browser";
 import { notificationSound } from "@/lib/notifications/sound";
+import { notificationTarget } from "@/lib/notifications/target";
 import { useApp, type Row } from "./app-context";
 import { Modal, DateLabel, Button } from "./ui";
 
@@ -254,8 +255,11 @@ export function NotificationBell({ go }: { go: (page: string) => void }) {
                         String(item.url),
                         location.origin,
                       );
-                      const path = destination.pathname.slice(1);
                       if (destination.origin !== location.origin) return;
+                      destination.pathname = notificationTarget(
+                        destination.pathname,
+                      );
+                      const path = destination.pathname.slice(1);
                       if (
                         ![
                           "home",
@@ -264,7 +268,7 @@ export function NotificationBell({ go }: { go: (page: string) => void }) {
                           "prayer",
                           "memories",
                           "activities",
-                          "settings",
+                          "couple",
                         ].includes(path)
                       )
                         return;

@@ -19,7 +19,7 @@ import { APP_CONFIG as A } from "@/config/app.config";
 import { rpc } from "@/lib/supabase/browser";
 import { noteSchema } from "@/features/schemas";
 import { useCollection } from "@/components/collection";
-import { ThemeArt, DefaultAvatar } from "@/components/theme-art";
+import { ThemeArt, ProfileAvatar } from "@/components/theme-art";
 import { useViewState } from "@/components/view-state";
 import {
   emptyNoteDraft,
@@ -299,7 +299,7 @@ export function NotesScreen() {
                 {n.is_pinned && <Pin size={16} />}
               </div>
               <div className="letter-sender">
-                <DefaultAvatar
+                <ProfileAvatar userId={n.author_id}
                   index={Math.max(
                     0,
                     d.members.findIndex((m) => m.user_id === n.author_id),

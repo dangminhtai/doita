@@ -868,9 +868,6 @@ select {
   color: #fff;
   overflow: hidden;
 }
-.auth-art h1 {
-  margin: 28px 0 20px;
-}
 .auth-art p {
   color: #d1e2df;
   max-width: 240px;
@@ -1168,9 +1165,6 @@ select {
   .auth-art > svg,
   .auth-rings {
     display: none;
-  }
-  .auth-art h1 {
-    margin: 0 0 16px;
   }
   .auth-art p {
     max-width: none;

@@ -21,9 +21,10 @@ import { NotesScreen } from "@/features/notes/screen";
 import { PrayerScreen } from "@/features/prayer/screen";
 import { MemoriesScreen } from "@/features/memories/screen";
 import { ActivitiesScreen } from "@/features/activities/screen";
-import { SettingsScreen } from "@/features/settings/screen";
+import { CoupleScreen } from "@/features/couple/screen";
+import { ProfileScreen } from "@/features/profile/screen";
 import { NotificationBell } from "./notification-bell";
-import { DefaultAvatar, ThemeArt } from "./theme-art";
+import { ProfileAvatar, ThemeArt } from "./theme-art";
 import { LinkedContent } from "./linked-content";
 import { ConfirmationProvider } from "./confirmation";
 export function CoupleApp({ initialPage = "home" }: { initialPage?: string }) {
@@ -214,7 +215,7 @@ function Shell({ initialPage }: { initialPage: string }) {
     { id: "prayer", icon: Ship, flag: enabled("prayer") },
     { id: "memories", icon: Camera, flag: enabled("memories") },
     { id: "activities", icon: Sparkles, flag: enabled("activities") },
-    { id: "settings", icon: Users, flag: true },
+    { id: "couple", icon: Users, flag: true },
   ].filter((x) => x.flag);
   const pageTables: Record<string, string[]> = {
     home: [
@@ -236,7 +237,8 @@ function Shell({ initialPage }: { initialPage: string }) {
     prayer: ["prayers", "prayer_events"],
     memories: ["memories"],
     activities: ["activities", "activity_sessions"],
-    settings: ["profiles", "couple_members", "special_dates"],
+    couple: ["profiles", "couple_members", "special_dates"],
+    profile: ["profiles", "couple_members"],
   };
   const pageError = (pageTables[page] ?? [])
     .map((t) => data.errors[t])
@@ -251,13 +253,15 @@ function Shell({ initialPage }: { initialPage: string }) {
         <p>{C.errors.loadFailed}</p>
         <button onClick={() => void load()}>{C.common.retry}</button>
       </div>
-    ) : !data.couple ? (
-      <PairScreen />
     ) : pageError ? (
       <div role="alert">
         <p>{pageError}</p>
         <button onClick={() => void load()}>{C.common.retry}</button>
       </div>
+    ) : page === "profile" ? (
+      <ProfileScreen key={user.id} go={go} />
+    ) : !data.couple ? (
+      <PairScreen />
     ) : page === "daily" && enabled("daily") ? (
       <DailyScreen />
     ) : page === "notes" && enabled("notes") ? (
@@ -268,8 +272,8 @@ function Shell({ initialPage }: { initialPage: string }) {
       <MemoriesScreen />
     ) : page === "activities" && enabled("activities") ? (
       <ActivitiesScreen />
-    ) : page === "settings" ? (
-      <SettingsScreen />
+    ) : page === "couple" ? (
+      <CoupleScreen />
     ) : (
       <HomeScreen go={go} />
     );
@@ -292,37 +296,36 @@ function Shell({ initialPage }: { initialPage: string }) {
         </a>
         {user && data.couple && !recovery && (
           <nav className="desktop-nav" aria-label={C.common.openMenu}>
-            {nav
-              .map(({ id, icon: Icon }) => (
-                <a
-                  key={id}
-                  href={`/${id}`}
-                  className={
-                    page === id || (page === "daily" && id === "home")
-                      ? "active"
-                      : ""
-                  }
-                  aria-current={
-                    page === id || (page === "daily" && id === "home")
-                      ? "page"
-                      : undefined
-                  }
-                  onClick={(e) => {
-                    e.preventDefault();
-                    go(id);
-                  }}
-                >
-                  <Icon size={19} />
-                  <span>{C.nav[id as keyof typeof C.nav]}</span>
-                </a>
-              ))}
+            {nav.map(({ id, icon: Icon }) => (
+              <a
+                key={id}
+                href={`/${id}`}
+                className={
+                  page === id || (page === "daily" && id === "home")
+                    ? "active"
+                    : ""
+                }
+                aria-current={
+                  page === id || (page === "daily" && id === "home")
+                    ? "page"
+                    : undefined
+                }
+                onClick={(e) => {
+                  e.preventDefault();
+                  go(id);
+                }}
+              >
+                <Icon size={19} />
+                <span>{C.nav[id as keyof typeof C.nav]}</span>
+              </a>
+            ))}
           </nav>
         )}
 
         {user && data.couple && enabled("notifications") && !recovery && (
           <NotificationBell key={`${user.id}:${data.couple.id}`} go={go} />
         )}
-        {user && data.couple && (
+        {user && !recovery && (
           <button
             ref={menuButton}
             className="icon-button mobile-menu"
@@ -334,13 +337,15 @@ function Shell({ initialPage }: { initialPage: string }) {
             {menu ? <X /> : <Menu />}
           </button>
         )}
-        {user && data.couple && (
+        {user && !recovery && (
           <button
-            className="avatar desktop-profile"
-            onClick={() => go("settings")}
-            aria-label={C.nav.settings}
+            className={`avatar desktop-profile ${page === "profile" ? "active" : ""}`}
+            onClick={() => go("profile")}
+            aria-label={C.profile.title}
+            aria-current={page === "profile" ? "page" : undefined}
           >
-            <DefaultAvatar
+            <ProfileAvatar
+              userId={user.id}
               index={Math.max(
                 0,
                 data.members.findIndex((m) => m.user_id === user.id),
@@ -350,7 +355,7 @@ function Shell({ initialPage }: { initialPage: string }) {
         )}
       </header>
       <div className="app-body">
-        {user && data.couple && (
+        {user && !recovery && (
           <aside
             ref={sidebar}
             id="couple-sidebar"
@@ -362,7 +367,21 @@ function Shell({ initialPage }: { initialPage: string }) {
               </button>
             )}
             <nav>
-              {nav.map(({ id, icon: Icon }) => (
+              <a
+                href="/profile"
+                aria-current={page === "profile" ? "page" : undefined}
+                onClick={(event) => {
+                  event.preventDefault();
+                  go("profile");
+                }}
+              >
+                <ProfileAvatar userId={user.id} size={24} />
+                {C.profile.title}
+              </a>
+              {(data.couple
+                ? nav
+                : nav.filter((item) => item.id === "couple")
+              ).map(({ id, icon: Icon }) => (
                 <a
                   key={id}
                   href={`/${id}`}
@@ -411,26 +430,30 @@ function Shell({ initialPage }: { initialPage: string }) {
             </div>
           )}
           <div className="page-controls">{content}</div>
-          {user && data.couple && !recovery && !pageError && (
-            <LinkedContent
-              key={page}
-              table={
-                page === "daily"
-                  ? "daily_sessions"
-                  : page === "prayer"
-                    ? "prayers"
-                    : page === "notes"
-                      ? "notes"
-                      : page === "activities"
-                        ? "activities"
-                        : page === "settings"
-                          ? "special_dates"
-                          : page === "home"
-                            ? "moods"
-                            : "memories"
-              }
-            />
-          )}
+          {user &&
+            data.couple &&
+            page !== "profile" &&
+            !recovery &&
+            !pageError && (
+              <LinkedContent
+                key={page}
+                table={
+                  page === "daily"
+                    ? "daily_sessions"
+                    : page === "prayer"
+                      ? "prayers"
+                      : page === "notes"
+                        ? "notes"
+                        : page === "activities"
+                          ? "activities"
+                          : page === "couple"
+                            ? "special_dates"
+                            : page === "home"
+                              ? "moods"
+                              : "memories"
+                }
+              />
+            )}
         </main>
       </div>
       {user && data.couple && (

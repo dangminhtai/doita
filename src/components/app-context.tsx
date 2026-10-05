@@ -140,7 +140,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!membership.data) {
         if (!current()) return false;
         setData({ ...blank, profiles: profile.data ? [profile.data] : [] });
-        snapshot.current = blank;
+        snapshot.current = {
+          ...blank,
+          profiles: profile.data ? [profile.data] : [],
+        };
         setLoadError(false);
         return true;
       }
@@ -497,6 +500,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
     refreshTables,
   ]);
   useEffect(() => {
+    if (!user || data.couple) return;
+    const channel = db()
+      .channel(`profile-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "profiles",
+          filter: `id=eq.${user.id}`,
+        },
+        () => void load(),
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "couple_members",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => void load(),
+      )
+      .subscribe();
+    return () => {
+      void db().removeChannel(channel);
+    };
+  }, [user?.id, data.couple?.id, load]);
+  useEffect(() => {
     if (!user) return;
     const refresh = () => {
       if (document.visibilityState === "visible") void load();
@@ -551,6 +583,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (actionUser && actionUser === currentUser.current)
         void flushNotifications();
       const affected: Record<string, string[]> = {
+        "/profile": ["profiles"],
         "/activities": ["activities", "activity_sessions", "memories"],
         "/notes": ["notes", "memories"],
         "/prayer": ["prayers", "memories"],

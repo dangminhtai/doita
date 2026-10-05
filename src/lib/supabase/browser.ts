@@ -72,14 +72,17 @@ export async function rpc(name: string, args: Record<string, unknown> = {}) {
 const pendingRequests = new Map<string, string>();
 export async function authenticatedFetch(path: string, init: RequestInit = {}) {
   const { data } = await db().auth.getSession();
+  if (!data.session) throw new Error("session_expired");
+  const headers = new Headers(init.headers);
+  headers.set("Authorization", `Bearer ${data.session.access_token}`);
+  if (!(init.body instanceof FormData)) headers.set("Content-Type", "application/json");
   const response = await boundedFetch(path, {
     ...init,
-    headers: {
-      ...init.headers,
-      Authorization: `Bearer ${data.session?.access_token ?? ""}`,
-      "Content-Type": "application/json",
-    },
+    headers,
   });
-  if (!response.ok) throw new Error("Request failed");
+  if (!response.ok) {
+    const result = await response.json().catch(() => null);
+    throw new Error(result?.error ?? "Request failed");
+  }
   return response.json();
 }

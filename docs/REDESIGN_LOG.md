@@ -1,5 +1,17 @@
 # Nhật ký triển khai redesign Doita
 
+## Đường dẫn Hai đứa — 05/10/2026
+
+Theo yêu cầu mới của anh, Hai đứa dùng `/couple`, hồ sơ dùng `/profile`; `/settings` dành cho cài đặt ứng dụng sau này. Đổi route, tên feature/component và khóa nav thành couple, cập nhật các liên kết từ daily/popup hồ sơ và bộ kiểm tra. Thông báo cũ trỏ `/settings` được đổi đích lúc mở hoặc gửi push, giữ query và không mở link ngoài origin. Không tạo alias `/settings` cho Hai đứa; không sửa migration đã áp dụng hay dữ liệu production.
+
+Kiểm chứng local: build/typecheck và lint exit0; 24 unit tests, 5 nhóm browser profile và 24 nhóm browser regression qua. Browser kiểm tra tab active, Back/Forward, liên kết popup, `/settings` trả404 và thông báo ngày đặc biệt cũ vẫn mở đúng record ở `/couple`. Service worker được chạy trong fixture: giữ query khi đổi đích và từ chối origin ngoài. Chưa kiểm tra push trên thiết bị thật hoặc deploy.
+
+## Hồ sơ cá nhân — 05/10/2026
+
+Tách avatar/menu sang `/profile`; Hai đứa giữ `/settings` cho không gian chung. Thêm tên hiển thị, giới tính khóa theo membership và crop/nén avatar WebP256×256 tối đa80KB; không chặn ảnh gốc5MB, không upload ảnh gốc. Chuyển thông báo/tài khoản sang hồ sơ, dùng avatar thật tại header/thành viên/lời nhắn/daily với fallback theme. Giữ draft theo tài khoản, receipt retry, popup không tự rời; RPC/trigger bảo vệ ở database. Bucket riêng tư, URL ký5phút, registry và cleanup dọn ảnh cũ/bỏ dở/xóa tài khoản.
+
+Local: 23 unit tests, 27 nhóm PGlite, kiểm tra API bằng Sharp thật/mocked Supabase HTTP, browser profile/crop/retry/khóa/responsive và 24 nhóm regression cũ qua; build/typecheck/lint được chạy. Chi tiết và giới hạn tại `docs/PLAN_PROFILE_DOITA.md`. Chưa áp dụng migration `202610050008_profile.sql` lên Supabase thật, chưa commit/push/deploy hoặc kiểm tra thiết bị thật/email/push thật.
+
 Baseline: `6393397fc2272a0639f099be89acaee4601d09cf`. Workspace gốc: `F:\X-FILE\Code_UNI\couple-river`; triển khai trong worktree `F:\X-FILE\Code_UNI\couple-river-redesign-20261005` trước khi chuyển diff đã kiểm tra về workspace gốc. Tracked files sạch trước khi làm; các PNG/tài liệu AI chưa tracked được giữ nguyên.
 
 ## P0 — Baseline

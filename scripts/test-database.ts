@@ -41,7 +41,15 @@ for (const file of readdirSync("supabase/migrations")
       select 'ff000000-0000-0000-0000-000000000002','ff000000-0000-0000-0000-000000000001',kind,'2000-02-29',kind from unnest(array['birthday','anniversary','meetup','custom']) kind;
     `);
   }
+  if (file === "202610050009_signup_gender.sql") {
+    await db.exec("insert into auth.users(id) values('ff000000-0000-0000-0000-000000000009')");
+  }
   await db.exec(readFileSync(`supabase/migrations/${file}`, "utf8"));
+  if (file === "202610050009_signup_gender.sql") {
+    const legacy = await db.query<{ gender: string | null }>("select gender from public.profiles where id='ff000000-0000-0000-0000-000000000009'");
+    assert.equal(legacy.rows[0].gender, null);
+    await db.exec("delete from auth.users where id='ff000000-0000-0000-0000-000000000009'");
+  }
   if (file === "202610050007_redesign_dates.sql") {
     const upgraded = await db.query<{
       kind: string;
@@ -79,7 +87,7 @@ for (const [id, name] of [
   [D, "D"],
 ])
   await db.query(
-    `insert into auth.users(id,raw_user_meta_data) values($1,jsonb_build_object('display_name',$2::text))`,
+    `insert into auth.users(id,raw_user_meta_data) values($1,jsonb_build_object('display_name',$2::text,'gender','undisclosed'))`,
     [id, name],
   );
 async function as(id: string | null, role = "authenticated") {
@@ -772,5 +780,209 @@ await denied("select public.queue_memory_cleanup($1)", [
 console.log(
   "PASS old-couple assets remain traceable and registry has no client access",
 );
+// Personal profile changes are independent of couple-scoped content actions.
+const E = "00000000-0000-0000-0000-000000000005";
+const F = "00000000-0000-0000-0000-000000000006";
+const request = (n: number) =>
+  `90000000-0000-0000-0000-${String(n).padStart(12, "0")}`;
+const avatar = (n: number) => `${E}/${request(n)}.webp`;
+await db.exec("reset role");
+await db.query("insert into auth.users(id,raw_user_meta_data) values($1,'{\"gender\":\"undisclosed\"}'),($2,'{\"gender\":\"undisclosed\"}')", [E, F]);
+await as(E);
+const first = await one(
+  "select public.update_profile($1,' Tài mới ','female',true) as result",
+  [request(1)],
+);
+assert.equal(first.result.display_name, "Tài mới");
+assert.equal(first.result.gender, "female");
+assert.deepEqual(
+  (
+    await one(
+      "select public.update_profile($1,' Tài mới ','female',true) as result",
+      [request(1)],
+    )
+  ).result,
+  first.result,
+);
+await denied("select public.update_profile($1,'different','female',true)", [
+  request(1),
+]);
+await denied("update public.profiles set gender='male' where id=$1", [E]);
+console.log(
+  "PASS unpaired profile update, immutable retry receipt and no direct client writes",
+);
+
+async function registerAvatar(n: number) {
+  await db.exec("reset role");
+  await db.query(
+    "insert into public.avatar_assets(path,user_id,digest) values($1,$2,'fixture')",
+    [avatar(n), E],
+  );
+  await db.query(
+    "insert into storage.objects(bucket_id,name) values('avatars',$1)",
+    [avatar(n)],
+  );
+  await as(E);
+}
+await registerAvatar(2);
+await one("select public.update_profile($1,'Tài mới','female',true,'new',$2)", [
+  request(2),
+  avatar(2),
+]);
+assert.equal(
+  (
+    await one(
+      "select count(*)::int as n from storage.objects where bucket_id='avatars'",
+    )
+  ).n,
+  1,
+);
+await as(F);
+assert.equal(
+  (
+    await one(
+      "select count(*)::int as n from storage.objects where bucket_id='avatars'",
+    )
+  ).n,
+  0,
+);
+await denied("select * from public.avatar_assets");
+await denied("select public.claim_avatar_cleanup($1)", [avatar(2)]);
+await denied(
+  "insert into storage.objects(bucket_id,name) values('avatars',$1)",
+  [`${F}/forged.webp`],
+);
+await denied("select public.update_profile($1,'F',null,true,'new',$2)", [
+  request(10),
+  avatar(2),
+]);
+await as(E);
+await one("select public.pair_couple(null,'Asia/Ho_Chi_Minh')");
+const invite = (await one("select invite_code from public.couples"))
+  .invite_code;
+await denied("select public.update_profile($1,'Tài','male',true)", [
+  request(3),
+]);
+await one(
+  "select public.update_profile($1,'Tên khi ghép đôi','female',false)",
+  [request(3)],
+);
+await db.exec("reset role");
+await denied("update public.profiles set gender='male' where id=$1", [E]);
+await as(F);
+await one("select public.pair_couple($1)", [invite]);
+assert.equal(
+  (
+    await one(
+      "select count(*)::int as n from storage.objects where bucket_id='avatars'",
+    )
+  ).n,
+  1,
+);
+await one("select public.leave_couple()");
+assert.equal(
+  (
+    await one(
+      "select count(*)::int as n from storage.objects where bucket_id='avatars'",
+    )
+  ).n,
+  0,
+);
+console.log(
+  "PASS gender locked with one member, personal fields editable, avatar restricted to current partner",
+);
+await as(E);
+await one("select public.update_couple_settings('2026-10-05')");
+assert.equal(
+  (await one("select display_name from public.profiles where id=$1", [E]))
+    .display_name,
+  "Tên khi ghép đôi",
+);
+
+await registerAvatar(4);
+await one(
+  "select public.update_profile($1,'Tên khi ghép đôi','female',false,'new',$2)",
+  [request(4), avatar(4)],
+);
+await registerAvatar(5);
+await one(
+  "select public.update_profile($1,'Tên mới nhất','female',false,'new',$2)",
+  [request(5), avatar(5)],
+);
+await one(
+  "select public.update_profile($1,'Tên khi ghép đôi','female',false,'new',$2)",
+  [request(4), avatar(4)],
+);
+assert.equal(
+  (await one("select avatar_path from public.profiles where id=$1", [E]))
+    .avatar_path,
+  avatar(5),
+);
+await db.exec("reset role");
+await db.query(
+  "update public.avatar_assets set cleanup_after=now()-interval '1 minute' where user_id=$1",
+  [E],
+);
+await as(null, "service_role");
+assert.equal(
+  (await one("select public.claim_avatar_cleanup($1) as ok", [avatar(5)])).ok,
+  false,
+);
+assert.equal(
+  (await one("select public.claim_avatar_cleanup($1) as ok", [avatar(4)])).ok,
+  true,
+);
+await registerAvatar(6);
+await db.exec("reset role");
+await db.query(
+  "update public.avatar_assets set cleanup_after=now()-interval '1 minute' where path=$1",
+  [avatar(6)],
+);
+await as(null, "service_role");
+assert.equal(
+  (await one("select public.claim_avatar_cleanup($1) as ok", [avatar(6)])).ok,
+  true,
+);
+await as(E);
+await denied("select public.update_profile($1,'Tài','female',true,'new',$2)", [
+  request(6),
+  avatar(6),
+]);
+await one("select public.leave_couple()");
+await one("select public.update_profile($1,'Tài','male',true)", [request(7)]);
+assert.equal(
+  (await one("select gender from public.profiles where id=$1", [E])).gender,
+  "male",
+);
+await db.exec("reset role");
+await db.query("delete from auth.users where id=$1", [E]);
+assert.equal(
+  (
+    await one("select state from public.avatar_assets where path=$1", [
+      avatar(5),
+    ])
+  ).state,
+  "retired",
+);
+await as(null, "service_role");
+assert.equal(
+  (await one("select public.claim_avatar_cleanup($1) as ok", [avatar(5)])).ok,
+  true,
+);
+console.log(
+  "PASS avatar replacement/retry, cleanup claims, leave unlock and deleted-account cleanup references",
+);
+await db.exec("reset role");
+const signupUser = "ff000000-0000-0000-0000-000000000010";
+for (const gender of [null, "", "unset", "invalid"]) {
+  await denied("insert into auth.users(id,raw_user_meta_data) values($1,jsonb_build_object('gender',$2::text))", [signupUser, gender]);
+  assert.equal((await one("select count(*)::int as n from auth.users where id=$1", [signupUser])).n, 0);
+}
+for (const gender of ["male", "female", "other", "undisclosed"]) {
+  await db.query("insert into auth.users(id,raw_user_meta_data) values($1,jsonb_build_object('display_name','Signup test','gender',$2::text))", [signupUser, gender]);
+  assert.equal((await one("select gender from public.profiles where id=$1", [signupUser])).gender, gender);
+  await db.query("delete from auth.users where id=$1", [signupUser]);
+}
+console.log("PASS signup requires explicit gender, stores it in profile, and preserves legacy profiles");
 await db.close();
 console.log("Database integration suite passed.");

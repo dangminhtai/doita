@@ -7,6 +7,10 @@ export function actionErrorMessage(error: unknown): string {
       if (String(error.message).includes("request_timeout"))
         return C.errors.timeout;
       const messages: Record<string, string> = {
+        gender_locked: C.profile.locked,
+        invalid_avatar: C.profile.imageError,
+        profile_unavailable: C.profile.unavailable,
+        request_conflict: C.errors.invalid,
         request_timeout: C.errors.timeout,
         session_expired: C.errors.authExpired,
         forbidden: C.errors.forbidden,

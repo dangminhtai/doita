@@ -9,7 +9,7 @@ Theo chỉnh sửa ngày 05/10/2026 sau phản hồi của anh: giao diện theo
 1. Đặt ảnh mới vào `public/themes/<theme-id>/`, giữ PNG thiết kế gốc ở thư mục nguồn riêng.
 2. Thêm một mục vào `THEMES` trong `src/config/themes.ts`, đủ các màu và 12 vai trò ảnh theo `ThemeDefinition`. Không cần đổi tên ảnh: cấu hình ánh xạ vai trò sang đường dẫn của anh.
 3. Đổi `DEFAULT_THEME` sang ID mới. `RootLayout`, hero, avatar và `ThemeArt` dùng chung cấu hình này. Tên theme hiển thị hiện nằm trong `CONTENT.redesign.defaultTheme`; đổi cùng khi chọn theme mới.
-4. Chạy typecheck/build và xem Home/Notes/Prayer/Memories/Activities/Settings/Auth ở mobile và desktop. Đo lại contrast; màu trang trí nhạt không nên dùng làm chữ.
+4. Chạy typecheck/build và xem Home/Notes/Prayer/Memories/Activities/Couple/Profile/Auth ở mobile và desktop. Đo lại contrast; màu trang trí nhạt không nên dùng làm chữ.
 
 Hiện có một theme và chưa có trình chọn theme theo tài khoản. Các theme dùng chung bố cục/CSS; thay đổi phong cách bố cục cần sửa CSS có kiểm tra tương ứng.
 
@@ -25,6 +25,8 @@ Hiện có một theme và chưa có trình chọn theme theo tài khoản. Các
 | Trạng thái trống | empty-notes / empty-memories / empty-prayer / empty-notifications | 320×320 |
 
 Avatar mặc định là nhân vật minh họa, không phải ảnh thật của người dùng. 8 ảnh sticker/empty giữ alpha. Hoa được dự trữ trong contract theme, chưa đặt lên nội dung để tránh che chữ. Bộ doodle-art WebP hiện tại tổng 196.028 byte, hero desktop 30.886 byte/mobile 31.188 byte; PNG nguồn nằm trong `public/assets/doita/doodle-art` và không được UI tải. Bộ ảnh cũ vẫn giữ nguyên ở vị trí cũ.
+
+`ProfileAvatar` đọc `profiles.avatar_path` và URL ký hạn5phút của bucket riêng tư `avatars`; ảnh user là WebP256×256 tối đa80KB. Header, hồ sơ, thành viên, tác giả lời nhắn và daily dùng chung component. Theme avatarA/avatarB vẫn là fallback, không gán theo giới tính hoặc thay ảnh thiết kế gốc.
 
 ## Resize lại
 

@@ -51,6 +51,14 @@ Các thay đổi tiếp theo phải cập nhật quy tắc khi anh đổi yêu c
 
 - Theo yêu cầu ngày 05/10/2026: không hiện các subtitle Notes/Prayer/Memories/Activities, eyebrow “NHỮNG ĐIỀU NHỎ CỦA HAI ĐỨA”, câu mô tả phạm vi tìm kiếm, câu chờ người ấy, hướng dẫn cài ứng dụng hoặc thẻ Giao diện khi chỉ có một theme. Không lặp “Quyền xem: …” cạnh nút; giữ lựa chọn quyền xem trong form và xác nhận thả điều ước.
 
-- Người dùng mục tiêu tại Việt Nam: tạo không gian dùng APP_CONFIG.timezone = Asia/Ho_Chi_Minh, không hiện lựa chọn múi giờ trong PairScreen hoặc Settings.
+- Người dùng mục tiêu tại Việt Nam: tạo không gian dùng APP_CONFIG.timezone = Asia/Ho_Chi_Minh, không hiện lựa chọn múi giờ trong PairScreen hoặc Hai đứa.
 
 - Font toàn ứng dụng dùng Nunito bản thường: nội dung 400/16px/1.6, nút/menu600, tiêu đề700–800. Không đưa Arial hoặc font viết tay trở lại; kiểm tra dấu tiếng Việt và reflow khi đổi chữ.
+
+- Hồ sơ cá nhân `/profile` mở từ avatar/menu; Hai đứa `/couple` chỉ quản lý không gian. Không ghép lại tên/avatar/đăng xuất/xóa tài khoản vào thiết lập chung. Người chưa ghép đôi vẫn vào được hồ sơ.
+- Giới tính chỉ đổi khi không còn membership, khóa cả không gian một người và kiểm tra tại database. Popup không tự rời. Khóa giới tính không khóa đổi tên/avatar.
+- Avatar nguồn JPEG/PNG/WebP được crop/nén tại trình duyệt, không áp giới hạn nguồn5MB. Chỉ upload WebP256×256 tối đa80KB; kiểm tra nội dung thật trên server, bucket riêng tư, không lưu ảnh gốc. Giữ ảnh cũ đến khi cập nhật được xác nhận; retry/cleanup không xóa ảnh đang dùng. Draft thuộc đúng tài khoản; Realtime không ghi đè nội dung đang sửa.
+
+- `/settings` dành cho cài đặt ứng dụng thực sự khi có; không dùng làm đường dẫn hay tên màn Hai đứa. Liên kết thông báo cũ được đổi đích sang `/couple` khi mở.
+
+- Đăng ký phải chọn giới tính, không chọn sẵn và không có “Chưa thiết lập” trong form đăng ký. Giữ lựa chọn khi lỗi; lưu ngay vào hồ sơ và kiểm tra ở database cho tài khoản mới. Không lặp tên thương hiệu trong khung auth khi header đã hiển thị.

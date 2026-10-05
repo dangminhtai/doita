@@ -12,7 +12,8 @@
     "seed": "node --env-file=.env.local --import tsx scripts/seed.ts",
     "seed:sql": "node scripts/seed-sql.mjs",
     "vapid": "node scripts/vapid.mjs",
-    "test:database": "node --import tsx scripts/test-database.ts"
+    "test:database": "node --import tsx scripts/test-database.ts",
+    "test:profile": "node --conditions=react-server --import tsx scripts/test-profile-api.ts"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +27,7 @@
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "server-only": "^0.0.1",
+    "sharp": "^0.35.5",
     "web-push": "^3.6.7",
     "zod": "^4.6.5"
   },
