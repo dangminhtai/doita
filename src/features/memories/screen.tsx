@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, Fragment } from "react";
 import { Camera, Plus } from "lucide-react";
 import { useApp, type Row } from "@/components/app-context";
 import {
+  Select,
   Button,
   Field,
   PageTitle,
@@ -18,7 +19,10 @@ import { CONTENT as C, interpolate as t } from "@/config/content.vi";
 import { rpc, db, authenticatedFetch } from "@/lib/supabase/browser";
 import { uncertainWrite } from "@/lib/request";
 import { useViewState } from "@/components/view-state";
+import { useConfirmation } from "@/components/confirmation";
+
 export function MemoriesScreen() {
+  const askConfirmation = useConfirmation();
   const { data: d, user, run, notify } = useApp();
   const [open, setOpen] = useState(false),
     [body, setBody] = useDraft("memory"),
@@ -263,7 +267,7 @@ export function MemoriesScreen() {
           />
         </Field>
         <Field label={C.common.filters}>
-          <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+          <Select value={filter} onValueChange={(e) => setFilter(e)}>
             <option value="all">{C.common.all}</option>
             <option value="photos">{C.redesign.photosOnly}</option>
             {Object.entries(C.memories.types).map(([key, label]) => (
@@ -271,7 +275,7 @@ export function MemoriesScreen() {
                 {label}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
       </div>
       <div className="timeline">
@@ -329,9 +333,7 @@ export function MemoriesScreen() {
         <Empty>
           <ThemeArt asset="emptyMemories" size={140} />
           {filter === "all" && !search && !from && !to ? (
-            <>
-              {C.memories.empty}
-            </>
+            <>{C.memories.empty}</>
           ) : (
             <>
               {C.common.noResults}
@@ -403,7 +405,14 @@ export function MemoriesScreen() {
             <Button
               secondary
               onClick={async () => {
-                if (!confirm(C.common.confirmDelete)) return;
+                if (
+                  !(await askConfirmation(C.common.confirmDelete, {
+                    title: C.common.delete,
+                    action: C.common.delete,
+                    destructive: true,
+                  }))
+                )
+                  return;
                 let pendingCleanup = false;
                 const ok = await run(async () => {
                   await rpc("delete_memory", { p_id: selected.id });

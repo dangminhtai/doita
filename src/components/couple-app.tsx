@@ -9,6 +9,8 @@ import {
   Users,
   Menu,
   X,
+  CircleCheck,
+  CircleAlert,
 } from "lucide-react";
 import { CONTENT as C } from "@/config/content.vi";
 import { enabled } from "@/config/app.config";
@@ -23,10 +25,13 @@ import { SettingsScreen } from "@/features/settings/screen";
 import { NotificationBell } from "./notification-bell";
 import { DefaultAvatar, ThemeArt } from "./theme-art";
 import { LinkedContent } from "./linked-content";
+import { ConfirmationProvider } from "./confirmation";
 export function CoupleApp({ initialPage = "home" }: { initialPage?: string }) {
   return (
     <AppProvider>
-      <Shell initialPage={initialPage} />
+      <ConfirmationProvider>
+        <Shell initialPage={initialPage} />
+      </ConfirmationProvider>
     </AppProvider>
   );
 }
@@ -173,26 +178,35 @@ function Shell({ initialPage }: { initialPage: string }) {
       setMenu(false);
       return;
     }
+    const navigate = () => {
+      history.replaceState(
+        { ...history.state, doitaScroll: window.scrollY },
+        "",
+      );
+      try {
+        sessionStorage.setItem(scrollKey(), String(window.scrollY));
+      } catch {}
+      setPage(nextPage);
+      setMenu(false);
+      notify("");
+      history.pushState(
+        { doitaScroll: nextPage === page ? window.scrollY : 0 },
+        "",
+        destination.pathname + destination.search,
+      );
+      window.dispatchEvent(new Event("couple-location-change"));
+      if (nextPage !== page) window.scrollTo({ top: 0 });
+    };
     if (
       !window.dispatchEvent(
-        new Event("couple-before-navigate", { cancelable: true }),
+        new CustomEvent("couple-before-navigate", {
+          cancelable: true,
+          detail: { resume: navigate },
+        }),
       )
     )
       return;
-    history.replaceState({ ...history.state, doitaScroll: window.scrollY }, "");
-    try {
-      sessionStorage.setItem(scrollKey(), String(window.scrollY));
-    } catch {}
-    setPage(nextPage);
-    setMenu(false);
-    notify("");
-    history.pushState(
-      { doitaScroll: nextPage === page ? window.scrollY : 0 },
-      "",
-      destination.pathname + destination.search,
-    );
-    window.dispatchEvent(new Event("couple-location-change"));
-    if (nextPage !== page) window.scrollTo({ top: 0 });
+    navigate();
   };
   const nav = [
     { id: "home", icon: House, flag: true },
@@ -348,7 +362,9 @@ function Shell({ initialPage }: { initialPage: string }) {
                 {C.common.close}
               </button>
             )}
-            <p className="eyebrow">{C.home.eyebrow}</p>
+            <p>
+              <small>{C.home.eyebrow}</small>
+            </p>
             <nav>
               {nav.map(({ id, icon: Icon }) => (
                 <a
@@ -383,7 +399,12 @@ function Shell({ initialPage }: { initialPage: string }) {
               aria-live="polite"
               className={`toast ${error ? "error" : ""}`}
             >
-              {message}
+              {error ? (
+                <CircleAlert size={22} aria-hidden="true" />
+              ) : (
+                <CircleCheck size={22} aria-hidden="true" />
+              )}
+              <p>{message}</p>
               <button
                 className="text-button"
                 onClick={() => notify("")}

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Ship, Plus, Feather } from "lucide-react";
 import { useApp, flushNotifications, type Row } from "@/components/app-context";
 import {
+  Select,
   Button,
   Field,
   Empty,
@@ -26,7 +27,10 @@ import {
   prayerDraftKey,
   type PrayerDraft,
 } from "./draft";
+import { useConfirmation } from "@/components/confirmation";
+
 export function PrayerScreen() {
+  const askConfirmation = useConfirmation();
   const { data: d, user, run, notify } = useApp();
   const [open, setOpen] = useState(false),
     [draft, setDraft] = useState<PrayerDraft>(emptyPrayerDraft),
@@ -80,7 +84,13 @@ export function PrayerScreen() {
   useEffect(() => {
     if (!open || !body) return;
     const guard = (e: Event) => {
-      if (!confirm(C.prayer.leaveDraft)) e.preventDefault();
+      e.preventDefault();
+      void askConfirmation(C.prayer.leaveDraft, {
+        action: C.common.continue,
+      }).then((accepted) => {
+        if (accepted)
+          (e as CustomEvent<{ resume: () => void }>).detail.resume();
+      });
     };
     const unload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
@@ -105,12 +115,12 @@ export function PrayerScreen() {
     }
     if (
       status === "released" &&
-      !confirm(
+      !(await askConfirmation(
         t(C.prayer.confirmVisibility, {
           visibility:
             visibility === "private" ? C.common.private : C.common.partner,
         }),
-      )
+      ))
     )
       return;
     const ok = await run(
@@ -216,8 +226,8 @@ export function PrayerScreen() {
               {draftId && (
                 <Button
                   secondary
-                  onClick={() => {
-                    if (confirm(C.prayer.leaveDraft))
+                  onClick={async () => {
+                    if (await askConfirmation(C.prayer.leaveDraft))
                       persist(read(null) ?? emptyPrayerDraft());
                   }}
                 >
@@ -288,12 +298,12 @@ export function PrayerScreen() {
       )}
       <div className="filters">
         <Field label={C.common.filters}>
-          <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+          <Select value={filter} onValueChange={(e) => setFilter(e)}>
             <option value="all">{C.common.all}</option>
             <option value="mine">{C.common.mine}</option>
             <option value="theirs">{C.common.theirs}</option>
             <option value="archived">{C.common.archived}</option>
-          </select>
+          </Select>
         </Field>
       </div>
       <div className="prayer-list">
@@ -439,7 +449,11 @@ export function PrayerScreen() {
                   secondary
                   onClick={async () => {
                     if (
-                      confirm(C.common.confirmDelete) &&
+                      (await askConfirmation(C.common.confirmDelete, {
+                        title: C.common.delete,
+                        action: C.common.delete,
+                        destructive: true,
+                      })) &&
                       (await run(() =>
                         rpc("prayer_action", {
                           p_id: selected.id,

@@ -35,6 +35,9 @@
 - Không khôi phục khóa toàn trang khi một thao tác đang gửi. Phân trang/lọc trên server, thứ tự có ID phụ; Back chờ danh sách đủ chiều cao trước khi khôi phục cuộn.
 - Theo ảnh mẫu đã duyệt: nền trắng/hồng nhẹ, chữ rõ; không tự chuyển sang giấy vàng/serif hoặc cảnh xanh đậm. Kiểm tra CTA trùng giữa header, empty state và disclosure mở/đóng. Kiểm tra chiều rộng thực của search/select trên desktop và mobile, không chỉ kiểm tra trang không tràn.
 
+- Theo yêu cầu ngày 05/10/2026: control cũng phải có thiết kế riêng. Dropdown dùng `Select` chung ở `components/ui.tsx`, có danh sách theo theme, keyboard/typeahead/Escape/focus và chống tràn; không tạo dropdown bằng div click. Thanh cuộn, caret, selection và focus theo theme. Khi dùng thêm control phải đọc [docs/CONTROL_DESIGN.md](docs/CONTROL_DESIGN.md).
+- Xác nhận xóa/rời không gian/rời nội dung chưa lưu dùng `useConfirmation`, có Hủy, Escape và trả focus trước khi mutation chạy. Hủy không gửi request; không chuyển quyền quyết định giữa hai phiên. Kết quả lưu/like dùng thông báo nổi nhẹ, không mở dialog chặn người dùng cho mỗi thành công. Cảnh báo khi đóng/reload tab do `beforeunload` vẫn thuộc trình duyệt, không giả vờ thay bằng dialog web.
+
 - Đọc diff và đối chiếu các tiêu chí bị ảnh hưởng; không thêm tính năng bị anh xóa.
 - Chạy test logic/database nếu thay đổi dữ liệu hoặc quyền; lint/typecheck/build theo thay đổi.
 - Với tương tác, bấm thử trình duyệt mobile, mạng chậm/lỗi, double-click/retry, Back/reload; phân biệt fixture với production.

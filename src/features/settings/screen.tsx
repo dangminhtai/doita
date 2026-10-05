@@ -2,7 +2,14 @@
 import { useEffect, useState } from "react";
 import { Bell, Heart, LogOut, Calendar } from "lucide-react";
 import { useApp, clearDrafts } from "@/components/app-context";
-import { Button, Field, PageTitle, DateLabel, useDraft } from "@/components/ui";
+import {
+  Select,
+  Button,
+  Field,
+  PageTitle,
+  DateLabel,
+  useDraft,
+} from "@/components/ui";
 import { ThemeArt, DefaultAvatar } from "@/components/theme-art";
 import { useViewState } from "@/components/view-state";
 import { useCollection } from "@/components/collection";
@@ -12,7 +19,10 @@ import { CONTENT as C, interpolate as t } from "@/config/content.vi";
 import { enabled } from "@/config/app.config";
 import { db, rpc, authenticatedFetch } from "@/lib/supabase/browser";
 import { serviceWorkerReady } from "@/lib/push-device";
+import { useConfirmation } from "@/components/confirmation";
+
 export function SettingsScreen({ go }: { go: (page: string) => void }) {
+  const askConfirmation = useConfirmation();
   const { data: d, user, run, notify, logout } = useApp();
   const [panel, setPanel] = useViewState("settings-panel", "profile");
   const [dateSearch, setDateSearch] = useViewState("dates-search", "");
@@ -199,14 +209,11 @@ export function SettingsScreen({ go }: { go: (page: string) => void }) {
           </Field>
           {!d.daily && (
             <Field label={C.couples.timezone}>
-              <select
-                value={timezone}
-                onChange={(e) => setTimezone(e.target.value)}
-              >
+              <Select value={timezone} onValueChange={(e) => setTimezone(e)}>
                 {C.couples.timezones.map((zone) => (
                   <option key={zone}>{zone}</option>
                 ))}
-              </select>
+              </Select>
             </Field>
           )}
           <Field label={C.couples.start}>
@@ -302,12 +309,12 @@ export function SettingsScreen({ go }: { go: (page: string) => void }) {
                 />
               </Field>
               <Field label={C.settings.kind}>
-                <select
+                <Select
                   value={kind}
-                  onChange={(e) => {
-                    setKind(e.target.value);
+                  onValueChange={(e) => {
+                    setKind(e);
                     setRepeatRule(
-                      ["birthday", "anniversary"].includes(e.target.value)
+                      ["birthday", "anniversary"].includes(e)
                         ? "yearly"
                         : "none",
                     );
@@ -318,7 +325,7 @@ export function SettingsScreen({ go }: { go: (page: string) => void }) {
                       {v}
                     </option>
                   ))}
-                </select>
+                </Select>
               </Field>
               {kind === "custom" && (
                 <Field label={C.redesign.customKind}>
@@ -331,13 +338,13 @@ export function SettingsScreen({ go }: { go: (page: string) => void }) {
                 </Field>
               )}
               <Field label={C.redesign.repeat}>
-                <select
+                <Select
                   value={repeatRule}
-                  onChange={(e) => setRepeatRule(e.target.value)}
+                  onValueChange={(e) => setRepeatRule(e)}
                 >
                   <option value="none">{C.redesign.repeatNone}</option>
                   <option value="yearly">{C.redesign.repeatYearly}</option>
-                </select>
+                </Select>
               </Field>
               <Button type="submit">{C.common.save}</Button>
             </ScopedForm>
@@ -350,9 +357,9 @@ export function SettingsScreen({ go }: { go: (page: string) => void }) {
                 />
               </Field>
               <Field label={C.common.filters}>
-                <select
+                <Select
                   value={dateFilter}
-                  onChange={(e) => setDateFilter(e.target.value)}
+                  onValueChange={(e) => setDateFilter(e)}
                 >
                   <option value="all">{C.common.all}</option>
                   {Object.entries(C.settings.kinds).map(([key, label]) => (
@@ -360,7 +367,7 @@ export function SettingsScreen({ go }: { go: (page: string) => void }) {
                       {label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </Field>
             </div>
             {dates.loading && <p role="status">{C.common.loading}</p>}
@@ -426,8 +433,14 @@ export function SettingsScreen({ go }: { go: (page: string) => void }) {
                     </button>
                     <button
                       className="text-button"
-                      onClick={() => {
-                        if (confirm(C.common.confirmDelete))
+                      onClick={async () => {
+                        if (
+                          await askConfirmation(C.common.confirmDelete, {
+                            title: C.common.delete,
+                            action: C.common.delete,
+                            destructive: true,
+                          })
+                        )
                           void run(() =>
                             rpc("delete_special_date", { p_id: x.id }),
                           );
@@ -489,8 +502,14 @@ export function SettingsScreen({ go }: { go: (page: string) => void }) {
           </div>
           <div className="danger-zone">
             <button
-              onClick={() => {
-                if (confirm(C.couples.confirmLeave))
+              onClick={async () => {
+                if (
+                  await askConfirmation(C.couples.confirmLeave, {
+                    title: C.couples.leave,
+                    action: C.couples.leave,
+                    destructive: true,
+                  })
+                )
                   void run(async () => {
                     await rpc("leave_couple");
                     clearDrafts();
@@ -500,8 +519,14 @@ export function SettingsScreen({ go }: { go: (page: string) => void }) {
               {C.couples.leave}
             </button>
             <button
-              onClick={() => {
-                if (confirm(C.settings.confirmAccount))
+              onClick={async () => {
+                if (
+                  await askConfirmation(C.settings.confirmAccount, {
+                    title: C.settings.deleteAccount,
+                    action: C.settings.deleteAccount,
+                    destructive: true,
+                  })
+                )
                   void run(async () => {
                     await authenticatedFetch("/api/account", {
                       method: "DELETE",

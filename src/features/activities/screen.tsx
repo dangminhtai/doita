@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Sparkles, ThumbsUp, ThumbsDown } from "lucide-react";
 import { useApp } from "@/components/app-context";
-import { Button, Field, PageTitle, ActionScope } from "@/components/ui";
+import { Select, Button, Field, PageTitle, ActionScope } from "@/components/ui";
 import { ThemeArt } from "@/components/theme-art";
 import { useViewState } from "@/components/view-state";
 import { CONTENT as C, interpolate as t } from "@/config/content.vi";
@@ -44,10 +44,10 @@ export function ActivitiesScreen() {
         <summary>{C.redesign.filterMood}</summary>
         <section className="activity-controls">
           <Field label={C.activities.time}>
-            <select
+            <Select
               value={time}
-              onChange={(e) => {
-                setTime(Number(e.target.value));
+              onValueChange={(e) => {
+                setTime(Number(e));
                 setChosen(null);
               }}
             >
@@ -56,13 +56,13 @@ export function ActivitiesScreen() {
                   {t(C.activities.minutes, { count: n })}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           <Field label={C.activities.energy}>
-            <select
+            <Select
               value={energy}
-              onChange={(e) => {
-                setEnergy(e.target.value);
+              onValueChange={(e) => {
+                setEnergy(e);
                 setChosen(null);
               }}
             >
@@ -71,13 +71,13 @@ export function ActivitiesScreen() {
                   {C.activities[x]}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           <Field label={C.activities.preference}>
-            <select
+            <Select
               value={preference}
-              onChange={(e) => {
-                setPreference(e.target.value);
+              onValueChange={(e) => {
+                setPreference(e);
                 setChosen(null);
               }}
             >
@@ -95,7 +95,7 @@ export function ActivitiesScreen() {
                   {C.activities[x]}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
         </section>
       </details>

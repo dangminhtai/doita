@@ -61,6 +61,8 @@ export const CONTENT = {
     skipContent: "Đến nội dung chính",
   },
   common: {
+    confirmation: "Xác nhận thao tác",
+    continue: "Tiếp tục",
     openMenu: "Mở menu",
     save: "Lưu lại",
     processing: "Đang xử lý…",

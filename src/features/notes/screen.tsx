@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Pin, Plus } from "lucide-react";
 import { useApp, type Row } from "@/components/app-context";
 import {
+  Select,
   Button,
   Field,
   Empty,
@@ -26,7 +27,10 @@ import {
   noteDraftKey,
   type NoteDraft,
 } from "./draft";
+import { useConfirmation } from "@/components/confirmation";
+
 export function NotesScreen() {
+  const askConfirmation = useConfirmation();
   const { data: d, user, run, notify } = useApp();
   const [search, setSearch] = useViewState("notes-search", "");
   const [filter, setFilter] = useViewState("notes-filter", "all");
@@ -122,7 +126,13 @@ export function NotesScreen() {
   useEffect(() => {
     if (!open || !(body || title || editing)) return;
     const guard = (e: Event) => {
-      if (!confirm(C.notes.leaveDraft)) e.preventDefault();
+      e.preventDefault();
+      void askConfirmation(C.notes.leaveDraft, {
+        action: C.common.continue,
+      }).then((accepted) => {
+        if (accepted)
+          (e as CustomEvent<{ resume: () => void }>).detail.resume();
+      });
     };
     const unload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
@@ -213,13 +223,10 @@ export function NotesScreen() {
           </Field>
           <div className="form-grid">
             <Field label={C.notes.type}>
-              <select
-                value={type}
-                onChange={(e) => update({ type: e.target.value })}
-              >
+              <Select value={type} onValueChange={(e) => update({ type: e })}>
                 <option value="text">{C.notes.text}</option>
                 <option value="checklist">{C.notes.checklist}</option>
-              </select>
+              </Select>
             </Field>
             <Visibility
               value={visibility}
@@ -252,8 +259,14 @@ export function NotesScreen() {
             <Button type="submit">{C.common.save}</Button>
             <Button
               secondary
-              onClick={() => {
-                if (!body || confirm(C.common.unsaved)) setOpen(false);
+              onClick={async () => {
+                if (
+                  !body ||
+                  (await askConfirmation(C.common.unsaved, {
+                    action: C.common.close,
+                  }))
+                )
+                  setOpen(false);
               }}
             >
               {C.common.close}
@@ -272,12 +285,12 @@ export function NotesScreen() {
           />
         </Field>
         <Field label={C.common.filters}>
-          <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+          <Select value={filter} onValueChange={(e) => setFilter(e)}>
             <option value="all">{C.common.all}</option>
             <option value="private">{C.common.private}</option>
             <option value="theirs">{C.common.theirs}</option>
             <option value="shared">{C.common.shared}</option>
-          </select>
+          </Select>
         </Field>
       </div>
       <div className="notes-grid">
@@ -377,8 +390,14 @@ export function NotesScreen() {
                       {n.is_pinned ? C.notes.unpin : C.notes.pin}
                     </button>
                     <button
-                      onClick={() => {
-                        if (confirm(C.common.confirmDelete))
+                      onClick={async () => {
+                        if (
+                          await askConfirmation(C.common.confirmDelete, {
+                            title: C.common.delete,
+                            action: C.common.delete,
+                            destructive: true,
+                          })
+                        )
                           void run(() =>
                             rpc("note_action", {
                               p_id: n.id,

@@ -3,7 +3,7 @@ import { useState, useId } from "react";
 import { Heart, Eye, EyeOff } from "lucide-react";
 import { db, configured, rpc } from "@/lib/supabase/browser";
 import { useApp } from "@/components/app-context";
-import { Button, Field } from "@/components/ui";
+import { Select, Button, Field } from "@/components/ui";
 import { ScopedForm } from "@/components/ui";
 import { ThemeArt } from "@/components/theme-art";
 import { CONTENT as C } from "@/config/content.vi";
@@ -200,11 +200,11 @@ export function PairScreen() {
       <h1>{C.couples.title}</h1>
       <p>{C.couples.description}</p>
       <Field label={C.couples.timezone}>
-        <select value={timezone} onChange={(e) => setTimezone(e.target.value)}>
+        <Select value={timezone} onValueChange={(e) => setTimezone(e)}>
           {C.couples.timezones.map((zone) => (
             <option key={zone}>{zone}</option>
           ))}
-        </select>
+        </Select>
       </Field>
       <Button
         onClick={() =>

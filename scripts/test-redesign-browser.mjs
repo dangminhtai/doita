@@ -141,14 +141,64 @@ await context.route(`${url}/**`,async route=>{
   const isSingle=request.headers().accept?.includes('vnd.pgrst.object');
   return route.fulfill({status:200,headers:{'content-range':`0-0/${total}`,'access-control-expose-headers':'content-range','access-control-allow-origin':'http://localhost:3100'},json:isSingle?(rows[0]??null):rows});
 });
+await context.addInitScript(()=>{
+  window.__autoConfirm=true;
+  const observe=()=>new MutationObserver(()=>{
+    if(window.__autoConfirm)document.querySelector('dialog[role="alertdialog"] .confirmation-actions button:last-child')?.click();
+  }).observe(document.body,{childList:true,subtree:true});
+  if(document.body)observe();else addEventListener('DOMContentLoaded',observe,{once:true});
+});
 const page=await context.newPage();
 page.on('dialog',dialog=>dialog.accept());
+const pick=async(trigger,value)=>{await trigger.click();await page.locator(`.doita-select-option[data-value="${value}"]`).click();};
+const settleVisual=()=>page.evaluate(()=>Promise.all(document.getAnimations().filter(a=>a.effect?.getTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>{}))));
 const failures=[];
 page.on('pageerror',error=>failures.push(error.message));
 const go=async id=>{const item=page.locator(`.bottom-nav a[href="/${id}"]`);if(await item.count())await item.click();else {const box=await page.locator('.mobile-menu').boundingBox();await page.mouse.click(box.x+box.width/2,box.y+box.height/2);await page.locator(`.sidebar a[href="/${id}"]`).click();}};
 try {
   await page.goto('http://localhost:3100/');
   await page.locator('.bottom-nav').waitFor();
+  // Custom controls retain keyboard behavior and protect an unsent draft.
+  await page.goto('http://localhost:3100/notes');
+  await page.getByRole('searchbox').waitFor();
+  const filterTrigger=page.getByRole('combobox',{name:C.common.filters,exact:true});
+  await filterTrigger.focus();await page.keyboard.press('Enter');
+  await page.getByRole('listbox').waitFor();
+  await page.waitForFunction(()=>document.activeElement?.getAttribute('role')==='option');
+  await page.keyboard.press('End');
+  await page.waitForFunction(()=>document.querySelector('.doita-select-option[data-value="shared"]')?.hasAttribute('data-highlighted'));
+  assert.equal(await page.getByRole('option',{name:C.common.shared,exact:true}).getAttribute('data-highlighted'),'');
+  await page.keyboard.press('Escape');
+  assert.equal(await filterTrigger.evaluate(el=>document.activeElement===el),true);
+  for(const width of [320,1440]){
+    await page.setViewportSize({width,height:900});await filterTrigger.click();
+    const picker=await page.getByRole('listbox').boundingBox();
+    assert.ok(picker.x>=0&&picker.x+picker.width<=width+1,'custom picker fits viewport');
+    await settleVisual();
+    await page.screenshot({path:`doita-test/redesign-evidence/controls-picker-${width}.png`,fullPage:true});
+    await page.keyboard.press('Escape');
+  }
+  await page.setViewportSize({width:390,height:844});
+  await page.evaluate(()=>{window.__autoConfirm=false;});
+  await page.getByRole('button',{name:C.notes.new,exact:true}).click();
+  await page.locator('.composer textarea').fill('CONTROL TEST UNSENT');
+  await go('memories');
+  await page.getByRole('alertdialog').waitFor();
+  await page.getByRole('alertdialog').getByRole('button',{name:C.common.cancel,exact:true}).click();
+  assert.ok(page.url().endsWith('/notes'));
+  assert.equal(await page.locator('.composer textarea').inputValue(),'CONTROL TEST UNSENT');
+  await go('memories');
+  await page.getByRole('alertdialog').waitFor();
+  await settleVisual();
+  await page.screenshot({path:'doita-test/redesign-evidence/controls-confirm-390.png'});
+  await page.getByRole('alertdialog').getByRole('button',{name:C.common.continue,exact:true}).click();
+  await page.getByRole('heading',{name:C.memories.title,exact:true}).waitFor();
+  await page.evaluate(()=>{
+    for(const key of Object.keys(localStorage))if(key.startsWith('couple-draft:'))localStorage.removeItem(key);
+    window.__autoConfirm=true;
+  });
+  await page.goto('http://localhost:3100/home');await page.locator('.bottom-nav').waitFor();
+  console.log('PASS custom picker keyboard/Escape/focus, mobile/desktop bounds, draft cancel and accepted navigation');
   if(process.env.REDESIGN_SNAPSHOTS){
     const prefix=process.env.REDESIGN_SNAPSHOTS;await mkdir('doita-test/redesign-evidence',{recursive:true});
     for(const width of [390,1440])for(const route of ['home','daily','notes','prayer','memories','activities','settings']){
@@ -183,11 +233,11 @@ try {
   await go('prayer');
   await page.getByRole('button',{name:C.prayer.write,exact:true}).first().click();
   await page.locator('.composer textarea').fill('PRIVATE LOCAL DRAFT');
-  await page.locator('.composer select').selectOption('private');
+  await pick(page.locator('.composer .doita-select'), 'private');
   await page.locator('.composer input[type=checkbox]').uncheck();
   await go('notes');await go('prayer');
   assert.equal(await page.locator('.composer textarea').inputValue(),'PRIVATE LOCAL DRAFT');
-  assert.equal(await page.locator('.composer select').inputValue(),'private');
+  assert.equal(await page.locator('.composer .doita-select').getAttribute('data-value'),'private');
   assert.equal(await page.locator('.composer input[type=checkbox]').isChecked(),false);
   await page.reload();
   await page.locator('.composer textarea').waitFor();
@@ -214,7 +264,7 @@ try {
   tableRequests.length=0;
   await page.getByRole('button',{name:C.activities.like,exact:true}).click();
   assert.equal(await page.getByRole('button',{name:C.activities.dislike,exact:true}).isDisabled(),true);
-  assert.equal(await page.locator('.activity-filters select').first().isEnabled(),true);
+  assert.equal(await page.locator('.activity-filters .doita-select').first().isEnabled(),true);
   await page.getByText(C.activities.liked,{exact:true}).waitFor();
   assert.equal(raceDelayCount,1);
   assert.equal(tableRequests.includes('notes'),false);
@@ -289,11 +339,11 @@ try {
   await page.locator('.prayer-row').filter({hasText:'Archive UX'}).click();
   await page.getByRole('button',{name:C.prayer.archive,exact:true}).click();
   await page.getByText(C.prayer.archiveSaved,{exact:true}).waitFor();
-  await page.locator('.filters select').selectOption('archived');
+  await pick(page.locator('.filters .doita-select'), 'archived');
   await page.locator('.prayer-row').filter({hasText:'Archive UX'}).click();
   await page.getByRole('button',{name:C.common.restore,exact:true}).click();
   await page.waitForFunction(()=>!document.querySelector('dialog'));
-  await page.locator('.filters select').selectOption('all');
+  await pick(page.locator('.filters .doita-select'), 'all');
   await page.locator('.prayer-row').filter({hasText:'Archive UX'}).click();
   assert.equal(await page.locator('dialog .tag').textContent(),C.common.private);
   await page.locator('dialog button').filter({hasText:C.common.close}).click();
@@ -308,7 +358,7 @@ try {
   await page.setViewportSize({width:390,height:844});
   await go('notes');
   await page.getByRole('searchbox').fill('UX note');
-  await page.locator('.filters select').selectOption('private');
+  await pick(page.locator('.filters .doita-select'), 'private');
   await page.waitForFunction(()=>document.querySelectorAll('.note-card').length===30);
   assert.equal(await page.locator('.note-card h2').first().textContent(),'UX note pinned older');
   await page.getByRole('button',{name:C.common.more,exact:true}).click();
@@ -323,7 +373,7 @@ try {
   await page.waitForURL('**/notes');
   await page.waitForFunction(()=>window.scrollY>850,{},{timeout:5000}).catch(async error=>{console.log('Scroll after Back',await page.evaluate(()=>({y:scrollY,state:history.state,height:document.documentElement.scrollHeight})));throw error;});
   assert.equal(await page.getByRole('searchbox').inputValue(),'UX note');
-  assert.equal(await page.locator('.filters select').inputValue(),'private');
+  assert.equal(await page.locator('.filters .doita-select').getAttribute('data-value'),'private');
   assert.ok(await page.evaluate(()=>window.scrollY)>850);
   console.log('PASS Back preserves list scroll, search and filter');
   await page.locator('.letter-preview').filter({hasText:'Content for scroll preservation'}).first().click();
@@ -337,13 +387,13 @@ try {
   await page.getByRole('button',{name:C.notes.new,exact:true}).first().click();
   await page.locator('.composer input').first().fill('UX form retry');
   await page.locator('.composer textarea').fill('Preserve private draft after lost response');
-  await page.locator('.composer select').first().selectOption('checklist');
-  await page.locator('.composer select').last().selectOption('private');
+  await pick(page.locator('.composer .doita-select').first(), 'checklist');
+  await pick(page.locator('.composer .doita-select').last(), 'private');
   dropNoteResponse=true;
   await page.locator('.composer button[type=submit]').click();
   await page.getByText(C.errors.generic,{exact:true}).waitFor();
   assert.equal(await page.locator('.composer textarea').inputValue(),'Preserve private draft after lost response');
-  assert.equal(await page.locator('.composer select').last().inputValue(),'private');
+  assert.equal(await page.locator('.composer .doita-select').last().getAttribute('data-value'),'private');
   await page.locator('.composer button[type=submit]').click();
   await page.waitForFunction(()=>!document.querySelector('.composer'));
   assert.equal(noteRequestIds.length,2);assert.equal(noteRequestIds[0],noteRequestIds[1]);
@@ -451,9 +501,9 @@ try {
   await page.getByRole('button',{name:C.redesign.dates,exact:true}).click();
   await page.getByLabel(C.redesign.eventName,{exact:true}).fill('Custom trip');
   await page.getByLabel(C.common.date,{exact:true}).fill('2020-02-29');
-  await page.getByLabel(C.settings.kind,{exact:true}).selectOption('custom');
+  await pick(page.getByLabel(C.settings.kind,{exact:true}), 'custom');
   await page.getByLabel(C.redesign.customKind,{exact:true}).fill('Our travel day');
-  await page.getByLabel(C.redesign.repeat,{exact:true}).selectOption('yearly');
+  await pick(page.getByLabel(C.redesign.repeat,{exact:true}), 'yearly');
   await page.locator('form').filter({has:page.getByLabel(C.redesign.eventName,{exact:true})}).getByRole('button',{name:C.common.save,exact:true}).click();
   await page.locator('.date-row').filter({hasText:'Custom trip'}).getByText('Our travel day',{exact:false}).waitFor();
   assert.equal(tables.special_dates.find(row=>row.title==='Custom trip').repeat_rule,'yearly');

@@ -49,7 +49,6 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
           />
         </picture>
         <div className="hero-copy">
-          <span className="eyebrow">{C.redesign.together}</span>
           <h1 title={names.join(" & ") || C.brand.name}>{names.join(" & ") || C.brand.name}</h1>
           <p>{C.redesign.greeting}</p>
           {d.couple?.relationship_start_date &&
@@ -70,10 +69,6 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
       {enabled("daily") && (
         <section className="daily-card journal-card">
           <div>
-            <span className="eyebrow">
-              <Sun size={20} />
-              {C.nav.daily}
-            </span>
             <h2>{d.daily?.prompt ?? C.home.daily}</h2>
           </div>
           <div className="daily-members">
@@ -131,7 +126,6 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
           <article className="home-letter">
             <ThemeArt asset="envelope" size={160} />
             <div>
-              <span className="eyebrow">{C.redesign.recentNotes}</span>
               <h2>{d.notes[0]?.title ?? C.redesign.noLetter}</h2>
               <p>
                 {d.notes[0]?.visibility === "private"
@@ -345,9 +339,9 @@ export function DailyScreen() {
     <>
       <PageTitle title={C.daily.title} />
       <section className="daily-detail">
-        <span className="eyebrow">
+        <small>
           {d.daily && <DateLabel date={d.daily.date} />}
-        </span>
+        </small>
         <h2>{d.daily?.prompt}</h2>
         {previousAnswer && (
           <div role="status">
