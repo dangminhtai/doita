@@ -19,6 +19,7 @@ export function actionErrorMessage(error: unknown): string {
         not_paired: C.errors.notPaired,
         seed_required: C.errors.unavailable,
         invalid: C.errors.invalid,
+        not_found: C.common.missingContent,
         "invalid invite": C.errors.invite,
         join_pending: C.couples.pendingOther,
         "Invalid file": C.errors.invalidFile,

@@ -29,6 +29,21 @@ import {
 } from "./draft";
 import { useConfirmation } from "@/components/confirmation";
 
+const noteDraft = (n: Row): NoteDraft => ({
+  editing: n.id,
+  title: n.title ?? "",
+  body: n.content,
+  type: n.type,
+  visibility: n.visibility,
+  lifetime: n.lifetime ?? "forever",
+});
+const sameDraft = (a: NoteDraft, b: NoteDraft) =>
+  a.title === b.title &&
+  a.body === b.body &&
+  a.type === b.type &&
+  a.visibility === b.visibility &&
+  a.lifetime === b.lifetime;
+
 export function NotesScreen() {
   const askConfirmation = useConfirmation();
   const { data: d, user, run, notify } = useApp();
@@ -38,7 +53,19 @@ export function NotesScreen() {
   const collection = useCollection("notes", { search, filter });
   const [open, setOpen] = useState(false),
     [draft, setDraft] = useState<NoteDraft>(emptyNoteDraft);
-  const { editing, title, body, type, visibility } = draft;
+  const { editing, title, body, type, visibility, lifetime } = draft;
+  const [baseline, setBaseline] = useState<NoteDraft>(emptyNoteDraft);
+  const dirty = !sameDraft(draft, baseline);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (
+      !collection.rows.some((note) => note.expires_at) &&
+      !selected?.expires_at
+    )
+      return;
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [collection.rows, selected?.expires_at]);
   const editor = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!open) return;
@@ -125,6 +152,10 @@ export function NotesScreen() {
         localStorage.removeItem(legacyKey);
       }
       setDraft(restored ?? emptyNoteDraft());
+      const original = restored?.editing
+        ? d.notes.find((n) => n.id === restored.editing)
+        : null;
+      setBaseline(original ? noteDraft(original) : emptyNoteDraft());
       setOpen(
         Boolean(
           restored && (restored.body || restored.title || restored.editing),
@@ -135,7 +166,7 @@ export function NotesScreen() {
     }
   }, [user?.id, d.couple?.id]);
   useEffect(() => {
-    if (!open || !(body || title || editing)) return;
+    if (!open || !dirty) return;
     const guard = (e: Event) => {
       e.preventDefault();
       void askConfirmation(C.notes.leaveDraft, {
@@ -155,20 +186,19 @@ export function NotesScreen() {
       window.removeEventListener("couple-before-navigate", guard);
       window.removeEventListener("beforeunload", unload);
     };
-  }, [open, body, title, editing]);
+  }, [open, dirty, askConfirmation]);
   const edit = (n: Row) => {
-    persist(
-      restore(n.id) ?? {
-        editing: n.id,
-        title: n.title,
-        body: n.content,
-        type: n.type,
-        visibility: n.visibility,
-      },
-    );
+    setBaseline(noteDraft(n));
+    persist(restore(n.id) ?? noteDraft(n));
     setOpen(true);
   };
-  const notes = collection.rows;
+  const notes = collection.rows.filter(
+    (n) => !n.expires_at || Date.parse(n.expires_at) > now,
+  );
+  useEffect(() => {
+    if (selected?.expires_at && Date.parse(selected.expires_at) <= now)
+      setSelected(null);
+  }, [selected, now]);
   return (
     <>
       <PageTitle
@@ -176,6 +206,7 @@ export function NotesScreen() {
         action={
           <Button
             onClick={() => {
+              setBaseline(emptyNoteDraft());
               persist(restore(null) ?? emptyNoteDraft());
               setOpen(true);
             }}
@@ -202,12 +233,13 @@ export function NotesScreen() {
                 return;
               }
               const ok = await run(() =>
-                rpc("save_note", {
+                rpc("save_note_timed", {
                   p_title: title,
                   p_content: body,
                   p_type: type,
                   p_visibility: visibility,
                   p_id: editing,
+                  p_lifetime: lifetime,
                 }),
               );
               if (ok) {
@@ -223,14 +255,25 @@ export function NotesScreen() {
               }
             }}
           >
-            <Field label={C.common.title}>
+            <Field label={C.notes.optionalTitle}>
               <input
-                required
                 value={title}
                 maxLength={120}
                 placeholder={C.notes.titlePlaceholder}
                 onChange={(e) => update({ title: e.target.value })}
               />
+            </Field>
+            <Field label={C.notes.lifetime}>
+              <Select
+                value={lifetime}
+                onValueChange={(value) => update({ lifetime: value })}
+              >
+                {Object.entries(C.notes.lifetimes).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </Select>
             </Field>
             <div className="form-grid">
               <Field label={C.notes.type}>
@@ -257,12 +300,14 @@ export function NotesScreen() {
               {type === "checklist" ? C.notes.checklistHint : C.notes.draft}
             </small>
             <div className="row">
-              <Button type="submit">{C.common.save}</Button>
+              <Button type="submit" disabled={!dirty}>
+                {C.common.save}
+              </Button>
               <Button
                 secondary
                 onClick={async () => {
                   if (
-                    !body ||
+                    !dirty ||
                     (await askConfirmation(C.common.unsaved, {
                       action: C.common.close,
                     }))
@@ -333,7 +378,7 @@ export function NotesScreen() {
                   })}
                 </span>
               </div>
-              <h2>{n.title}</h2>
+              {n.title && <h2>{n.title}</h2>}
               {n.type === "checklist" ? (
                 <div className="checklist">
                   {collection.children
@@ -377,7 +422,9 @@ export function NotesScreen() {
               {n.author_id === user?.id && (
                 <details className="note-actions action-menu">
                   <summary
-                    aria-label={t(C.redesign.actionsFor, { title: n.title })}
+                    aria-label={t(C.redesign.actionsFor, {
+                      title: n.title || C.nav.notes,
+                    })}
                   >
                     {C.redesign.actions}
                   </summary>
@@ -458,7 +505,10 @@ export function NotesScreen() {
         </Button>
       )}
       {selected && (
-        <Modal title={selected.title} onClose={() => setSelected(null)}>
+        <Modal
+          title={selected.title || C.nav.notes}
+          onClose={() => setSelected(null)}
+        >
           <div className="letter-reader">
             <span className="tag">
               {selected.visibility === "private"

@@ -243,3 +243,11 @@ Nguyên nhân sóng nhỏ: SVG width100% nhưng height64px cố định, preserv
 ### 06/10/2026 — Mở form sửa lời nhắn trên mobile
 
 Handler Sửa trước đây mở composer ở đầu danh sách nhưng không scroll/focus, khó nhận ra khi đang xem thẻ phía dưới trên mobile. Thêm section ref và đưa tới ô tiêu đề sau render, chừa khoảng topbar. Thêm Sửa trong modal Mở thư chỉ cho tác giả, đóng modal trước khi mở form. Không thay quyền sửa, RPC hoặc draft. TypeScript exit0; chưa kiểm tra mobile trực tiếp theo yêu cầu anh tự test.
+
+### 06/10/2026 — Tiêu đề tùy chọn và thời hạn lời nhắn
+
+Tiêu đề không bắt buộc, vẫn tối đa120 ký tự; không tự sinh tiêu đề từ nội dung. Modal/accessible name dùng Lời nhắn khi tiêu đề trống, Home không hiện tiêu đề trống. Thêm 15 phút/1 giờ/1 ngày/1 tuần/Vĩnh viễn (mặc định); hạn tính server khi lưu, sửa nội dung giữ hạn, đổi thời hạn tính lại khi lưu. Giữ lifetime trong draft, giữ dữ liệu cũ/draft cũ ở forever. So sánh draft với baseline để chỉ xác nhận rời trang/đóng khi có thay đổi, không bật beforeunload khi chỉ mở sửa rồi xem; nút Lưu tắt khi không đổi.
+
+Migration014 thêm expires_at/lifetime, read policy chặn thư hết hạn cùng note_items/kỷ niệm liên quan qua RLS hiện có; trigger chặn mutation vào thư/checklist hết hạn. save_note_timed tái dùng reconcile checklist và action receipts chống retry trùng, không kéo dài hạn qua retry. UI loại thư hết hạn ở danh sách/modal và snapshot Home. Daily cron dọn thư, kỷ niệm liên quan và nội dung trong receipt; đọc bị chặn ngay theo server nhưng xóa vật lý phụ thuộc cron được cấu hình/chạy thành công. Không hứa thu hồi nội dung đã tải xuống thiết bị hoặc bản nháp của người viết.
+
+TypeScript exit0, diff --check exit0. Không chạy test/build/browser hoặc áp dụng migration trên Supabase theo yêu cầu anh tự test. Cần áp dụng supabase/migrations/202610060014_note_lifetime.sql trước khi dùng form mới và cron mới; SQL/RLS/trigger/cron chưa được kiểm chứng thực thi.

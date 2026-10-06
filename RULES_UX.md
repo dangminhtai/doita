@@ -85,3 +85,6 @@ Thay thế quy tắc consent mặc định tắt phía trên: membership mới m
 - Cập nhật nhịp kết nối: tim vector chạy dọc đường sóng và loop theo yêu cầu mới, thay cho tim doodle đứng giữa và animation một lượt. Giữ reduced-motion, pause khi tab ẩn và thao tác tạm dừng bằng click/bàn phím; không giả trạng thái trực tuyến.
 
 - Mở form sửa lời nhắn phải đưa người dùng tới form và focus ô nhập, không mở form ngoài vùng nhìn thấy. Trong Mở thư, tác giả có nút Sửa; người nhận không được sửa nội dung của người ấy. Giữ draft và quyền qua cùng handler ở desktop/mobile.
+
+- Tiêu đề lời nhắn không bắt buộc. Thời gian tồn tại chọn15 phút/1 giờ/1 ngày/1 tuần/Vĩnh viễn, mặc định Vĩnh viễn. Hạn tính bằng giờ server khi lưu; sửa nội dung không đổi hạn, đổi thời gian tồn tại thì tính lại khi lưu, retry không kéo dài. Chặn đọc và thao tác ở database khi hết hạn, không chỉ giấu bằng CSS; xóa vật lý theo cron.
+- Form sửa chỉ cảnh báo rời/đóng khi draft khác baseline; chỉ mở sửa hoặc sửa rồi trả về đúng nội dung ban đầu không cảnh báo. Đổi loại/quyền xem/thời hạn cũng tính là thay đổi. Không tự đặt tiêu đề để ép form hợp lệ.

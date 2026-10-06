@@ -370,6 +370,44 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dirtyTables.current = null;
     return loadQueue.current.run(loadWork);
   }, [loadWork]);
+  useEffect(() => {
+    const deadlines = data.notes
+      .map((note) => Date.parse(note.expires_at ?? ""))
+      .filter(Number.isFinite);
+    if (!deadlines.length) return;
+    const timer = setTimeout(
+      () => {
+        setData((current) => {
+          const expired = new Set(
+            current.notes
+              .filter(
+                (note) =>
+                  note.expires_at && Date.parse(note.expires_at) <= Date.now(),
+              )
+              .map((note) => note.id),
+          );
+          return {
+            ...current,
+            notes: current.notes.filter((note) => !expired.has(note.id)),
+            items: current.items.filter((item) => !expired.has(item.note_id)),
+            memories: current.memories.filter(
+              (memory) =>
+                memory.type !== "note" || !expired.has(memory.source_id),
+            ),
+            onThisDay: current.onThisDay.filter(
+              (memory) =>
+                memory.type !== "note" || !expired.has(memory.source_id),
+            ),
+          };
+        });
+      },
+      Math.min(
+        2147483647,
+        Math.max(0, Math.min(...deadlines) - Date.now()) + 25,
+      ),
+    );
+    return () => clearTimeout(timer);
+  }, [data.notes]);
   const refreshTables = useCallback(
     (tables: string[]) => {
       for (const table of tables) dirtyTables.current?.add(table);

@@ -133,7 +133,11 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
           <article className="home-letter">
             <ThemeArt asset="envelope" size={160} />
             <div>
-              <h2>{d.notes[0]?.title ?? C.redesign.noLetter}</h2>
+              <h2>
+                {d.notes[0]
+                  ? d.notes[0].title || C.nav.notes
+                  : C.redesign.noLetter}
+              </h2>
               {d.notes[0] && (
                 <p>
                   {d.notes[0].visibility === "private"

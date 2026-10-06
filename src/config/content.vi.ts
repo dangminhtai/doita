@@ -284,6 +284,15 @@ export const CONTENT = {
     needPair: "Ghép đủ hai người để hoàn thành daily.",
   },
   notes: {
+    optionalTitle: "Tiêu đề (không bắt buộc)",
+    lifetime: "Thời gian tồn tại",
+    lifetimes: {
+      "15m": "15 phút",
+      "1h": "1 giờ",
+      "1d": "1 ngày",
+      "1w": "1 tuần",
+      forever: "Vĩnh viễn",
+    },
     legacyDraftPrivate:
       "Đã khôi phục bản nháp cũ ở chế độ Chỉ mình. Kiểm tra quyền xem trước khi gửi.",
     leaveDraft:
@@ -325,7 +334,7 @@ export const CONTENT = {
     empty:
       "Chưa có điều ước. Viết điều ước đầu tiên hoặc mở bản nháp bên dưới.",
     draft: "Lưu bản nháp",
-    drafts: "Những lá thư đang viết",
+    drafts: "Những ước nguyện đang viết",
     resurface: "Để thuyền trở lại sau 30 ngày",
     prompt: "Một gợi ý nhỏ",
     count: "{{count}} / {{max}}",

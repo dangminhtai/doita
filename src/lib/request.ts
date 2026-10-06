@@ -31,6 +31,7 @@ export async function boundedFetch(
 
 export const retryableActions = new Set([
   "save_note",
+  "save_note_timed",
   "save_prayer",
   "save_memory",
   "save_special_date",

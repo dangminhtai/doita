@@ -15,6 +15,8 @@ export async function GET(request: Request) {
     return Response.json({ ok: false }, { status: 401 });
   const db = service();
   try {
+    const expired = await db.rpc("cleanup_expired_notes");
+    if (expired.error) throw expired.error;
     const { data, error } = await db.rpc("daily_maintenance");
     if (error) throw error;
     const deadline = Date.now() + 45000;
@@ -22,7 +24,13 @@ export async function GET(request: Request) {
       flushPush(undefined, deadline),
       cleanupAssets(undefined, deadline),
     ]);
-    return Response.json({ ok: true, couples: data, push, assets });
+    return Response.json({
+      ok: true,
+      couples: data,
+      push,
+      assets,
+      expiredNotes: expired.data,
+    });
   } catch (e) {
     console.error("Daily maintenance", e);
     await db.from("system_jobs").upsert({

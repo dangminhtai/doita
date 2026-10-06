@@ -10,7 +10,7 @@ export const signupSchema = authSchema.extend({
   gender: z.enum(["male", "female", "other", "undisclosed"]),
 });
 export const noteSchema = z.object({
-  title: z.string().trim().min(1).max(120),
+  title: z.string().trim().max(120),
   content: z.string().trim().min(1).max(A.notes.maxLength),
   type: z.enum(["text", "checklist"]),
   visibility: z.enum(["private", "partner", "couple"]),

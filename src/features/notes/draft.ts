@@ -4,6 +4,7 @@ export type NoteDraft = {
   body: string;
   type: string;
   visibility: string;
+  lifetime: string;
 };
 export const emptyNoteDraft = (): NoteDraft => ({
   editing: null,
@@ -11,6 +12,7 @@ export const emptyNoteDraft = (): NoteDraft => ({
   body: "",
   type: "text",
   visibility: "private",
+  lifetime: "forever",
 });
 export function parseNoteDraft(value: string | null): NoteDraft | null {
   if (!value) return null;
@@ -21,7 +23,9 @@ export function parseNoteDraft(value: string | null): NoteDraft | null {
       typeof d.body !== "string" ||
       !["text", "checklist"].includes(d.type) ||
       !["private", "couple", "partner"].includes(d.visibility) ||
-      !(d.editing === null || typeof d.editing === "string")
+      !(d.editing === null || typeof d.editing === "string") ||
+      (d.lifetime !== undefined &&
+        !["15m", "1h", "1d", "1w", "forever"].includes(d.lifetime))
     )
       return null;
     return {
@@ -30,6 +34,7 @@ export function parseNoteDraft(value: string | null): NoteDraft | null {
       body: d.body,
       type: d.type,
       visibility: d.visibility,
+      lifetime: d.lifetime ?? "forever",
     };
   } catch {
     return null;
