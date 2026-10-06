@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pin, Plus } from "@/components/icons";
 import { useApp, type Row } from "@/components/app-context";
 import {
@@ -39,6 +39,17 @@ export function NotesScreen() {
   const [open, setOpen] = useState(false),
     [draft, setDraft] = useState<NoteDraft>(emptyNoteDraft);
   const { editing, title, body, type, visibility } = draft;
+  const editor = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const frame = requestAnimationFrame(() => {
+      editor.current?.scrollIntoView({ block: "start", behavior: "instant" });
+      editor.current
+        ?.querySelector<HTMLInputElement>("input:not([type=hidden])")
+        ?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [open, editing]);
   const activeKey = `couple-draft:${user?.id}:${d.couple?.id}:note-active`;
   const restore = (id: string | null) => {
     try {
@@ -175,93 +186,95 @@ export function NotesScreen() {
         }
       />
       {open && (
-        <ScopedForm
-          className="composer"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            const result = noteSchema.safeParse({
-              title,
-              content: body,
-              type,
-              visibility,
-            });
-            if (!result.success) {
-              notify(C.errors.invalid, true);
-              return;
-            }
-            const ok = await run(() =>
-              rpc("save_note", {
-                p_title: title,
-                p_content: body,
-                p_type: type,
-                p_visibility: visibility,
-                p_id: editing,
-              }),
-            );
-            if (ok) {
-              try {
-                if (user)
-                  localStorage.removeItem(
-                    noteDraftKey(user.id, editing, d.couple!.id),
-                  );
-                localStorage.removeItem(activeKey);
-              } catch {}
-              setDraft(emptyNoteDraft());
-              setOpen(false);
-            }
-          }}
-        >
-          <Field label={C.common.title}>
-            <input
-              required
-              value={title}
-              maxLength={120}
-              placeholder={C.notes.titlePlaceholder}
-              onChange={(e) => update({ title: e.target.value })}
-            />
-          </Field>
-          <div className="form-grid">
-            <Field label={C.notes.type}>
-              <Select value={type} onValueChange={(e) => update({ type: e })}>
-                <option value="text">{C.notes.text}</option>
-                <option value="checklist">{C.notes.checklist}</option>
-              </Select>
+        <section ref={editor} className="note-editor">
+          <ScopedForm
+            className="composer"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const result = noteSchema.safeParse({
+                title,
+                content: body,
+                type,
+                visibility,
+              });
+              if (!result.success) {
+                notify(C.errors.invalid, true);
+                return;
+              }
+              const ok = await run(() =>
+                rpc("save_note", {
+                  p_title: title,
+                  p_content: body,
+                  p_type: type,
+                  p_visibility: visibility,
+                  p_id: editing,
+                }),
+              );
+              if (ok) {
+                try {
+                  if (user)
+                    localStorage.removeItem(
+                      noteDraftKey(user.id, editing, d.couple!.id),
+                    );
+                  localStorage.removeItem(activeKey);
+                } catch {}
+                setDraft(emptyNoteDraft());
+                setOpen(false);
+              }
+            }}
+          >
+            <Field label={C.common.title}>
+              <input
+                required
+                value={title}
+                maxLength={120}
+                placeholder={C.notes.titlePlaceholder}
+                onChange={(e) => update({ title: e.target.value })}
+              />
             </Field>
-            <Visibility
-              value={visibility}
-              onChange={(visibility) => update({ visibility })}
-            />
-          </div>
-          <Field label={C.common.content}>
-            <textarea
-              required
-              maxLength={A.notes.maxLength}
-              value={body}
-              onChange={(e) => update({ body: e.target.value })}
-              placeholder={C.notes.bodyPlaceholder}
-            />
-          </Field>
-          <small>
-            {type === "checklist" ? C.notes.checklistHint : C.notes.draft}
-          </small>
-          <div className="row">
-            <Button type="submit">{C.common.save}</Button>
-            <Button
-              secondary
-              onClick={async () => {
-                if (
-                  !body ||
-                  (await askConfirmation(C.common.unsaved, {
-                    action: C.common.close,
-                  }))
-                )
-                  setOpen(false);
-              }}
-            >
-              {C.common.close}
-            </Button>
-          </div>
-        </ScopedForm>
+            <div className="form-grid">
+              <Field label={C.notes.type}>
+                <Select value={type} onValueChange={(e) => update({ type: e })}>
+                  <option value="text">{C.notes.text}</option>
+                  <option value="checklist">{C.notes.checklist}</option>
+                </Select>
+              </Field>
+              <Visibility
+                value={visibility}
+                onChange={(visibility) => update({ visibility })}
+              />
+            </div>
+            <Field label={C.common.content}>
+              <textarea
+                required
+                maxLength={A.notes.maxLength}
+                value={body}
+                onChange={(e) => update({ body: e.target.value })}
+                placeholder={C.notes.bodyPlaceholder}
+              />
+            </Field>
+            <small>
+              {type === "checklist" ? C.notes.checklistHint : C.notes.draft}
+            </small>
+            <div className="row">
+              <Button type="submit">{C.common.save}</Button>
+              <Button
+                secondary
+                onClick={async () => {
+                  if (
+                    !body ||
+                    (await askConfirmation(C.common.unsaved, {
+                      action: C.common.close,
+                    }))
+                  )
+                    setOpen(false);
+                }}
+              >
+                {C.common.close}
+              </Button>
+            </div>
+          </ScopedForm>
+        </section>
       )}
       <div className="filters">
         <Field label={C.common.search}>
@@ -462,6 +475,17 @@ export function NotesScreen() {
               }
             </p>
             <DateLabel date={selected.created_at} />
+            {selected.author_id === user?.id && (
+              <Button
+                onClick={() => {
+                  const note = selected;
+                  setSelected(null);
+                  edit(note);
+                }}
+              >
+                {C.common.edit}
+              </Button>
+            )}
           </div>
         </Modal>
       )}

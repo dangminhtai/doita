@@ -239,3 +239,7 @@ Sửa lỗi CSS lượt trước làm mất stroke và gộp track vào animatio
 ### 06/10/2026 — Tỉ lệ sóng desktop
 
 Nguyên nhân sóng nhỏ: SVG width100% nhưng height64px cố định, preserveAspectRatio mặc định thu hình về160px và để trắng hai bên. Đổi height auto/aspect-ratio160/64 để hình phủ đúng chiều rộng cột; tim cùng SVG nên lớn theo đúng tỉ lệ. Khung nhịp căn giữa theo chiều cao avatar; giới hạn hàng hai người680px để giảm khoảng trống desktop. Mobile giữ sizing theo viewport. TypeScript exit0; chưa kiểm tra trực quan trên web.
+
+### 06/10/2026 — Mở form sửa lời nhắn trên mobile
+
+Handler Sửa trước đây mở composer ở đầu danh sách nhưng không scroll/focus, khó nhận ra khi đang xem thẻ phía dưới trên mobile. Thêm section ref và đưa tới ô tiêu đề sau render, chừa khoảng topbar. Thêm Sửa trong modal Mở thư chỉ cho tác giả, đóng modal trước khi mở form. Không thay quyền sửa, RPC hoặc draft. TypeScript exit0; chưa kiểm tra mobile trực tiếp theo yêu cầu anh tự test.

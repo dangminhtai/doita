@@ -887,6 +887,9 @@ textarea {
   margin-top: 16px;
   border-top: 1px solid var(--theme-border);
 }
+.note-editor {
+  scroll-margin-top: 120px;
+}
 .note-actions summary {
   cursor: pointer;
   padding: 10px 0;

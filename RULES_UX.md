@@ -83,3 +83,5 @@ Thay thế quy tắc consent mặc định tắt phía trên: membership mới m
 - Trang giới thiệu đủ hai người không hiện nút vào/gửi yêu cầu hay ID lặp. Avatar/tên/bio căn giữa theo hai cột bằng nhau; bio trống có Chưa có mô tả màu muted. Kết nối dùng tim doodle và đường nhịp nhẹ, không giả trạng thái online; motion có điểm dừng, reduced-motion và pause khi tab ẩn.
 
 - Cập nhật nhịp kết nối: tim vector chạy dọc đường sóng và loop theo yêu cầu mới, thay cho tim doodle đứng giữa và animation một lượt. Giữ reduced-motion, pause khi tab ẩn và thao tác tạm dừng bằng click/bàn phím; không giả trạng thái trực tuyến.
+
+- Mở form sửa lời nhắn phải đưa người dùng tới form và focus ô nhập, không mở form ngoài vùng nhìn thấy. Trong Mở thư, tác giả có nút Sửa; người nhận không được sửa nội dung của người ấy. Giữ draft và quyền qua cùng handler ở desktop/mobile.
