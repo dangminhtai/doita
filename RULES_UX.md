@@ -52,6 +52,7 @@ Các thay đổi tiếp theo phải cập nhật quy tắc khi anh đổi yêu c
 - Theo yêu cầu ngày 05/10/2026: không hiện các subtitle Notes/Prayer/Memories/Activities, eyebrow “NHỮNG ĐIỀU NHỎ CỦA HAI ĐỨA”, câu mô tả phạm vi tìm kiếm, câu chờ người ấy, hướng dẫn cài ứng dụng hoặc thẻ Giao diện khi chỉ có một theme. Không lặp “Quyền xem: …” cạnh nút; giữ lựa chọn quyền xem trong form và xác nhận thả điều ước.
 
 - Người dùng mục tiêu tại Việt Nam: tạo không gian dùng APP_CONFIG.timezone = Asia/Ho_Chi_Minh, không hiện lựa chọn múi giờ trong PairScreen hoặc Hai đứa.
+- Gợi ý hoạt động dùng minh họa theo đúng ID qua THEME.activityArt; không dùng mascot chung cho kết quả đã chọn. Khi ảnh thiếu/lỗi giữ text và thao tác, không đưa hình sai nghĩa. Mapping đối chiếu ID/title/description; giữ nguồn và chỉ xuất bản tối ưu cho web.
 
 - Font toàn ứng dụng dùng Nunito bản thường: nội dung 400/16px/1.6, nút/menu600, tiêu đề700–800. Không đưa Arial hoặc font viết tay trở lại; kiểm tra dấu tiếng Việt và reflow khi đổi chữ.
 

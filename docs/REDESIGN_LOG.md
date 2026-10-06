@@ -1,5 +1,11 @@
 # Nhật ký triển khai redesign Doita
 
+## Minh họa đúng hoạt động — 06/10/2026
+
+Khung kết quả Activities từng dùng cố định mascot nên mọi gợi ý đều hiện cùng ảnh thỏ. Thay bằng `ActivityArt` tra `chosen.id` qua `THEME.activityArt`; title/description/handler/filter/retry giữ nguyên. Mapping bộ nguồn khớp cả100 ID/title/description trong data hiện tại; xuất68 ảnh WebP có sẵn và32 PNG đã đặt tên thành100 WebP512×512, tổng4.510.944 byte, giữ alpha và nguồn gốc. Registry URL có hash tránh cache cũ. Không sửa database hoặc cần chạy seed.
+
+Ảnh chỉ dành cho hoạt động đang chọn; thiếu/lỗi bỏ hình, không fallback sang mascot sai nghĩa. Mascot ở trạng thái chưa chọn giữ nguyên. Kế hoạch trang công khai vẫn chưa duyệt, không triển khai. Typecheck exit0; xác nhận100 đường dẫn/hash và mapping, kích thước/alpha khi xuất. Theo yêu cầu của anh không chạy test/web/build, chưa kiểm chứng trực quan. Chưa commit/push/deploy.
+
 ## ID không gian và duyệt ghép đôi — 06/10/2026
 
 Anh chọn ID tăng dần kèm duyệt ghép đôi. Migration `202610050011_couple_public_id.sql` cấp ID cố định 9 chữ số từ 000000001 cho không gian cũ/mới; UUID nội bộ và quan hệ dữ liệu giữ nguyên. Mã dài cũ chuyển sang `private.couple_invites`; không còn trong public rows hoặc payload Realtime. Luồng ghép đôi trực tiếp bằng mã cũ bị đóng; bỏ nút tạo mã mới và hạn dùng mã khỏi UI.

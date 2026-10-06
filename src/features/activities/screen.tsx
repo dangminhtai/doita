@@ -8,6 +8,7 @@ import { useViewState } from "@/components/view-state";
 import { CONTENT as C, interpolate as t } from "@/config/content.vi";
 import { rpc } from "@/lib/supabase/browser";
 import { recommend, type Activity } from "./recommend";
+import { ActivityArt } from "./activity-art";
 export function ActivitiesScreen() {
   const { data: d, run, user } = useApp();
   const [timeValue, setTimeValue] = useViewState("activities-time", "15");
@@ -108,7 +109,7 @@ export function ActivitiesScreen() {
       {chosen ? (
         <ActionScope scope={`activity:${chosen.id}`}>
           <article className="activity-result" key={chosen.id}>
-            <ThemeArt asset="mascots" size={180} />
+            <ActivityArt id={chosen.id} />
             <span className="tag">
               {t(C.activities.minutes, { count: chosen.duration })}
             </span>

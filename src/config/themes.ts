@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { DOODLE_ICONS } from "./ui-icons";
+import { ACTIVITY_ART } from "./activity-art";
 
 export type ThemeAsset =
   | "heroDesktop"
@@ -32,11 +33,13 @@ export type ThemeDefinition = {
   };
   assets: Record<ThemeAsset, string>;
   icons: typeof DOODLE_ICONS;
+  activityArt: Record<string, string>;
 };
 export const THEMES = {
   sunset: {
     id: "sunset",
     icons: DOODLE_ICONS,
+    activityArt: ACTIVITY_ART,
     colors: {
       page: "#fff7fa",
       paper: "#ffffff",
@@ -61,9 +64,11 @@ export const THEMES = {
       heart: "/themes/sunset/doodle-art/heart.webp?v=5159e903a7",
       flowers: "/themes/sunset/doodle-art/flowers.webp?v=9a1ad581be",
       emptyNotes: "/themes/sunset/doodle-art/empty-notes.webp?v=5d0ff106e1",
-      emptyMemories: "/themes/sunset/doodle-art/empty-memories.webp?v=a46b34bb76",
+      emptyMemories:
+        "/themes/sunset/doodle-art/empty-memories.webp?v=a46b34bb76",
       emptyPrayer: "/themes/sunset/doodle-art/empty-prayer.webp?v=5c1013797c",
-      emptyNotifications: "/themes/sunset/doodle-art/empty-notifications.webp?v=92401fd67e",
+      emptyNotifications:
+        "/themes/sunset/doodle-art/empty-notifications.webp?v=92401fd67e",
     },
   },
 } satisfies Record<string, ThemeDefinition>;

@@ -13,6 +13,14 @@ Theo chỉnh sửa ngày 05/10/2026 sau phản hồi của anh: giao diện theo
 
 Hiện có một theme và chưa có trình chọn theme theo tài khoản. Các theme dùng chung bố cục/CSS; thay đổi phong cách bố cục cần sửa CSS có kiểm tra tương ứng.
 
+## Minh họa hoạt động
+
+`ThemeDefinition.activityArt` ánh xạ ID hoạt động sang URL ảnh; sunset dùng `src/config/activity-art.ts`. Bộ 100 ảnh nằm tại `public/themes/sunset/activities`, WebP512×512 giữ alpha, tổng 4.510.944 byte. Mapping đối chiếu ID/title/description với `data/activities.json`; không cần seed hoặc sửa schema Supabase để hiện ảnh.
+
+Khung gợi ý dùng `ActivityArt` theo ID đã chọn, hiển thị180px, alt rỗng vì tên/mô tả có sẵn bằng HTML. Ảnh thiếu/lỗi thì bỏ minh họa, không thay bằng mascot sai nghĩa. Mascot chỉ dùng khi chưa có hoạt động được chọn. Theme mới khai báo `activityArt` riêng, không hard-code đường dẫn trong feature.
+
+Chạy `node scripts/prepare-activity-art.mjs` để xuất lại từ bộ nguồn `doita-test/doita-activity-art`: dùng68 WebP đã có và32 PNG trong `missing`, giữ nguyên nguồn, kiểm tra mapping/kích thước/alpha trước khi ghi. Registry có hash URL để thay ảnh không bị cache cũ. Thư mục nguồn bị gitignore; bản WebP và registry dùng trên web phải được đưa cùng code khi deploy.
+
 ## Vai trò và kích thước ảnh hiện tại
 
 | Vai trò | File WebP | Kích thước |
