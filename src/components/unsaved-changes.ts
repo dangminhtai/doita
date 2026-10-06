@@ -12,7 +12,9 @@ export function useUnsavedChanges(
 ) {
   const ask = useConfirmation();
   const current = useRef({ active, changed, message });
-  current.current = { active, changed, message };
+  useEffect(() => {
+    current.current = { active, changed, message };
+  }, [active, changed, message]);
   const confirmLeave = useCallback(() => {
     const state = current.current;
     return location.pathname === pathname && state.active && state.changed

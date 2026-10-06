@@ -273,3 +273,7 @@ TypeScript exit0 và diff --check exit0; không chạy browser/test hoặc deplo
 ### 06/10/2026 — Guard rời form theo đúng đường dẫn
 
 Anh báo production hiện xác nhận khi từ Hôm nay sang Notes, local không tái hiện. Chưa xác nhận nguyên nhân production hoặc phiên bản bundle đang chạy. useUnsavedChanges nhận đường dẫn của form, bỏ qua guard/callback nếu URL đã thuộc trang khác. Notes/Prayer truyền đúng route. Select chung chỉ nhận giá trị có trong options và khác lựa chọn hiện tại, chặn callback rỗng từ native select khi mount; Notes cập nhật patch từ draft ref mới nhất để tránh callback cùng lượt ghi đè nhau. Giữ cảnh báo thay đổi thật và bản nháp. Typecheck exit0; chưa kiểm tra browser/production, chưa deploy.
+
+### 06/10/2026 — Sửa refs trong render
+
+Chuyển đồng bộ ref của Notes, Prayer và useUnsavedChanges sang effect; không ghi ref trong render. Notes vẫn cập nhật ref ngay trong handler persist để giữ patch mới nhất. ESLint bốn file liên quan exit0; typecheck và diff --check exit0. Chưa kiểm tra browser hoặc deploy.

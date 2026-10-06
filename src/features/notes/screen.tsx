@@ -50,7 +50,9 @@ export function NotesScreen() {
     [draft, setDraft] = useState<NoteDraft>(emptyNoteDraft);
   const { editing, title, body, type, visibility, lifetime } = draft;
   const currentDraft = useRef(draft);
-  currentDraft.current = draft;
+  useEffect(() => {
+    currentDraft.current = draft;
+  }, [draft]);
   const [baseline, setBaseline] = useState<NoteDraft>(emptyNoteDraft);
   const hasUnsavedMessage = draftHasChanges(
     draft,

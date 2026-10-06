@@ -75,7 +75,9 @@ export function PrayerScreen() {
     "/prayer",
   );
   const currentDraft = useRef(draft);
-  currentDraft.current = draft;
+  useEffect(() => {
+    currentDraft.current = draft;
+  }, [draft]);
   const prefix = `couple-draft:${user!.id}:prayer:${d.couple!.id}`;
   const read = (id: string | null) => {
     try {
