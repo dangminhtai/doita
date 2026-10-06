@@ -41,7 +41,18 @@ export function Select({
   return (
     <Primitive.Root
       value={String(value)}
-      onValueChange={onValueChange}
+      onValueChange={(next) => {
+        // The hidden native select can emit an empty value while its options mount.
+        // Only a value represented by this control is an actual selection.
+        if (
+          next !== String(value) &&
+          options.some(
+            (option) =>
+              String(option.props.value) === next && !option.props.disabled,
+          )
+        )
+          onValueChange(next);
+      }}
       disabled={disabled}
       name={name}
       required={required}

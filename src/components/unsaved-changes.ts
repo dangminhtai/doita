@@ -8,28 +8,39 @@ export function useUnsavedChanges(
   active: boolean,
   changed: boolean,
   message: string,
+  pathname: string,
 ) {
   const ask = useConfirmation();
   const current = useRef({ active, changed, message });
   current.current = { active, changed, message };
   const confirmLeave = useCallback(() => {
     const state = current.current;
-    return state.active && state.changed
+    return location.pathname === pathname && state.active && state.changed
       ? ask(state.message, { action: C.common.continue })
       : Promise.resolve(true);
-  }, [ask]);
+  }, [ask, pathname]);
   useEffect(() => {
     if (!active || !changed) return;
     const guard = (event: Event) => {
-      if (!current.current.active || !current.current.changed) return;
+      if (
+        location.pathname !== pathname ||
+        !current.current.active ||
+        !current.current.changed
+      )
+        return;
       event.preventDefault();
       void confirmLeave().then((accepted) => {
-        if (accepted)
+        if (accepted && location.pathname === pathname)
           (event as CustomEvent<{ resume: () => void }>).detail.resume();
       });
     };
     const unload = (event: BeforeUnloadEvent) => {
-      if (!current.current.active || !current.current.changed) return;
+      if (
+        location.pathname !== pathname ||
+        !current.current.active ||
+        !current.current.changed
+      )
+        return;
       event.preventDefault();
       event.returnValue = "";
     };
@@ -39,6 +50,6 @@ export function useUnsavedChanges(
       window.removeEventListener("couple-before-navigate", guard);
       window.removeEventListener("beforeunload", unload);
     };
-  }, [active, changed, confirmLeave]);
+  }, [active, changed, confirmLeave, pathname]);
   return confirmLeave;
 }

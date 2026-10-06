@@ -269,3 +269,7 @@ Thêm Xóa bản nháp cạnh từng draft đã lưu và trong composer (cả dr
 Thêm src/lib/draft-changes.ts so sánh trường chỉnh sửa với baseline đã lưu, bỏ qua ID và khoảng trắng đầu/cuối; form mới chưa có nội dung không tính thay đổi metadata là lời nhắn/điều ước chưa lưu. src/components/unsaved-changes.ts xử lý chung navigation, beforeunload và xác nhận đóng/chuyển bản, chỉ gắn guard khi form mở và có thay đổi thật. Notes và Prayer dùng cả hai module. Prayer đặt baseline từ draft server khi mở, reset sau lưu/xóa, lưu nháp không hoạt động khi không đổi, giữ xác nhận thả thuyền/xóa độc lập. Bản nháp chỉ khôi phục dữ liệu, không tự mở form ở cả hai route. Chuyển sang bản khác chỉ hỏi nếu có thay đổi thật, giữ nháp cũ.
 
 TypeScript exit0 và diff --check exit0; không chạy browser/test hoặc deploy theo yêu cầu. Không cần migration cho thay đổi này. Dialog reload/tab-close vẫn do trình duyệt nếu thực sự có thay đổi chưa lưu.
+
+### 06/10/2026 — Guard rời form theo đúng đường dẫn
+
+Anh báo production hiện xác nhận khi từ Hôm nay sang Notes, local không tái hiện. Chưa xác nhận nguyên nhân production hoặc phiên bản bundle đang chạy. useUnsavedChanges nhận đường dẫn của form, bỏ qua guard/callback nếu URL đã thuộc trang khác. Notes/Prayer truyền đúng route. Select chung chỉ nhận giá trị có trong options và khác lựa chọn hiện tại, chặn callback rỗng từ native select khi mount; Notes cập nhật patch từ draft ref mới nhất để tránh callback cùng lượt ghi đè nhau. Giữ cảnh báo thay đổi thật và bản nháp. Typecheck exit0; chưa kiểm tra browser/production, chưa deploy.

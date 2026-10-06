@@ -49,6 +49,8 @@ export function NotesScreen() {
   const [open, setOpen] = useState(false),
     [draft, setDraft] = useState<NoteDraft>(emptyNoteDraft);
   const { editing, title, body, type, visibility, lifetime } = draft;
+  const currentDraft = useRef(draft);
+  currentDraft.current = draft;
   const [baseline, setBaseline] = useState<NoteDraft>(emptyNoteDraft);
   const hasUnsavedMessage = draftHasChanges(
     draft,
@@ -62,6 +64,7 @@ export function NotesScreen() {
     open,
     hasUnsavedMessage,
     C.notes.leaveDraft,
+    "/notes",
   );
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -97,6 +100,7 @@ export function NotesScreen() {
     }
   };
   const persist = (next: NoteDraft) => {
+    currentDraft.current = next;
     setDraft(next);
     if (!user) return;
     try {
@@ -109,7 +113,8 @@ export function NotesScreen() {
       notify(C.notes.draftStorageError, true);
     }
   };
-  const update = (patch: Partial<NoteDraft>) => persist({ ...draft, ...patch });
+  const update = (patch: Partial<NoteDraft>) =>
+    persist({ ...currentDraft.current, ...patch });
   useEffect(() => {
     if (!user) return;
     try {

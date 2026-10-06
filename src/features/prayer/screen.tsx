@@ -68,7 +68,12 @@ export function PrayerScreen() {
     draftId !== null,
     Boolean(body.trim()),
   );
-  const confirmLeave = useUnsavedChanges(open, changed, C.prayer.leaveDraft);
+  const confirmLeave = useUnsavedChanges(
+    open,
+    changed,
+    C.prayer.leaveDraft,
+    "/prayer",
+  );
   const currentDraft = useRef(draft);
   currentDraft.current = draft;
   const prefix = `couple-draft:${user!.id}:prayer:${d.couple!.id}`;
