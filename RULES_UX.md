@@ -88,3 +88,11 @@ Thay thế quy tắc consent mặc định tắt phía trên: membership mới m
 
 - Tiêu đề lời nhắn không bắt buộc. Thời gian tồn tại chọn15 phút/1 giờ/1 ngày/1 tuần/Vĩnh viễn, mặc định Vĩnh viễn. Hạn tính bằng giờ server khi lưu; sửa nội dung không đổi hạn, đổi thời gian tồn tại thì tính lại khi lưu, retry không kéo dài. Chặn đọc và thao tác ở database khi hết hạn, không chỉ giấu bằng CSS; xóa vật lý theo cron.
 - Form sửa chỉ cảnh báo rời/đóng khi draft khác baseline; chỉ mở sửa hoặc sửa rồi trả về đúng nội dung ban đầu không cảnh báo. Đổi loại/quyền xem/thời hạn cũng tính là thay đổi. Không tự đặt tiêu đề để ép form hợp lệ.
+
+- Form lời nhắn mới trống không cảnh báo rời/đóng dù đã đổi quyền xem/loại/thời hạn. Chỉ cảnh báo khi có chữ chưa lưu hoặc thay đổi thư đang sửa. Lưu thành công reset cả draft lẫn baseline; không báo còn thay đổi từ phiên sửa vừa lưu.
+
+- Vào/reload trang Lời nhắn luôn đóng composer. Khôi phục bản nháp không tự mở form, cuộn hay focus. Chỉ hành động Viết lời nhắn/Sửa của người dùng mới mở; giữ bản nháp để khôi phục khi bấm tương ứng.
+
+- Bản nháp điều ước phải có Xóa bản nháp trực tiếp trong danh sách và form. Xóa cần xác nhận, chỉ tác giả được xóa; kiểm tra status draft ở server, không xóa nhầm bản đã thả. Dọn đúng local draft tương ứng sau server xác nhận, giữ bản khác và giữ nội dung khi lỗi.
+
+- Notes/Prayer phải dùng draftHasChanges và useUnsavedChanges chung. Cảnh báo dựa trên so sánh với bản server đã lưu, không dựa vào body có chữ hay editingID. Mở bản đã lưu, trả nội dung về baseline, hoặc form mới trống chỉ đổi tùy chọn thì không hỏi. Lưu/xóa thành công reset baseline; nội dung/quyền/tùy chọn có thay đổi thật vẫn được bảo vệ. Không tự mở composer khi restore draft. Xác nhận xóa/thả điều ước là quyết định khác, giữ độc lập với guard thay đổi.

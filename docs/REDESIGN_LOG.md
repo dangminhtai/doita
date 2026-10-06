@@ -251,3 +251,21 @@ Tiêu đề không bắt buộc, vẫn tối đa120 ký tự; không tự sinh t
 Migration014 thêm expires_at/lifetime, read policy chặn thư hết hạn cùng note_items/kỷ niệm liên quan qua RLS hiện có; trigger chặn mutation vào thư/checklist hết hạn. save_note_timed tái dùng reconcile checklist và action receipts chống retry trùng, không kéo dài hạn qua retry. UI loại thư hết hạn ở danh sách/modal và snapshot Home. Daily cron dọn thư, kỷ niệm liên quan và nội dung trong receipt; đọc bị chặn ngay theo server nhưng xóa vật lý phụ thuộc cron được cấu hình/chạy thành công. Không hứa thu hồi nội dung đã tải xuống thiết bị hoặc bản nháp của người viết.
 
 TypeScript exit0, diff --check exit0. Không chạy test/build/browser hoặc áp dụng migration trên Supabase theo yêu cầu anh tự test. Cần áp dụng supabase/migrations/202610060014_note_lifetime.sql trước khi dùng form mới và cron mới; SQL/RLS/trigger/cron chưa được kiểm chứng thực thi.
+
+### 06/10/2026 — Cảnh báo sai khi form lời nhắn trống
+
+Ảnh form trống có visibility Cả hai, khác baseline Chỉ mình, nên dirty=true dù chưa có lời nhắn. Tách hasUnsavedMessage: form mới chỉ cảnh báo nếu có title/body thực sự; chỉ đổi loại/quyền/hạn của form trống không cảnh báo. Form sửa có nội dung đã lưu vẫn xét metadata khác baseline để bảo vệ thay đổi. Reset cả draft và baseline sau lưu thành công; Lưu tắt khi body trống. TypeScript exit0; chưa kiểm tra/deploy production.
+
+### 06/10/2026 — Không tự mở composer khi khôi phục draft
+
+Nguyên nhân form xuất hiện trước khi bấm: effect khôi phục localStorage gọi setOpen(true) nếu bản nháp có body/title hoặc editingID. Bỏ auto-open, luôn setOpen(false) khi vào trang/đổi scope. Giữ draft trong storage; chỉ handler Viết lời nhắn/Sửa mở composer và đưa focus tới form. TypeScript exit0; chưa kiểm tra web hoặc deploy.
+
+### 06/10/2026 — Xóa bản nháp điều ước
+
+Thêm Xóa bản nháp cạnh từng draft đã lưu và trong composer (cả draft local chưa lưu). Dùng xác nhận destructive trước thao tác, Hủy không gửi request; chống gọi trùng. Xóa draft server qua delete_prayer_draft, kiểm tra tác giả/không gian/status draft và khóa row để không xóa điều ước vừa được thả. Retry tái dùng action receipts. Xóa đúng bản local và active marker tương ứng, không đóng/xóa bản khác đang mở khi response về. Không tự xóa local draft nếu server write lỗi. Migration015 chưa áp dụng; TypeScript exit0, chưa test database hoặc web.
+
+### 06/10/2026 — Logic chung cho thay đổi chưa lưu
+
+Thêm src/lib/draft-changes.ts so sánh trường chỉnh sửa với baseline đã lưu, bỏ qua ID và khoảng trắng đầu/cuối; form mới chưa có nội dung không tính thay đổi metadata là lời nhắn/điều ước chưa lưu. src/components/unsaved-changes.ts xử lý chung navigation, beforeunload và xác nhận đóng/chuyển bản, chỉ gắn guard khi form mở và có thay đổi thật. Notes và Prayer dùng cả hai module. Prayer đặt baseline từ draft server khi mở, reset sau lưu/xóa, lưu nháp không hoạt động khi không đổi, giữ xác nhận thả thuyền/xóa độc lập. Bản nháp chỉ khôi phục dữ liệu, không tự mở form ở cả hai route. Chuyển sang bản khác chỉ hỏi nếu có thay đổi thật, giữ nháp cũ.
+
+TypeScript exit0 và diff --check exit0; không chạy browser/test hoặc deploy theo yêu cầu. Không cần migration cho thay đổi này. Dialog reload/tab-close vẫn do trình duyệt nếu thực sự có thay đổi chưa lưu.

@@ -43,6 +43,7 @@ export const retryableActions = new Set([
   "toggle_note_item",
   "note_action",
   "prayer_action",
+  "delete_prayer_draft",
   "delete_memory",
   "delete_special_date",
   "pair_couple",

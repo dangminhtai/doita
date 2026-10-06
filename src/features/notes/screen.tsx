@@ -28,6 +28,8 @@ import {
   type NoteDraft,
 } from "./draft";
 import { useConfirmation } from "@/components/confirmation";
+import { useUnsavedChanges } from "@/components/unsaved-changes";
+import { draftHasChanges } from "@/lib/draft-changes";
 
 const noteDraft = (n: Row): NoteDraft => ({
   editing: n.id,
@@ -37,13 +39,6 @@ const noteDraft = (n: Row): NoteDraft => ({
   visibility: n.visibility,
   lifetime: n.lifetime ?? "forever",
 });
-const sameDraft = (a: NoteDraft, b: NoteDraft) =>
-  a.title === b.title &&
-  a.body === b.body &&
-  a.type === b.type &&
-  a.visibility === b.visibility &&
-  a.lifetime === b.lifetime;
-
 export function NotesScreen() {
   const askConfirmation = useConfirmation();
   const { data: d, user, run, notify } = useApp();
@@ -55,7 +50,19 @@ export function NotesScreen() {
     [draft, setDraft] = useState<NoteDraft>(emptyNoteDraft);
   const { editing, title, body, type, visibility, lifetime } = draft;
   const [baseline, setBaseline] = useState<NoteDraft>(emptyNoteDraft);
-  const dirty = !sameDraft(draft, baseline);
+  const hasUnsavedMessage = draftHasChanges(
+    draft,
+    baseline,
+    ["title", "body", "type", "visibility", "lifetime"],
+    editing !== null,
+    Boolean(title.trim() || body.trim()),
+  );
+  const dirty = hasUnsavedMessage;
+  const confirmLeave = useUnsavedChanges(
+    open,
+    hasUnsavedMessage,
+    C.notes.leaveDraft,
+  );
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     if (
@@ -156,38 +163,14 @@ export function NotesScreen() {
         ? d.notes.find((n) => n.id === restored.editing)
         : null;
       setBaseline(original ? noteDraft(original) : emptyNoteDraft());
-      setOpen(
-        Boolean(
-          restored && (restored.body || restored.title || restored.editing),
-        ),
-      );
+      // Restore storage without opening or focusing a composer on page entry.
+      setOpen(false);
     } catch {
       notify(C.notes.draftStorageError, true);
     }
   }, [user?.id, d.couple?.id]);
-  useEffect(() => {
-    if (!open || !dirty) return;
-    const guard = (e: Event) => {
-      e.preventDefault();
-      void askConfirmation(C.notes.leaveDraft, {
-        action: C.common.continue,
-      }).then((accepted) => {
-        if (accepted)
-          (e as CustomEvent<{ resume: () => void }>).detail.resume();
-      });
-    };
-    const unload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("couple-before-navigate", guard);
-    window.addEventListener("beforeunload", unload);
-    return () => {
-      window.removeEventListener("couple-before-navigate", guard);
-      window.removeEventListener("beforeunload", unload);
-    };
-  }, [open, dirty, askConfirmation]);
-  const edit = (n: Row) => {
+  const edit = async (n: Row) => {
+    if (!(await confirmLeave())) return;
     setBaseline(noteDraft(n));
     persist(restore(n.id) ?? noteDraft(n));
     setOpen(true);
@@ -205,7 +188,8 @@ export function NotesScreen() {
         title={C.notes.title}
         action={
           <Button
-            onClick={() => {
+            onClick={async () => {
+              if (!(await confirmLeave())) return;
               setBaseline(emptyNoteDraft());
               persist(restore(null) ?? emptyNoteDraft());
               setOpen(true);
@@ -251,6 +235,7 @@ export function NotesScreen() {
                   localStorage.removeItem(activeKey);
                 } catch {}
                 setDraft(emptyNoteDraft());
+                setBaseline(emptyNoteDraft());
                 setOpen(false);
               }
             }}
@@ -300,19 +285,13 @@ export function NotesScreen() {
               {type === "checklist" ? C.notes.checklistHint : C.notes.draft}
             </small>
             <div className="row">
-              <Button type="submit" disabled={!dirty}>
+              <Button type="submit" disabled={!dirty || !body.trim()}>
                 {C.common.save}
               </Button>
               <Button
                 secondary
                 onClick={async () => {
-                  if (
-                    !dirty ||
-                    (await askConfirmation(C.common.unsaved, {
-                      action: C.common.close,
-                    }))
-                  )
-                    setOpen(false);
+                  if (await confirmLeave()) setOpen(false);
                 }}
               >
                 {C.common.close}

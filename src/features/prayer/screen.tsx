@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Ship, Plus, Feather } from "@/components/icons";
 import { useApp, flushNotifications, type Row } from "@/components/app-context";
 import {
@@ -28,10 +28,20 @@ import {
   type PrayerDraft,
 } from "./draft";
 import { useConfirmation } from "@/components/confirmation";
+import { useUnsavedChanges } from "@/components/unsaved-changes";
+import { draftHasChanges } from "@/lib/draft-changes";
 import { MOTION } from "@/config/motion";
 import { reducedMotion } from "@/components/motion";
 
+const savedPrayerDraft = (row: Row): PrayerDraft => ({
+  body: row.content,
+  draftId: row.id,
+  visibility: row.visibility,
+  resurface: row.metadata?.resurface ?? true,
+});
+
 export function PrayerScreen() {
+  const deletingDraft = useRef(false);
   const askConfirmation = useConfirmation();
   const { data: d, user, run, notify } = useApp();
   const [open, setOpen] = useState(false),
@@ -50,6 +60,17 @@ export function PrayerScreen() {
   }, [released, releaseId]);
   const [filter, setFilter] = useViewState("prayer-filter", "all");
   const { body, visibility, resurface, draftId } = draft;
+  const [baseline, setBaseline] = useState<PrayerDraft>(emptyPrayerDraft);
+  const changed = draftHasChanges(
+    draft,
+    baseline,
+    ["body", "visibility", "resurface"],
+    draftId !== null,
+    Boolean(body.trim()),
+  );
+  const confirmLeave = useUnsavedChanges(open, changed, C.prayer.leaveDraft);
+  const currentDraft = useRef(draft);
+  currentDraft.current = draft;
   const prefix = `couple-draft:${user!.id}:prayer:${d.couple!.id}`;
   const read = (id: string | null) => {
     try {
@@ -87,36 +108,49 @@ export function PrayerScreen() {
         localStorage.removeItem(legacyKey);
       }
       setDraft(restored ?? emptyPrayerDraft());
-      setOpen(Boolean(restored?.body));
+      const original = restored?.draftId
+        ? d.prayers.find((row) => row.id === restored.draftId)
+        : null;
+      setBaseline(original ? savedPrayerDraft(original) : emptyPrayerDraft());
+      setOpen(false);
     } catch {
       notify(C.notes.draftStorageError, true);
     }
   }, [prefix]);
-  useEffect(() => {
-    if (!open || !body) return;
-    const guard = (e: Event) => {
-      e.preventDefault();
-      void askConfirmation(C.prayer.leaveDraft, {
-        action: C.common.continue,
-      }).then((accepted) => {
-        if (accepted)
-          (e as CustomEvent<{ resume: () => void }>).detail.resume();
-      });
-    };
-    const unload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("couple-before-navigate", guard);
-    window.addEventListener("beforeunload", unload);
-    return () => {
-      window.removeEventListener("couple-before-navigate", guard);
-      window.removeEventListener("beforeunload", unload);
-    };
-  }, [open, body]);
   const collection = useCollection("prayers", { filter });
   const drafts = useCollection("prayers", { filter: "drafts" });
   const prayers = collection.rows;
+  async function deleteDraft(id: string | null) {
+    if (deletingDraft.current) return;
+    deletingDraft.current = true;
+    try {
+      if (
+        !(await askConfirmation(C.prayer.confirmDeleteDraft, {
+          title: C.prayer.deleteDraft,
+          action: C.common.delete,
+          destructive: true,
+        }))
+      )
+        return;
+      if (id && !(await run(() => rpc("delete_prayer_draft", { p_id: id }))))
+        return;
+      try {
+        localStorage.removeItem(prayerDraftKey(user!.id, d.couple!.id, id));
+        if (localStorage.getItem(prefix + ":active") === (id ?? "new"))
+          localStorage.removeItem(prefix + ":active");
+      } catch {
+        notify(C.notes.draftStorageError, true);
+        if (!id) return;
+      }
+      if (currentDraft.current.draftId === id) {
+        setDraft(emptyPrayerDraft());
+        setBaseline(emptyPrayerDraft());
+        setOpen(false);
+      }
+    } finally {
+      deletingDraft.current = false;
+    }
+  }
   async function save(status: string) {
     if (
       !prayerSchema.safeParse({ content: body, visibility, resurface }).success
@@ -153,6 +187,7 @@ export function PrayerScreen() {
         localStorage.removeItem(prefix + ":active");
       } catch {}
       setDraft(emptyPrayerDraft());
+      setBaseline(emptyPrayerDraft());
       setOpen(false);
       if (status === "released") {
         setReleased(true);
@@ -167,8 +202,10 @@ export function PrayerScreen() {
         title={C.prayer.title}
         action={
           <Button
-            onClick={() => {
-              setOpen(!open);
+            onClick={async () => {
+              if (open) {
+                if (await confirmLeave()) setOpen(false);
+              } else setOpen(true);
             }}
           >
             <Plus size={18} />
@@ -230,8 +267,10 @@ export function PrayerScreen() {
                 <Button
                   secondary
                   onClick={async () => {
-                    if (await askConfirmation(C.prayer.leaveDraft))
+                    if (await confirmLeave()) {
+                      setBaseline(emptyPrayerDraft());
                       persist(read(null) ?? emptyPrayerDraft());
+                    }
                   }}
                 >
                   {C.prayer.newDraft}
@@ -241,10 +280,24 @@ export function PrayerScreen() {
                 <Ship size={18} />
                 {C.prayer.release}
               </Button>
-              <Button secondary onClick={() => void save("draft")}>
+              <Button
+                secondary
+                disabled={!changed || !body.trim()}
+                onClick={() => void save("draft")}
+              >
                 {C.prayer.draft}
               </Button>
-              <Button secondary onClick={() => setOpen(false)}>
+              {(draftId || body.trim()) && (
+                <Button secondary onClick={() => void deleteDraft(draftId)}>
+                  {C.prayer.deleteDraft}
+                </Button>
+              )}
+              <Button
+                secondary
+                onClick={async () => {
+                  if (await confirmLeave()) setOpen(false);
+                }}
+              >
                 {C.common.close}
               </Button>
             </div>
@@ -352,24 +405,25 @@ export function PrayerScreen() {
         <section className="section">
           <h2>{C.prayer.drafts}</h2>
           {drafts.rows.map((p) => (
-            <button
-              key={p.id}
-              className="prayer-row"
-              onClick={() => {
-                persist(
-                  read(p.id) ?? {
-                    body: p.content,
-                    draftId: p.id,
-                    visibility: p.visibility,
-                    resurface: p.metadata?.resurface ?? true,
-                  },
-                );
-                setOpen(true);
-              }}
-            >
-              <Feather size={20} />
-              {p.content.slice(0, 60)}
-            </button>
+            <ActionScope key={p.id} scope={`prayer:${p.id}`}>
+              <div className="prayer-draft-row">
+                <button
+                  className="prayer-row"
+                  onClick={async () => {
+                    if (!(await confirmLeave())) return;
+                    setBaseline(savedPrayerDraft(p));
+                    persist(read(p.id) ?? savedPrayerDraft(p));
+                    setOpen(true);
+                  }}
+                >
+                  <Feather size={20} />
+                  {p.content.slice(0, 60)}
+                </button>
+                <Button secondary onClick={() => void deleteDraft(p.id)}>
+                  {C.prayer.deleteDraft}
+                </Button>
+              </div>
+            </ActionScope>
           ))}
           {drafts.loading && <p role="status">{C.common.loading}</p>}
           {drafts.error && (

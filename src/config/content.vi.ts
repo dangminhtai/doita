@@ -317,6 +317,8 @@ export const CONTENT = {
     draft: "Bản nháp được giữ trên thiết bị nếu gửi chưa thành công.",
   },
   prayer: {
+    deleteDraft: "Xóa bản nháp",
+    confirmDeleteDraft: "Xóa bản nháp điều ước này? Không thể khôi phục.",
     newDraft: "Soạn điều ước mới",
     leaveDraft:
       "Điều ước chưa được lưu. Rời trang và giữ bản nháp trên thiết bị này?",
