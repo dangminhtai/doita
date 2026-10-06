@@ -46,6 +46,7 @@ export const retryableActions = new Set([
   "delete_special_date",
   "pair_couple",
   "request_couple",
+  "set_public_consent",
   "review_join_request",
   "cancel_join_request",
   "rotate_invite",

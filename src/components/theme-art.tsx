@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useApp } from "./app-context";
 import { db } from "@/lib/supabase/browser";
 import { THEME, type ThemeAsset } from "@/config/themes";
+import { defaultAvatarUrl } from "@/lib/default-avatar";
 export function ThemeArt({
   asset,
   className = "",
@@ -38,16 +39,22 @@ export function ProfileAvatar({
   index = 0,
   size = 48,
   defaultOnly = false,
+  gender,
 }: {
   userId?: string;
   index?: number;
   size?: number;
   defaultOnly?: boolean;
+  gender?: string | null;
 }) {
   const { data, user } = useApp();
   const profile = data.profiles.find((p) => p.id === userId);
   const memberIndex = data.members.findIndex((m) => m.user_id === userId);
   const fallbackIndex = memberIndex >= 0 ? memberIndex : index;
+  const partner = data.members.find((member) => member.user_id !== userId);
+  const partnerGender = data.profiles.find(
+    (person) => person.id === partner?.user_id,
+  )?.gender;
   const path = defaultOnly
     ? undefined
     : (profile?.avatar_path as string | undefined);
@@ -86,7 +93,11 @@ export function ProfileAvatar({
       src={
         image?.scope === scope
           ? image.url
-          : THEME.assets[fallbackIndex % 2 ? "avatarB" : "avatarA"]
+          : defaultAvatarUrl(
+              gender === undefined ? profile?.gender : gender,
+              fallbackIndex,
+              partnerGender,
+            )
       }
       width={size}
       height={size}

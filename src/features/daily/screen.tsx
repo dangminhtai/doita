@@ -20,6 +20,7 @@ import { rpc } from "@/lib/supabase/browser";
 import { localDate, dayGap, canRepair, nextOccurrence } from "@/lib/date";
 import { ThemeArt, ProfileAvatar } from "@/components/theme-art";
 import { THEME } from "@/config/themes";
+import { currentDailyStreak } from "@/lib/space-stats";
 import { MemoryPhoto } from "@/features/memories/screen";
 import { dailySchema } from "@/features/schemas";
 import { useStreakMotion } from "@/components/motion";
@@ -27,10 +28,7 @@ export function HomeScreen({ go }: { go: (p: string) => void }) {
   const { data: d, user, run } = useApp();
   const today = localDate(new Date(), d.couple?.timezone);
   const st = d.streak;
-  const gap = st?.last_completed_date
-    ? dayGap(today, st.last_completed_date)
-    : 999;
-  const streak = gap <= 2 ? (st?.current_streak ?? 0) : 0;
+  const streak = currentDailyStreak(st, today);
   const streakNode = useRef<HTMLDivElement>(null);
   useStreakMotion(
     streakNode,

@@ -2,7 +2,9 @@ import Image, { type ImageProps } from "next/image";
 import { THEME } from "@/config/themes";
 import type { IconName } from "@/config/ui-icons";
 
-type IconProps = Omit<ImageProps, "src" | "alt" | "width" | "height"> & { size?: number };
+type IconProps = Omit<ImageProps, "src" | "alt" | "width" | "height"> & {
+  size?: number;
+};
 function createIcon(name: IconName) {
   function DoodleIcon({ size = 24, className = "", ...props }: IconProps) {
     return (
@@ -29,6 +31,9 @@ export const Ship = createIcon("Ship");
 export const Camera = createIcon("Camera");
 export const Sparkles = createIcon("Sparkles");
 export const Users = createIcon("Users");
+export const UserPlus = createIcon("UserPlus");
+export const Link = createIcon("Link");
+export const Copy = createIcon("Copy");
 export const Plus = createIcon("Plus");
 export const Pin = createIcon("Pin");
 export const Feather = createIcon("Feather");

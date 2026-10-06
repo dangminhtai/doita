@@ -14,6 +14,7 @@ import { ProfileNotifications } from "./notifications";
 
 const draftSchema = z.object({
   name: z.string().max(60),
+  bio: z.string().max(10000),
   gender: z.enum(["male", "female", "other", "undisclosed"]).nullable(),
   resurface: z.boolean(),
   avatarMode: z.enum(["keep", "default", "new"]),
@@ -36,6 +37,7 @@ export function ProfileScreen() {
   const key = `couple-draft:${user!.id}:account:profile`;
   const initial: Draft = {
     name: profile?.display_name ?? "",
+    bio: profile?.bio ?? "",
     gender: profile?.gender ?? null,
     resurface: profile?.resurfacing ?? true,
     avatarMode: "keep",
@@ -45,7 +47,11 @@ export function ProfileScreen() {
   const [saved, setSaved] = useState(initial);
   const [draft, setDraft] = useState<Draft>(() => {
     try {
-      return draftSchema.parse(JSON.parse(localStorage.getItem(key) ?? "null"));
+      const stored = JSON.parse(localStorage.getItem(key) ?? "null");
+      return draftSchema.parse({
+        ...stored,
+        bio: stored?.bio ?? profile?.bio ?? "",
+      });
     } catch {
       return initial;
     }
@@ -59,6 +65,7 @@ export function ProfileScreen() {
   const savedRevision = useRef(Date.parse(profile?.updated_at ?? "") || 0);
   const dirty =
     draft.name !== saved.name ||
+    draft.bio !== saved.bio ||
     draft.gender !== saved.gender ||
     draft.resurface !== saved.resurface ||
     draft.avatarMode !== "keep";
@@ -83,6 +90,7 @@ export function ProfileScreen() {
     savedRevision.current = revision;
     const next: Draft = {
       name: profile?.display_name ?? "",
+      bio: profile?.bio ?? "",
       gender: profile?.gender ?? null,
       resurface: profile?.resurfacing ?? true,
       avatarMode: "keep",
@@ -95,6 +103,7 @@ export function ProfileScreen() {
     dirty,
     profile?.updated_at,
     profile?.display_name,
+    profile?.bio,
     profile?.gender,
     profile?.resurfacing,
   ]);
@@ -142,6 +151,7 @@ export function ProfileScreen() {
               setNameError(C.profile.nameError);
               return;
             }
+            if (Array.from(draft.bio).length > 300) return;
             if (
               draft.gender !== saved.gender &&
               !(await ask(
@@ -161,6 +171,7 @@ export function ProfileScreen() {
                   JSON.stringify({
                     requestId: draft.requestId,
                     name: draft.name.trim(),
+                    bio: draft.bio,
                     gender: draft.gender,
                     resurface: draft.resurface,
                     avatarMode: draft.avatarMode,
@@ -192,6 +203,7 @@ export function ProfileScreen() {
                 const next: Draft = {
                   ...draft,
                   name: result.profile.display_name,
+                  bio: result.profile.bio ?? "",
                   gender: result.profile.gender ?? null,
                   resurface: result.profile.resurfacing,
                   avatarMode: "keep",
@@ -232,6 +244,7 @@ export function ProfileScreen() {
                   userId={user!.id}
                   size={88}
                   defaultOnly={draft.avatarMode === "default"}
+                  gender={draft.gender}
                 />
               )}
               <div>
@@ -288,6 +301,23 @@ export function ProfileScreen() {
                 {nameError}
               </p>
             )}
+            <Field label={C.publicSpace.bio}>
+              <textarea
+                value={draft.bio}
+                rows={3}
+                aria-describedby="profile-bio-count"
+                aria-invalid={Array.from(draft.bio).length > 300}
+                onChange={(event) => change({ bio: event.target.value })}
+              />
+              <small
+                id="profile-bio-count"
+                className={
+                  Array.from(draft.bio).length > 300 ? "field-error" : ""
+                }
+              >
+                {Array.from(draft.bio).length}/300
+              </small>
+            </Field>
             <Field label={C.profile.gender}>
               <Select
                 value={draft.gender ?? "unset"}
@@ -315,7 +345,12 @@ export function ProfileScreen() {
               />
               {C.settings.resurface}
             </label>
-            <Button type="submit" disabled={!dirty || isSaving}>
+            <Button
+              type="submit"
+              disabled={
+                !dirty || isSaving || Array.from(draft.bio).length > 300
+              }
+            >
               {isSaving ? C.common.processing : C.common.save}
             </Button>
           </fieldset>

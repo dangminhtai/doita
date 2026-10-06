@@ -20,6 +20,7 @@ import { enabled } from "@/config/app.config";
 import { rpc } from "@/lib/supabase/browser";
 import { useConfirmation } from "@/components/confirmation";
 import { JoinRequests } from "./join-requests";
+import { PublicSharing } from "./public-sharing";
 
 export function CoupleScreen() {
   const askConfirmation = useConfirmation();
@@ -98,6 +99,7 @@ export function CoupleScreen() {
             {C.couples.copyId}
           </button>
           <JoinRequests />
+          <PublicSharing />
         </div>
         <ScopedForm
           className="settings-card"

@@ -69,3 +69,17 @@ Các thay đổi tiếp theo phải cập nhật quy tắc khi anh đổi yêu c
 - Motion bám `doita-test/MOTION_PLAN.md`; timing đi qua `src/config/motion.ts`. Không trì hoãn URL/mutation/focus để chờ animation, không replay cả danh sách khi Realtime refresh. Thả thuyền chỉ sau write được xác nhận; reduced-motion tắt dịch chuyển/ambient và tab ẩn dừng hiệu ứng. Không giả online hoặc thêm dependency để trang trí.
 
 - Anh đã yêu cầu tim bay có giới hạn: một tim doodle khi click/tap vùng không tương tác, tối đa6 tim/650ms. Không sinh tim trên form/control/dialog/thao tác xóa, khi drag/cuộn/chọn chữ hoặc có menu mở. Tim không biểu thị thành công của mutation; tắt/dọn khi reduced-motion, tab ẩn, đổi trang hoặc tài khoản. Không clone nội dung dialog/toast ra body để giả hiệu ứng đóng.
+
+- Trang giới thiệu /p/[publicId] độc lập với AppProvider. Chỉ công khai khi mọi membership hiện tại đồng ý; consent mặc định tắt và không mang sang membership mới. Tắt chia sẻ thu hồi các lần đọc metadata/avatar tiếp theo; không hứa thu hồi ảnh đã tải. Bio tối đa300 Unicode code points, không render HTML người dùng. ID sai/không công khai/đã xóa cùng phản hồi; không công khai email, UUID tài khoản, signed URL hoặc nội dung riêng. Đăng nhập từ trang này chỉ quay lại, không tự gửi yêu cầu.
+
+- Avatar mặc định của tài khoản phải chọn theo giới tính đã lưu, không theo vị trí membership. Hồ sơ preview theo lựa chọn đang sửa; menu chỉ đổi sau khi lưu. Ảnh tự tải ưu tiên và không bị thay khi đổi giới tính. Fallback lỗi ảnh công khai phải dùng cùng mapping.
+
+- Khi giới tính chưa thiết lập (null), avatar mặc định suy ra hình còn lại theo giới tính Nam/Nữ đã lưu của người ấy. Chỉ suy ra artwork, không ghi giới tính vào hồ sơ; không thay ảnh tự tải hoặc lựa chọn giới tính rõ ràng.
+
+### Quyết định mới 06/10/2026 — Chia sẻ mặc định bật
+
+Thay thế quy tắc consent mặc định tắt phía trên: membership mới mặc định chia sẻ trang giới thiệu. Mỗi người có thể tắt phần chia sẻ của mình; chỉ một người tắt thì cả trang ẩn. Bật lại bằng một thao tác, không popup đồng ý. Luôn có Sao chép link giới thiệu khi ID đã tồn tại; khi trang ẩn, giữ trạng thái ẩn rõ ràng. Nội dung công khai vẫn chỉ tên/avatar/bio và thống kê đã duyệt, không mở dữ liệu riêng.
+
+- Trang giới thiệu đủ hai người không hiện nút vào/gửi yêu cầu hay ID lặp. Avatar/tên/bio căn giữa theo hai cột bằng nhau; bio trống có Chưa có mô tả màu muted. Kết nối dùng tim doodle và đường nhịp nhẹ, không giả trạng thái online; motion có điểm dừng, reduced-motion và pause khi tab ẩn.
+
+- Cập nhật nhịp kết nối: tim vector chạy dọc đường sóng và loop theo yêu cầu mới, thay cho tim doodle đứng giữa và animation một lượt. Giữ reduced-motion, pause khi tab ẩn và thao tác tạm dừng bằng click/bàn phím; không giả trạng thái trực tuyến.

@@ -207,3 +207,35 @@ Thay SVG paper-boat tự vẽ bằng Ship của registry doodle hiện có, size
 RootLayout dùng next/font/google Nunito bản thường, latin/vietnamese, variable font, display swap. Body và form kế thừa cùng font; nội dung 400/16px/1.6, nút/menu600, h1 800, h2/h3 700. Nội dung lời nhắn và câu trả lời/textarea đồng bộ giãn dòng1.6; không dùng font viết tay. Next đóng gói font để browser tải từ ứng dụng.
 
 Typecheck, ESLint layout và build exit0. Browser fixture local kiểm tra font tải với mẫu tiếng Việt, computed body400/16/25.6 và h1 800; sáu route không tràn ngang ở1440/390. Kiểm tra font cần chờ document.fonts.load với mẫu ký tự, không chỉ fonts.ready trước khi fontface được dùng. Chưa kiểm tra thiết bị thật hoặc deploy.
+
+### 06/10/2026 — Trang giới thiệu không gian
+
+Anh duyệt triển khai PLAN_SPACE_PROFILE_DOITA và cung cấp doita-test/doita-new-icons. Thêm bio300 Unicode code points ở hồ sơ; chia sẻ mặc định tắt, consent theo membership; /p/000000001 chỉ có tên/avatar/bio và thống kê hai người. Không thêm kỷ niệm hay bình luận công khai. ID sai hoặc không khả dụng cùng màn thông báo, dùng minh họa mới. Motion nhẹ, không phát lại khi refresh, tắt khi reduced-motion; dùng màu/font/token có sẵn. TypeScript đạt; chưa áp dụng migration012, chưa kiểm tra database hay trình duyệt theo yêu cầu.
+
+### 06/10/2026 — Avatar mặc định theo giới tính
+
+Sửa ProfileAvatar chọn ảnh theo gender thay vì thứ tự membership; Nam dùng avatarA, Nữ dùng avatarB. Giới tính khác/chưa chọn giữ fallback hiện có. Hồ sơ preview theo draft; menu dùng dữ liệu đã lưu. Avatar tự tải giữ nguyên. Trang công khai dùng cùng helper và fallback đúng giới tính khi ảnh tải lỗi, không trả trường gender ra client. TypeScript exit0; chưa kiểm tra trình duyệt theo yêu cầu của anh.
+
+### 06/10/2026 — Avatar cho người chưa chọn giới tính
+
+Theo yêu cầu của anh, người chưa chọn giới tính dùng hình mặc định còn lại theo người ấy đã chọn Nam/Nữ. Áp dụng helper chung cho menu, hồ sơ, Hai đứa và trang công khai. Không sửa dữ liệu giới tính, không thay ảnh tự tải hay lựa chọn rõ ràng. Typecheck exit0; chưa kiểm tra web.
+
+### 06/10/2026 — Chia sẻ bật mặc định theo yêu cầu mới
+
+Thay thế quyết định mặc định tắt: migration013 đặt default true cho membership mới và bật các membership cũ chưa có thao tác tắt được ghi trong action_receipts. Giữ false nếu có lịch sử tắt từ UI; thao tác trực tiếp ngoài UI trước đây không có receipt nên không thể phân biệt với default false. Không chạy migration lên Supabase trong lượt này. Bỏ popup bật chia sẻ; luôn hiện nút sao chép link theo origin hiện tại. Một người tắt thì trang vẫn ẩn, không ghi đè lựa chọn của người ấy. TypeScript exit0; chưa kiểm tra web/database.
+
+### 06/10/2026 — Căn trang giới thiệu và nhịp kết nối
+
+Trang hai người dùng ba cột đối xứng: mỗi người một cột căn giữa, cột giữa là nhịp kết nối. Bỏ ID hiển thị lặp và toàn bộ khu vực hành động khi đủ hai người, kể cả liên kết vào không gian của chính mình. Bio trống/khoảng trắng hiện Chưa có mô tả bằng màu muted của theme. Kết nối dùng Heart doodle hiện có với SVG đường nhịp và CSS, không phải ảnh AI hay GIF; chạy một lượt theo motion.cinematic rồi giữ tĩnh, tạm dừng khi tab ẩn, tắt chuyển động theo reduced-motion. Không sinh assets bitmap mới hoặc thêm dependency. Typecheck exit0; chưa kiểm tra trực quan trên trình duyệt theo yêu cầu anh tự test.
+
+### 06/10/2026 — Tim vector chạy theo sóng, lặp liên tục
+
+Theo yêu cầu mới, bỏ icon doodle trong kết nối; tim và sóng cùng SVG, tim chạy theo chính đường sóng bằng animateMotion, lặp theo motion.cinematic. Nới cột giữa trên desktop, co theo viewport trên mobile; tim mobile tăng tỷ lệ riêng để còn rõ. Tạm dừng cả SVG/CSS khi tab ẩn; reduced-motion giữ tim tĩnh giữa đường. Có thể click hoặc dùng bàn phím trên nhịp kết nối để tạm dừng/tiếp tục. Không thêm bitmap, thư viện hoặc thay dữ liệu. Chưa kiểm tra trực quan trên web.
+
+### 06/10/2026 — Khôi phục nền sóng SVG
+
+Sửa lỗi CSS lượt trước làm mất stroke và gộp track vào animation opacity0. Tách shared stroke, track luôn opacity0.3 và wave chạy riêng. Tim vẫn theo cùng path với track. TypeScript exit0; chưa kiểm tra trình duyệt.
+
+### 06/10/2026 — Tỉ lệ sóng desktop
+
+Nguyên nhân sóng nhỏ: SVG width100% nhưng height64px cố định, preserveAspectRatio mặc định thu hình về160px và để trắng hai bên. Đổi height auto/aspect-ratio160/64 để hình phủ đúng chiều rộng cột; tim cùng SVG nên lớn theo đúng tỉ lệ. Khung nhịp căn giữa theo chiều cao avatar; giới hạn hàng hai người680px để giảm khoảng trống desktop. Mobile giữ sizing theo viewport. TypeScript exit0; chưa kiểm tra trực quan trên web.

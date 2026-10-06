@@ -49,3 +49,7 @@ Script dùng Sharp đã có trong môi trường Next, tạo WebP ở `public/th
 Icon ứng dụng dùng URL có phiên bản trong `src/config/app-icons.ts` cho favicon/Apple/manifest. Khi thay artwork trong `public/icons` hoặc `public/favicon.svg`, tăng `version` để cache trình duyệt nhận URL mới; giữ tên file nguồn. PWA đã cài có thể cần thời gian hoặc cài lại để hệ điều hành cập nhật icon.
 
 Bộ icon UI mặc định là artwork của anh từ `doita-test/cuts`, registry `src/config/ui-icons.ts` và `THEME.icons`. Dùng exports của `src/components/icons.tsx` thay import thư viện. Nguồn PNG giữ nguyên ở `public/assets/doita/doodle-icons`; WebP dùng trên web ở `public/themes/sunset/icons`. Khi thêm theme, khai báo đủ các vai trò icon, gồm biến chevron cho disclosure; không hard-code đường dẫn trong feature. Tên Trash2/Volume2/VolumeX là vai trò cũ, lần lượt dùng trash/volume-on/volume-off.
+
+### Assets trang giới thiệu không gian
+
+Nguồn của anh: doita-test/doita-new-icons. PNG gốc giữ nguyên tại public/assets/doita/public-space; WebP sao chép từ nguồn tại public/themes/sunset/public-space. Registry src/config/public-space-art.ts gắn hash nội dung. Copy/Link/UserPlus đi qua THEME.icons; minh họa không tồn tại qua THEME.assets.spaceUnavailable. Không filter màu, không thêm icon thư viện. Avatar cá nhân được stream qua API kiểm tra consent, không đưa signed URL ra trang công khai.

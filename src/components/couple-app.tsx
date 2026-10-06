@@ -29,6 +29,7 @@ import { LinkedContent } from "./linked-content";
 import { ConfirmationProvider } from "./confirmation";
 import { usePageMotion } from "./motion";
 import { ClickHearts } from "./click-hearts";
+import { publicReturnPath } from "@/lib/auth-return";
 export function CoupleApp({ initialPage = "home" }: { initialPage?: string }) {
   return (
     <AppProvider>
@@ -113,6 +114,13 @@ function Shell({ initialPage }: { initialPage: string }) {
       `couple-view:${user?.id}:${data.couple?.id}:scroll:${path}`,
     [user?.id, data.couple?.id],
   );
+  useEffect(() => {
+    if (!user || recovery || location.pathname !== "/auth") return;
+    const target = publicReturnPath(
+      new URLSearchParams(location.search).get("returnTo"),
+    );
+    if (target) location.replace(target);
+  }, [user?.id, recovery]);
   const savedScroll = useCallback(() => {
     try {
       return (

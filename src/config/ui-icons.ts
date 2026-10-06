@@ -1,5 +1,9 @@
 // Original artwork: doita-test/cuts. Shared names preserve existing icon roles.
+import { PUBLIC_SPACE_ART } from "./public-space-art";
 export const DOODLE_ICONS = {
+  UserPlus: PUBLIC_SPACE_ART["user-plus"],
+  Link: PUBLIC_SPACE_ART.link,
+  Copy: PUBLIC_SPACE_ART.copy,
   House: "/themes/sunset/icons/house.webp",
   NotebookPen: "/themes/sunset/icons/notebook-pen.webp",
   Ship: "/themes/sunset/icons/ship.webp",

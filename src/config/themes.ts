@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { DOODLE_ICONS } from "./ui-icons";
 import { ACTIVITY_ART } from "./activity-art";
+import { PUBLIC_SPACE_ART } from "./public-space-art";
 
 export type ThemeAsset =
   | "heroDesktop"
@@ -14,7 +15,8 @@ export type ThemeAsset =
   | "emptyNotes"
   | "emptyMemories"
   | "emptyPrayer"
-  | "emptyNotifications";
+  | "emptyNotifications"
+  | "spaceUnavailable";
 export type ThemeDefinition = {
   id: string;
   colors: {
@@ -69,6 +71,7 @@ export const THEMES = {
       emptyPrayer: "/themes/sunset/doodle-art/empty-prayer.webp?v=5c1013797c",
       emptyNotifications:
         "/themes/sunset/doodle-art/empty-notifications.webp?v=92401fd67e",
+      spaceUnavailable: PUBLIC_SPACE_ART["space-unavailable"],
     },
   },
 } satisfies Record<string, ThemeDefinition>;

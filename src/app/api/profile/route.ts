@@ -7,6 +7,10 @@ import { AVATAR_MAX_BYTES, AVATAR_SIZE } from "@/lib/avatar-image";
 const input = z.object({
   requestId: z.uuid(),
   name: z.string().trim().min(1).max(60),
+  bio: z
+    .string()
+    .refine((value) => Array.from(value).length <= 300)
+    .optional(),
   gender: z.enum(["male", "female", "other", "undisclosed"]).nullable(),
   resurface: z.boolean(),
   avatarMode: z.enum(["keep", "default", "new"]),
@@ -111,14 +115,18 @@ export async function POST(request: Request) {
           throw upload.error;
       }
     }
-    const result = await ctx.client.rpc("update_profile", {
-      p_request_id: values.requestId,
-      p_name: values.name,
-      p_gender: values.gender,
-      p_resurfacing: values.resurface,
-      p_avatar_mode: values.avatarMode,
-      p_avatar_path: path,
-    });
+    const result = await ctx.client.rpc(
+      values.bio === undefined ? "update_profile" : "update_profile_with_bio",
+      {
+        p_request_id: values.requestId,
+        p_name: values.name,
+        p_gender: values.gender,
+        p_resurfacing: values.resurface,
+        p_avatar_mode: values.avatarMode,
+        p_avatar_path: path,
+        ...(values.bio === undefined ? {} : { p_bio: values.bio }),
+      },
+    );
     if (result.error) {
       // Account deletion may finish while its last upload is in flight.
       if (path && result.error.message === "unauthorized")
@@ -127,7 +135,7 @@ export async function POST(request: Request) {
     }
     const current = await ctx.client
       .from("profiles")
-      .select("display_name,gender,avatar_path,resurfacing,updated_at")
+      .select("display_name,gender,bio,avatar_path,resurfacing,updated_at")
       .eq("id", ctx.user.id)
       .single();
     if (current.error) throw current.error;

@@ -12,6 +12,7 @@ import { authSchema, signupSchema, inviteSchema } from "@/features/schemas";
 import { APP_CONFIG } from "@/config/app.config";
 import { authRedirectUrl } from "@/lib/auth-redirect";
 import { JoinRequests } from "@/features/couple/join-requests";
+import { publicReturnPath } from "@/lib/auth-return";
 export function AuthScreen() {
   const { run, notify, recovery, setRecovery } = useApp();
   const [showPassword, setShowPassword] = useState(false);
@@ -75,7 +76,14 @@ export function AuthScreen() {
                   password,
                   options: {
                     data: { display_name: name.trim(), gender },
-                    emailRedirectTo: authRedirectUrl(location.origin),
+                    emailRedirectTo: (() => {
+                      const url = new URL(authRedirectUrl(location.origin));
+                      const target = publicReturnPath(
+                        new URLSearchParams(location.search).get("returnTo"),
+                      );
+                      if (target) url.searchParams.set("returnTo", target);
+                      return url.href;
+                    })(),
                   },
                 })
               : await db().auth.signInWithPassword({ email, password });

@@ -186,3 +186,70 @@ Theo yêu cầu hiện tại, chỉ lập kế hoạch. Khi triển khai, chạy
 Đã đọc source hiện tại: `/profile` là form cá nhân; `profiles` chưa có bio; avatar dùng bucket riêng tư; migration `202610050011_couple_public_id.sql` đã có ID 9 số và duyệt ghép đôi. Trạng thái Supabase production chưa được kiểm tra trong lần lập kế hoạch này.
 
 Avatar/tên/bio, CTA một người, lời nhắn ID sai và chỉ số cặp đôi bám yêu cầu của anh. Review bổ sung route riêng, consent theo membership, endpoint ảnh kiểm tra lại quyền, semantics code points và motion nhẹ; kế hoạch đã tiếp thu các điểm này. Route `/p/`, nhãn Bên nhau theo ngày người dùng đặt, giới hạn bio, consent/noindex/API vẫn là thiết kế đề xuất, chưa triển khai. Nếu cần số ngày kể từ ghép trên Doita, phải chốt phương án `paired_since` trước code.
+
+## 12. Assets anh cần chuẩn bị
+
+Không cần vẽ avatar mới cho trang này: dùng avatar người dùng, fallback avatarA/avatarB của theme. Không cần background, banner, thẻ chứa chữ hay minh họa đôi lớn; tên/bio/nút/chỉ số đều là HTML. Chưa triển khai tính năng khi anh chưa duyệt kế hoạch.
+
+### Tái sử dụng artwork đang có
+
+| Vai trò | Asset có sẵn trong THEME.icons |
+| --- | --- |
+| Streak | Flame |
+| Ngày bên nhau hoặc nét nối giữa hai avatar | Heart; Calendar nếu cần phân biệt ngày. Chỉ một icon cho mỗi chỉ số. |
+| Đồng ý/đã công khai | Check hoặc CircleCheck |
+| Đóng/Hủy/Từ chối | X, giữ nhãn chữ rõ ràng. |
+| Chờ phản hồi | Hourglass, không giả trạng thái online. |
+| Hồ sơ/không gian | Users |
+| Sửa bio | Feather hoặc NotebookPen nếu thực sự cần icon cạnh hành động. |
+
+Đây là artwork của anh trong registry, không nhập Lucide cho trang mới. Không đặt icon ở mọi dòng bio hoặc mọi nút chỉ để lấp chỗ.
+
+### Ba icon mới nên tạo
+
+| Tên nguồn đề xuất | Ý nghĩa và vị trí | Hình cần vẽ |
+| --- | --- | --- |
+| `user-plus.png` | Nút Gửi yêu cầu tham gia không gian | Một đầu/vai người đơn giản và dấu cộng rõ ở bên phải; không dùng hai người đang ôm nhau vì yêu cầu chưa được chấp nhận. |
+| `link.png` | Liên kết trang giới thiệu trong Hai đứa | Hai mắt xích bo tròn nối chéo nhau, nhận ra được ở24px. |
+| `copy.png` | Nút Sao chép liên kết hoặc ID | Hai tờ giấy bo góc chồng lệch, phân biệt được hai đường viền; không chữ trên giấy. |
+
+Ba icon này chưa có vai trò tương ứng trong registry hiện tại. Ưu tiên tạo riêng từng icon. Có thể triển khai chức năng bằng nút có nhãn trước khi ảnh sẵn sàng; không thay bằng icon thư viện tạm rồi bỏ quên.
+
+### Một minh họa tùy chọn
+
+`space-unavailable.png`: một khung ảnh nhỏ để trống và kính lúp nằm cạnh, không có người, không có khuôn mặt buồn, không có thùng rác hoặc dấu khóa. Dùng chung cho ID sai/trang không khả dụng; hình không khẳng định người dùng đã xóa hoặc từ chối ai. Bản nguồn512×512, hiển thị120–160px. Không cần tạo nếu anh muốn màn lỗi chỉ có câu thông báo và đường quay lại.
+
+Không cần ảnh riêng cho một người/hai người, bio rỗng, đang gửi, được duyệt hoặc bị từ chối. Dùng dữ liệu và trạng thái HTML, không tạo thêm các cảnh cặp đôi không liên quan.
+
+### Quy cách xuất và prompt chung
+
+- Tham chiếu trực tiếp PNG icon gốc của anh trong `public/assets/doita/doodle-icons`, nhất là users/plus/check; đừng chỉ đưa mô tả “cute pink” cho AI tự đoán style.
+- Icon nguồn PNG512×512 có alpha thật; đối tượng chiếm khoảng72–80% khung, khoảng đệm đều. Thiết kế để đọc rõ ở20–32px, cùng độ dày nét và độ bo với bộ đang dùng. Khi tích hợp xuất WebP128×128 cho hiển thị24–32px, giữ nguồn nguyên vẹn.
+- Doodle2D đơn giản, viền tím mận `#4C2337`, trắng `#FFFFFF`, hồng nhẹ `#FFE8EF`, hồng `#FFB2C8`, điểm nhấn `#F76D92`. Màu nút/nền UI tiếp tục dùng token theme, không lấy màu nền từ ảnh để đổi cả trang.
+- Không nền đặc, nền caro giả trong suốt, chữ, số, watermark, glow, gradient cầu kỳ, 3D, ám vàng hoặc texture giấy. Không rải tim/sparkle/khuôn mặt lên cả ba icon. Không tự tạo trạng thái active/disabled thành ba ảnh khác nhau.
+- Prompt riêng: dùng prompt chung dưới đây, thay phần ĐỐI TƯỢNG bằng mô tả trong bảng. Xuất từng file có tên tương ứng, không yêu cầu AI vẽ chữ tên file vào ảnh.
+
+```text
+Tạo một icon duy nhất, bám đúng hình tham chiếu của bộ Doita đã cung cấp:
+nét doodle mềm, bo tròn, viền tím mận đều, hình trắng với điểm nhấn hồng.
+ĐỐI TƯỢNG: [mô tả cụ thể trong bảng].
+Silhouette đơn giản, nhận ra ở24px; không thêm trang trí không liên quan.
+PNG512×512, nền trong suốt thật, đối tượng nằm giữa, không bị cắt,
+khoảng đệm đều10–14%. Không chữ, watermark, bóng3D, glow, ám vàng.
+```
+
+Khi anh đưa ảnh: kiểm tra nhãn, alpha, padding và độ rõ; thêm mapping qua THEME.icons/theme assets, giữ accessible name của nút và không dùng filter CSS chữa màu. Icon trang trí có alt rỗng; màn lỗi vẫn hiển thị câu thông báo bằng HTML. Tính năng/handler không phụ thuộc vào ảnh tải thành công.
+
+## Triển khai ngày 06/10/2026
+
+Đã thêm code: bio ở /profile; /p/[publicId] độc lập với AppProvider; API metadata/avatar không cache; consent từng membership trong Hai đứa; gửi/hủy yêu cầu, chờ duyệt và quay lại sau đăng nhập. Khi hai người cùng đồng ý, trang hiển thị streak và số ngày bên nhau theo ngày bắt đầu đã đặt. Không công khai lời nhắn/kỷ niệm/email/user ID hay đường dẫn storage.
+
+Assets thật lấy từ doita-test/doita-new-icons: copy, link, user-plus và space-unavailable. Giữ PNG nguồn trong public/assets/doita/public-space, WebP trong public/themes/sunset/public-space; registry có hash phiên bản ảnh.
+
+Điều kiện chạy: áp dụng supabase/migrations/202610060012_public_space.sql sau migration 011 (202610050011_couple_public_id.sql). Migration012 chưa chạy trên Supabase trong lượt này. Cần kiểm tra Auth redirect allowlist cho /auth?returnTo=... ở domain thật.
+
+Kiểm chứng: npm run typecheck đạt, mã thoát0. Theo yêu cầu của anh không chạy test, build hoặc trình duyệt; SQL/RLS/Realtime, popup consent, thu hồi quyền và giao diện mobile chưa kiểm chứng thực tế. Rate limit theo IP chỉ hạn chế tần suất, không biến ID tăng dần thành bí mật. Ảnh đã tải xuống không thể thu hồi khỏi thiết bị người xem.
+
+## Cập nhật theo yêu cầu mới — Chia sẻ mặc định bật
+
+Quyết định này thay thế phần mặc định tắt và popup consent phía trên. Membership mới mặc định bật; mỗi người có thể tắt, một người tắt thì trang ẩn. Luôn có nút sao chép link giới thiệu theo origin hiện tại. Áp dụng migration013 (202610060013_public_space_default.sql) sau012 để chuyển default và dữ liệu cũ; giữ thao tác tắt được ghi trong action_receipts. Chưa áp dụng migration hoặc kiểm tra database/web. TypeScript đã qua.

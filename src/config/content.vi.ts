@@ -1,5 +1,30 @@
 import { z } from "zod";
 export const CONTENT = {
+  publicSpace: {
+    title: "Trang giới thiệu",
+    bio: "Giới thiệu",
+    emptyBio: "Chưa có mô tả",
+    pauseConnection: "Tạm dừng nhịp kết nối",
+    enable: "Bật trang giới thiệu",
+    disable: "Tắt chia sẻ của bạn",
+    off: "Chưa công khai",
+    waiting: "Người ấy đã tắt chia sẻ",
+    on: "Đang công khai",
+    copy: "Sao chép link giới thiệu",
+    consent: "Công khai tên, ảnh đại diện và giới thiệu của bạn?",
+    consentStats:
+      "Khi có hai người, trang hiển thị streak và số ngày bên nhau.",
+    unavailable: "Không gian không tồn tại hoặc đã bị xóa",
+    loadError: "Chưa tải được không gian",
+    rate: "Bạn xem quá nhanh. Thử lại sau một phút.",
+    join: "Gửi yêu cầu tham gia không gian",
+    enter: "Vào không gian",
+    own: "Vào không gian của bạn",
+    login: "Đăng nhập để gửi yêu cầu",
+    streak: "Streak: {{count}} ngày",
+    together: "Bên nhau: {{count}} ngày",
+    view: "Xem trang giới thiệu",
+  },
   profile: {
     title: "Hồ sơ của bạn",
     name: "Tên hiển thị",
