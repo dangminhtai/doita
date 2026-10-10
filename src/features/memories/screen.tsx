@@ -38,6 +38,28 @@ export function MemoriesScreen() {
   const [to, setTo] = useViewState("memories-to", "");
   const collection = useCollection("memories", { filter, search, from, to });
   const [preview, setPreview] = useState("");
+  const fileInput = useRef<HTMLInputElement>(null);
+  const selectPhoto = (next: File | null) => {
+    if (
+      next &&
+      (!["image/jpeg", "image/png", "image/webp"].includes(next.type) ||
+        next.size > 5 * 1024 * 1024)
+    ) {
+      notify(C.errors.invalidFile, true);
+      return;
+    }
+    setFile(next);
+    // Keep the existing native file control consistent with pasted/dropped images.
+    if (fileInput.current) {
+      try {
+        const transfer = new DataTransfer();
+        if (next) transfer.items.add(next);
+        fileInput.current.files = transfer.files;
+      } catch {
+        // File state and preview still work if assigning FileList is unsupported.
+      }
+    }
+  };
   useEffect(() => {
     if (!file) {
       setPreview("");
@@ -112,6 +134,35 @@ export function MemoriesScreen() {
       {open && (
         <ScopedForm
           className="composer"
+          onDragOver={(e) => {
+            if (!Array.from(e.dataTransfer.types).includes("Files")) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = e.currentTarget.closest("fieldset")
+              ?.disabled
+              ? "none"
+              : "copy";
+          }}
+          onDrop={(e) => {
+            if (!Array.from(e.dataTransfer.types).includes("Files")) return;
+            e.preventDefault();
+            if (e.currentTarget.closest("fieldset")?.disabled) return;
+            const next = e.dataTransfer.files[0];
+            if (next) selectPhoto(next);
+          }}
+          onPaste={(e) => {
+            const image = Array.from(e.clipboardData.items).find(
+              (item) => item.kind === "file" && item.type.startsWith("image/"),
+            );
+            const next =
+              image?.getAsFile() ??
+              Array.from(e.clipboardData.files).find((item) =>
+                item.type.startsWith("image/"),
+              );
+            if (!next) return;
+            e.preventDefault();
+            if (e.currentTarget.closest("fieldset")?.disabled) return;
+            selectPhoto(next);
+          }}
           onSubmit={async (e) => {
             e.preventDefault();
             if (!body.trim() || body.length > 5000) {
@@ -209,22 +260,10 @@ export function MemoriesScreen() {
           </Field>
           <Field label={C.memories.photo}>
             <input
+              ref={fileInput}
               type="file"
               accept="image/jpeg,image/png,image/webp"
-              onChange={(e) => {
-                const next = e.target.files?.[0];
-                if (
-                  next &&
-                  (!["image/jpeg", "image/png", "image/webp"].includes(
-                    next.type,
-                  ) ||
-                    next.size > 5 * 1024 * 1024)
-                ) {
-                  notify(C.errors.invalidFile, true);
-                  return;
-                }
-                setFile(next ?? null);
-              }}
+              onChange={(e) => selectPhoto(e.target.files?.[0] ?? null)}
             />
           </Field>
           {preview && (

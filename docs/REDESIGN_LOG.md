@@ -281,3 +281,7 @@ Chuyển đồng bộ ref của Notes, Prayer và useUnsavedChanges sang effect;
 ### 10/10/2026 — Timeout tải ảnh kỷ niệm
 
 Anh báo mobile timeout30s và không thấy xác nhận ảnh đã tải. Đọc code xác nhận desktop/mobile dùng cùng MemoriesScreen và boundedFetch30s cho cả upload file gốc tối đa5MB; chưa có network log để xác nhận request nào timeout trong lần của anh. Tách timeout POST Storage bucket memories thành120s, các request khác vẫn30s. Giữ path của lần upload chưa xác nhận trong ref; retry kiểm tra object tồn tại rồi dùng lại hoặc tải vào cùng path, upsertfalse. Không queue xóa ảnh upload mất phản hồi; chỉ path đã xác nhận mới được gắn vào save_memory. Giữ cơ chế receipt save_memory và draft; timeout upload có thông báo riêng. ESLint các file đổi, typecheck và diff --check exit0. Chưa test browser/mạng chậm/mobile/desktop, chưa deploy; không cần migration. Ảnh chưa xác nhận vẫn chỉ giữ trong phiên; reload cần chọn lại file, ảnh bỏ dở theo cleanup24h hiện có.
+
+### 10/10/2026 — Kéo thả và dán ảnh kỷ niệm
+
+Thêm drop/paste trong composer Kỷ niệm theo yêu cầu, giữ nguyên chữ và bố cục. Chọn file/drop/paste cùng selectPhoto kiểm tra JPEG/PNG/WebP tối đa5MB; giữ preview và luồng upload hiện có. Đồng bộ FileList cho native input nếu browser hỗ trợ. Paste văn bản giữ hành vi mặc định; ảnh clipboard được nhận khi browser cung cấp file. Chặn thay ảnh qua drop/paste lúc form đang gửi, chặn trình duyệt mở file khi drop vào form. Chưa kiểm chứng Win+V hoặc browser thực tế.
