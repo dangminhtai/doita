@@ -344,6 +344,8 @@ export const CONTENT = {
     returned: "Một điều ước cũ đã trở lại",
   },
   memories: {
+    uploadTimeout:
+      "Chưa xác nhận ảnh tải lên sau 2 phút. Giữ ảnh trong form và thử lại để kiểm tra cùng ảnh.",
     cleanupPending: "Kỷ niệm đã xóa. Ảnh đang chờ dọn khỏi kho lưu trữ.",
     uploadedPhoto: "Ảnh đã tải lên: {{name}}. Ảnh được giữ để thử lưu lại.",
     empty: "Chưa có kỷ niệm. Chọn Giữ một khoảnh khắc để bắt đầu.",

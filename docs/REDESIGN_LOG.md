@@ -277,3 +277,7 @@ Anh báo production hiện xác nhận khi từ Hôm nay sang Notes, local khôn
 ### 06/10/2026 — Sửa refs trong render
 
 Chuyển đồng bộ ref của Notes, Prayer và useUnsavedChanges sang effect; không ghi ref trong render. Notes vẫn cập nhật ref ngay trong handler persist để giữ patch mới nhất. ESLint bốn file liên quan exit0; typecheck và diff --check exit0. Chưa kiểm tra browser hoặc deploy.
+
+### 10/10/2026 — Timeout tải ảnh kỷ niệm
+
+Anh báo mobile timeout30s và không thấy xác nhận ảnh đã tải. Đọc code xác nhận desktop/mobile dùng cùng MemoriesScreen và boundedFetch30s cho cả upload file gốc tối đa5MB; chưa có network log để xác nhận request nào timeout trong lần của anh. Tách timeout POST Storage bucket memories thành120s, các request khác vẫn30s. Giữ path của lần upload chưa xác nhận trong ref; retry kiểm tra object tồn tại rồi dùng lại hoặc tải vào cùng path, upsertfalse. Không queue xóa ảnh upload mất phản hồi; chỉ path đã xác nhận mới được gắn vào save_memory. Giữ cơ chế receipt save_memory và draft; timeout upload có thông báo riêng. ESLint các file đổi, typecheck và diff --check exit0. Chưa test browser/mạng chậm/mobile/desktop, chưa deploy; không cần migration. Ảnh chưa xác nhận vẫn chỉ giữ trong phiên; reload cần chọn lại file, ảnh bỏ dở theo cleanup24h hiện có.

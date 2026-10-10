@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { boundedFetch, retryableActions } from "@/lib/request";
+import { boundedFetch, retryableActions, supabaseFetch } from "@/lib/request";
 let client: SupabaseClient | undefined;
 export const configured = () =>
   Boolean(
@@ -11,7 +11,7 @@ export function db() {
   return (client ??= createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { global: { fetch: boundedFetch } },
+    { global: { fetch: supabaseFetch } },
   ));
 }
 export async function rpc(name: string, args: Record<string, unknown> = {}) {

@@ -1,3 +1,23 @@
+export const MEMORY_UPLOAD_TIMEOUT_MS = 120000;
+
+export async function supabaseFetch(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+) {
+  const url = new URL(input instanceof Request ? input.url : String(input));
+  const method = (
+    init.method ?? (input instanceof Request ? input.method : "GET")
+  ).toUpperCase();
+  const memoryUpload =
+    method === "POST" &&
+    url.pathname.startsWith("/storage/v1/object/memories/");
+  return boundedFetch(
+    input,
+    init,
+    memoryUpload ? MEMORY_UPLOAD_TIMEOUT_MS : 30000,
+  );
+}
+
 export async function boundedFetch(
   input: RequestInfo | URL,
   init: RequestInit = {},

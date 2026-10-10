@@ -47,7 +47,11 @@ export function MemoriesScreen() {
     setPreview(url);
     return () => URL.revokeObjectURL(url);
   }, [file]);
-  const upload = useRef<{ file: File | null; path: string } | null>(null);
+  const upload = useRef<{
+    file: File | null;
+    path: string;
+    confirmed: boolean;
+  } | null>(null);
   const [uploadedName, setUploadedName] = useState("");
   const uploadKey = `couple-draft:${user!.id}:${d.couple!.id}:memory-upload`;
   useEffect(() => {
@@ -58,7 +62,7 @@ export function MemoriesScreen() {
         typeof saved.path === "string" &&
         saved.path.startsWith(`${d.couple!.id}/${user!.id}/`)
       ) {
-        upload.current = { file: null, path: saved.path };
+        upload.current = { file: null, path: saved.path, confirmed: true };
         setUploadedName(saved.name ?? "");
       }
     } catch {
@@ -115,8 +119,14 @@ export function MemoriesScreen() {
               return;
             }
             const ok = await run(async () => {
-              let path: null | string = upload.current?.path ?? null;
-              if (file && upload.current?.file === file)
+              let path: null | string = upload.current?.confirmed
+                ? upload.current.path
+                : null;
+              if (
+                file &&
+                upload.current?.file === file &&
+                upload.current.confirmed
+              )
                 path = upload.current.path;
               else if (file) {
                 if (
@@ -127,19 +137,28 @@ export function MemoriesScreen() {
                 )
                   throw new Error("Invalid file");
                 const ext = file.type.split("/")[1];
-                path = `${d.couple!.id}/${user!.id}/${crypto.randomUUID()}.${ext}`;
+                const retry = upload.current?.file === file;
+                path = retry
+                  ? upload.current!.path
+                  : `${d.couple!.id}/${user!.id}/${crypto.randomUUID()}.${ext}`;
+                // Keep the same object path when an upload acknowledgement is lost.
+                upload.current = { file, path, confirmed: false };
                 await rpc("register_memory_asset", { p_path: path });
-                const uploaded = await db()
-                  .storage.from("memories")
-                  .upload(path, file, {
-                    contentType: file.type,
-                    upsert: false,
-                  });
+                const storage = db().storage.from("memories");
+                const existing = retry ? await storage.exists(path) : null;
+                const uploaded = existing?.data
+                  ? { error: null }
+                  : await storage.upload(path, file, {
+                      contentType: file.type,
+                      upsert: false,
+                    });
                 if (uploaded.error) {
-                  await rpc("queue_memory_cleanup", { p_path: path });
+                  // A timeout may still have uploaded the object. Do not queue deletion.
+                  if (uploaded.error.message.includes("request_timeout"))
+                    throw new Error("memory_upload_timeout");
                   throw uploaded.error;
                 }
-                upload.current = { file, path };
+                upload.current = { file, path, confirmed: true };
                 setUploadedName(file.name);
                 try {
                   localStorage.setItem(

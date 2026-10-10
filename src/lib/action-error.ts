@@ -12,6 +12,7 @@ export function actionErrorMessage(error: unknown): string {
         profile_unavailable: C.profile.unavailable,
         request_conflict: C.errors.invalid,
         request_timeout: C.errors.timeout,
+        memory_upload_timeout: C.memories.uploadTimeout,
         session_expired: C.errors.authExpired,
         forbidden: C.errors.forbidden,
         repair_unavailable: C.errors.repair,
